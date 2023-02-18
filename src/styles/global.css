@@ -1,0 +1,58 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200;400&display=swap");
+
+* {
+   -webkit-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+}
+
+a {
+   color: #fe7585;
+}
+
+@keyframes fadeInfadeOut {
+   0% {
+      opacity: 0;
+      animation-timing-function: cubic-bezier(0.25, 1.0, 1.0, 1.0);
+   }
+
+   40% {
+      opacity: 1;
+   }
+
+   50% {
+      opacity: 1;
+   }
+
+   60% {
+      opacity: 1;
+   }
+
+   100% {
+      opacity: 0;
+      animation-timing-function: cubic-bezier(0.01, 1.0, 1.0, 1.0);
+      visibility: hidden;
+   }
+}
+
+@keyframes scale {
+
+   from,
+   to {
+      transform: scale(0);
+   }
+
+   50% {
+      transform: scale(1);
+   }
+}
+
+@keyframes rotate {
+   from {
+      transform: rotate(0deg);
+   }
+
+   to {
+      transform: rotate(180deg);
+   }
+}
