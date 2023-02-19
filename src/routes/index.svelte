@@ -1,14 +1,14 @@
-<head>
+<svelte:head>
    <title>skeptically screepy</title>
    <meta property="og:title" content="screepy" />
-   <meta property="og:description" content="about" />
-   <meta property="og:url" content="https://screepai.me/" />
+   <meta property="og:description" content="about me" />
+   <meta property="og:url" content="https://screepai.vercel.app/" />
    <meta property="og:type" content="website" />
    <meta property="og:site_name" content="screepy" />
    <meta property="twitter:card" content="summary_large_image" />
-   <meta property="og:image" content="https://i.imgur.com/EPzkp45.png" />
+   <meta property="og:image" content="https://media.discordapp.net/attachments/1043074163004424203/1076733997427740682/FhbziKRVUAAmdiE.png" />
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
- </head>
+ </svelte:head>
 
 <script>
    import "../styles/global.css"
