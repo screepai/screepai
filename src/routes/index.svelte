@@ -43,6 +43,7 @@
          console.log("init aos");
          aos.init({
             easing: "ease-out-back",
+            offset: 250,
          });
       }, 3000);
 
