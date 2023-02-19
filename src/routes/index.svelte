@@ -189,8 +189,8 @@
                      <div class="card" data-aos="fade-down">
                         <h4>About me</h4>
                      </div>
-                     {#each cards as card, index}
-                        <div class="card" data-aos="fade-right" data-aos-delay={(index + 2) * 100}>
+                     {#each cards as card, i}
+                        <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
                            <p>{card.text}</p>
                         </div>
                      {/each}
@@ -202,7 +202,7 @@
                         <h4>Like &amp; Hate</h4>
                      </div>
                      {#each items as item, i}
-                        <div class="card" data-aos="fade-right" data-aos-delay={200 + (i * 100)}>
+                        <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
                            <button class="collapsible-header">{item.header}</button>
                            <div>
                               <div class="collapsible-content">
@@ -222,7 +222,7 @@
                      </div>
                      <ul id="icons02" class="style1 icons">
                         {#each socialLinks as socialLink, i}
-                           <div class="card" data-aos="fade-right" data-aos-delay={200 + i*100}>
+                           <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
                               <li><a class="n03" href={socialLink.url} target="_blank" rel="noreferrer"><svg><use xlink:href={socialLink.icon}></use></svg><span class="label">{socialLink.label}</span></a></li>
                            </div>
                         {/each}
