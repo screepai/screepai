@@ -11,8 +11,6 @@
  </svelte:head>
 
 <script>
-   import "../styles/global.css"
-   import "../styles/swiper.css"
    import ParallaxJS from "parallax-js"
    import j from "jquery"
    import aos from "aos"
@@ -22,11 +20,15 @@
    import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
    import { Swiper, SwiperSlide } from "swiper/svelte";
    import { star, github, twitter, youtube } from "../components/shapes.js"
-
+   import { cards, items, socialLinks } from "../components/contents.js"
+   
+   import "../styles/global.css"
+   import "../styles/swiper.css"
+   
    import "swiper/css";
    import "swiper/css/navigation";
    import "swiper/css/pagination";
-      
+
    let ready = false;
    let visible = false;
    let parallaxInstance;
@@ -37,6 +39,12 @@
       ready = true;
       visible = true;
       await tick();
+      setTimeout(() => {
+         console.log("init aos");
+         aos.init({
+            easing: "ease-out-back",
+         });
+      }, 3000);
 
       const scene = document.getElementById("scene");
       const background = document.getElementById("background");
@@ -91,32 +99,33 @@
          collapsible.addEventListener("click", function () {
             if (!!collapsibleBody.style.maxHeight) {
                unexpand(collapsibleBody);
-               j(collapsible).css({
-                  borderTopLeftRadius: 15, 
-                  borderTopRightRadius: 15, 
-                  borderBottomLeftRadius: 0, 
-                  borderBottomRightRadius: 0 })
-               .animate({
-                  borderTopLeftRadius: 15, 
-                  borderTopRightRadius: 15, 
-                  borderBottomLeftRadius: 15, 
-                  borderBottomRightRadius: 15}, 500);
             } else {
                expand(collapsibleBody);
-               j(collapsible).css({
-                  borderTopLeftRadius: 15, 
-                  borderTopRightRadius: 15, 
-                  borderBottomLeftRadius: 15, 
-                  borderBottomRightRadius: 15 })
-               .animate({
-                  borderTopLeftRadius: 15, 
-                  borderTopRightRadius: 15, 
-                  borderBottomLeftRadius: 0, 
-                  borderBottomRightRadius: 0}, 500);
             }
+
+            j(collapsible).css({
+               borderTopLeftRadius: 15, 
+               borderTopRightRadius: 15, 
+               borderBottomLeftRadius: collapsibleBody.style.maxHeight ? 15 : 0, 
+               borderBottomRightRadius: collapsibleBody.style.maxHeight ? 15 : 0 
+            })
+            .animate({
+               borderTopLeftRadius: 15, 
+               borderTopRightRadius: 15, 
+               borderBottomLeftRadius: collapsibleBody.style.maxHeight ? 0 : 15, 
+               borderBottomRightRadius: collapsibleBody.style.maxHeight ? 0 : 15
+            }, 500);
          });
       });
    });
+   
+   function setSwiperHeight() {
+      const activeSlide = document.querySelector('.swiper-slide.swiper-slide-active');
+      const contentDiv = activeSlide.querySelector('div');
+      const height = contentDiv.offsetHeight + 35;
+      const swiper = document.querySelector('.swiper');
+      swiper.style.height = `${height}px`;
+   }
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" display="none" width="0" height="0">
@@ -140,42 +149,19 @@
    <div id="scene" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
       <div data-depth="0.2" class="profile">
          <span class="magic">
-            <span class="magic-star">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
-            <span class="magic-star">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
-            <span class="magic-star">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
-            <span class="magic-star">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
-            <span class="magic-star">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
-            <span class="magic-star">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
+            {#each Array(6) as _, i}
+               <span class="magic-star">
+                  <svg viewBox="0 0 512 512">
+                     <path d={star} />
+                  </svg>
+               </span>
+            {/each}
             <div class="discord">
                <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB" alt="screepy"></a>
             </div>
             <Swiper
                modules={[Navigation, Pagination, Scrollbar, A11y]}
-               spaceBetween={50}
+               spaceBetween={150}
                slidesPerView={1}
                pagination={{
                   clickable: true,
@@ -185,27 +171,16 @@
                }}
                speed={700}
                allowTouchMove={false}
+               watchOverflow={true}
                on:slideChangeTransitionStart={() => {
-                  let div = document.querySelector(`.swiper-slide.swiper-slide-active div`);
-                  let height = div.offsetHeight;
-                  let swiper = document.querySelector(`.swiper`);
-                  swiper.style.height = `${height+35}px`;
+                  setSwiperHeight();
                   j(".card").removeClass("aos-init").removeClass("aos-animate");
                }}
                on:slideChangeTransitionEnd={() => {
-                  j(".card").show(0);
-                  aos.init({
-                     easing: "ease-out-back"
-                  });
+                  aos.refresh();
                }}
                on:swiper={() => {
-                  let div = document.querySelector(`.swiper-slide.swiper-slide-active div`);
-                  let height = div.offsetHeight;
-                  let swiper = document.querySelector(`.swiper`);
-                  swiper.style.height = `${height+40}px`;
-                  aos.init({
-                     easing: "ease-out-back"
-                  });
+                  setSwiperHeight();
                }}
             >
                <SwiperSlide>
@@ -213,53 +188,30 @@
                      <div class="card" data-aos="fade-down">
                         <h4>About me</h4>
                      </div>
-                     <div class="card" data-aos="fade-right" data-aos-delay="200">
-                        <p>profound mental retardation</p>
-                     </div>
-                     <div class="card" data-aos="fade-right" data-aos-delay="300">
-                        <p>misaki tobisawa enthusiast</p>
-                     </div>
-                     <div class="card" data-aos="fade-right" data-aos-delay="400">
-                        <p>vietnamese and english</p>
-                     </div>
-                     <div class="card" data-aos="fade-right" data-aos-delay="500">
-                        <p>old mental age and straighforward</p>
-                     </div>
+                     {#each cards as card, index}
+                        <div class="card" data-aos="fade-right" data-aos-delay={(index + 2) * 100}>
+                           <p>{card.text}</p>
+                        </div>
+                     {/each}
                   </div>
                </SwiperSlide>
                <SwiperSlide>
                   <div class="about">
                      <div class="card" data-aos="fade-down">
-                        <h4>Like & Hate</h4>
+                        <h4>Like &amp; Hate</h4>
                      </div>
-                     <div class="card" data-aos="fade-right" data-aos-delay="200">
-                        <button class="collapsible-header">Like</button>
-                        <div>
-                           <div class="collapsible-content">
-                              <p>+ scenery that has sunlight and wind
-                              <br>+ wholesome straight/yuri relationship
-                              <br>+ coding
-                              <br>+ making myself suffer
-                              <br>+ reading manga and novel
-                              <br>+ watching anime, 2d girls
-                              <br>+ chess
-                              <br>+ japanese songs</p>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="card" data-aos="fade-right" data-aos-delay="300">
-                        <button class="collapsible-header">Hate</button>
-                        <div>
+                     {#each items as item, i}
+                        <div class="card" data-aos="fade-right" data-aos-delay={200 + (i * 100)}>
+                           <button class="collapsible-header">{item.header}</button>
                            <div>
-                              <p class="collapsible-content">+ capitalizing letters when not needed
-                              <br>+ homo and pedo
-                              <br>+ toxic relationship with/and kdrama
-                              <br>+ <a href="https://media.discordapp.net/attachments/974563744959049728/979415695370625085/unknown.png" target="_blank">average twitter users</a>
-                              <br>+ cringe and toxic and annoying people
-                              <br>+ <a href="https://www.urbandictionary.com/define.php?term=NTR" target="_blank">ntr</a> (go away if you like them)</p>
+                              <div class="collapsible-content">
+                                 {#each item.content as contentItem}
+                                    <p class="collapsible-content">{@html contentItem.replace(/\n/g, "<br>")}</p>
+                                 {/each}
+                              </div>
                            </div>
                         </div>
-                     </div>
+                     {/each}
                   </div>
                </SwiperSlide>
                <SwiperSlide>
@@ -268,20 +220,16 @@
                         <h4 style="text-align: center;">Socials</h4>
                      </div>
                      <ul id="icons02" class="style1 icons">
-                        <div class="card" data-aos="fade-right" data-aos-delay="200">
-                           <li><a class="n03" href="https://github.com/screepai" target="_blank"><svg><use xlink:href="#icon-905"></use></svg><span class="label">GitHub</span></a></li>
-                        </div>
-                        <div class="card" data-aos="fade-right" data-aos-delay="300">
-                           <li><a class="n03" href="https://twitter.com/screepaii" target="_blank"><svg><use xlink:href="#icon-910"></use></svg><span class="label">Twitter</span></a></li>
-                        </div>
-                        <div class="card" data-aos="fade-right" data-aos-delay="400">
-                           <li><a class="n03" href="https://www.youtube.com/channel/UCmLrPwbAiDpiPbXjPrD22Hw" target="_blank"><svg><use xlink:href="#icon-969"></use></svg><span class="label">YouTube</span></a></li>
-                        </div>
+                        {#each socialLinks as socialLink, i}
+                           <div class="card" data-aos="fade-right" data-aos-delay={200 + i*100}>
+                              <li><a class="n03" href={socialLink.url} target="_blank" rel="noreferrer"><svg><use xlink:href={socialLink.icon}></use></svg><span class="label">{socialLink.label}</span></a></li>
+                           </div>
+                        {/each}
                      </ul>
                   </div>
                </SwiperSlide>
             </Swiper>
-            <div class="about" style="text-align: center; border-top: 2px dashed #e1e1e1;">background from <a href="https://twitter.com/tubarururu" target="_blank">@tubarururu</a></div>
+            <div class="about" style="text-align: center; border-top: 2px dashed #e1e1e1;">background from <a href="https://twitter.com/tubarururu" target="_blank" rel="noreferrer">@tubarururu</a></div>
          </span>
       </div>
    </div>
