@@ -1,4 +1,4 @@
-import cloudflare from "@sveltejs/adapter-cloudflare";
+import vercel from "@sveltejs/adapter-vercel";
 import preprocess from "svelte-preprocess";
 
 /** @type {import("@sveltejs/kit").Config} */
@@ -8,7 +8,7 @@ const config = {
 	preprocess: preprocess(),
 
 	kit: {
-		adapter: cloudflare(),
+		adapter: vercel(),
 
 		// Override http methods in the Todo forms
 		methodOverride: {
