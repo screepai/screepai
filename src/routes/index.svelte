@@ -14,6 +14,8 @@
 
 <script>
    import css from "../styles/global.css"
+   import "../styles/swiper.scss"
+   import "../styles/collapse.scss"
    import ParallaxJS from "parallax-js"
    import j from "jquery"
    import aos from "aos"
