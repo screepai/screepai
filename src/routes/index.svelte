@@ -1,5 +1,5 @@
 <svelte:head>
-   <title>skeptically screepy</title>
+   <title>screepy</title>
    <meta property="og:title" content="screepy" />
    <meta property="og:description" content="about me" />
    <meta property="og:url" content="https://screepai.vercel.app/" />
