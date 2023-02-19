@@ -7,15 +7,12 @@
    <meta property="og:site_name" content="screepy" />
    <meta property="twitter:card" content="summary_large_image" />
    <meta property="og:image" content="https://i.imgur.com/EPzkp45.png" />
-   <link rel="stylesheet" href="src/styles/swiper.scss">
-   <link rel="stylesheet" href="src/styles/collapse.scss">
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
  </head>
 
 <script>
-   import css from "../styles/global.css"
-   import "../styles/swiper.scss"
-   import "../styles/collapse.scss"
+   import "../styles/global.css"
+   import "../styles/swiper.css"
    import ParallaxJS from "parallax-js"
    import j from "jquery"
    import aos from "aos"
