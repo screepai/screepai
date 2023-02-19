@@ -120,10 +120,10 @@
    });
    
    function setSwiperHeight() {
-      const activeSlide = document.querySelector('.swiper-slide.swiper-slide-active');
-      const contentDiv = activeSlide.querySelector('div');
+      const activeSlide = document.querySelector(".swiper-slide.swiper-slide-active");
+      const contentDiv = activeSlide.querySelector("div");
       const height = contentDiv.offsetHeight + 35;
-      const swiper = document.querySelector('.swiper');
+      const swiper = document.querySelector(".swiper");
       swiper.style.height = `${height}px`;
    }
 </script>
