@@ -40,12 +40,15 @@
       visible = true;
       await tick();
       setTimeout(() => {
-         console.log("init aos");
          aos.init({
             easing: "ease-out-back",
             offset: 0,
          });
       }, 3000);
+
+      setTimeout(() => {
+         visible = false;
+      }, 2000);
 
       const scene = document.getElementById("scene");
       const background = document.getElementById("background");
@@ -181,7 +184,7 @@
                   aos.refresh();
                }}
                on:swiper={() => {
-                  setSwiperHeight();
+                  setTimeout(setSwiperHeight, 500); // how
                }}
             >
                <SwiperSlide>
