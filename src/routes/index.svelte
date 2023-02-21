@@ -82,8 +82,8 @@
 
       function expand(el) {
          el.style.maxHeight = el.scrollHeight + "px";
-         el.classList.add("active");
          swiper.style.height = swiper.offsetHeight + el.scrollHeight + "px";
+         el.classList.add("active");
          lastActiveCollapsibleBody = el;
       }
 
