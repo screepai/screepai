@@ -42,7 +42,7 @@
       setTimeout(() => {
          aos.init({
             easing: "ease-out-back",
-            offset: 0,
+            offset: -999,
          });
       }, 3000);
 
