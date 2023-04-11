@@ -1,4 +1,6 @@
-export let cards = [{
+export const menu = ["About", "Like & Hate", "Socials"];
+
+export const cards = [{
       text: "profound mental retardation"
    },
    {
@@ -8,11 +10,14 @@ export let cards = [{
       text: "vietnamese and english"
    },
    {
+      text: "programmer and hobbyist live2d rigger"
+   },
+   {
       text: "old mental age and straightforward"
    },
 ];
 
-export let items = [
+export const items = [
    {
       header: "Like",
       content: ["+ scenery that has sunlight and wind\n+ wholesome straight/yuri relationship\n+ coding\n+ making myself suffer\n+ reading manga and novel\n+ watching anime, 2d girls\n+ chess\n+ japanese songs"],
@@ -23,7 +28,7 @@ export let items = [
    },
 ];
 
-export let socialLinks = [{
+export const socialLinks = [{
       url: 'https://github.com/screepai',
       icon: '#icon-905',
       label: 'GitHub'

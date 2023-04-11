@@ -20,7 +20,7 @@
    import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
    import { Swiper, SwiperSlide } from "swiper/svelte";
    import { star, github, twitter, youtube } from "../components/shapes.js"
-   import { cards, items, socialLinks } from "../components/contents.js"
+   import { cards, items, socialLinks, menu } from "../components/contents.js"
    
    import "../styles/global.css"
    import "../styles/swiper.css"
@@ -33,7 +33,6 @@
    let visible = false;
    let parallaxInstance;
    let backgroundparallaxInstance;
-   const menu = ["About", "Like & Hate", "Socials"];
   
    onMount(async () => {
       ready = true;
@@ -78,6 +77,7 @@
 
       const collapsibles = document.querySelectorAll(".collapsible-header");
       let swiper = document.querySelector(`.swiper`);
+      if (!swiper) return console.log("swiper is null");
       let lastActiveCollapsibleBody = null;
 
       function expand(el) {
@@ -95,6 +95,8 @@
 
       collapsibles.forEach((collapsible) => {
          const collapsibleBody = collapsible.nextElementSibling;
+         if (!collapsibleBody) return console.log("collapsibleBody is null");
+
 
          if (collapsibleBody.classList.contains("active")) {
             expand(collapsibleBody);
@@ -114,8 +116,8 @@
                borderBottomRightRadius: collapsibleBody.style.maxHeight ? 15 : 0 
             })
             .animate({
-               borderTopLeftRadius: 15, 
-               borderTopRightRadius: 15, 
+               borderTopLeftRadius: 15,
+               borderTopRightRadius: 15,
                borderBottomLeftRadius: collapsibleBody.style.maxHeight ? 0 : 15, 
                borderBottomRightRadius: collapsibleBody.style.maxHeight ? 0 : 15
             }, 500);
@@ -125,9 +127,12 @@
    
    function setSwiperHeight() {
       const activeSlide = document.querySelector(".swiper-slide.swiper-slide-active");
+      if (!activeSlide) return console.log("activeSlide is null");
       const contentDiv = activeSlide.querySelector("div");
+      if (!contentDiv) return console.log("contentDiv is null");
       const height = contentDiv.offsetHeight + 35;
       const swiper = document.querySelector(".swiper");
+      if (!swiper) return console.log("swiper is null");
       swiper.style.height = `${height}px`;
    }
 </script>
