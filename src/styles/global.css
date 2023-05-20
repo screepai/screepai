@@ -10,6 +10,14 @@ a {
    color: #fe7585;
 }
 
+body {
+   background: #f7f8f3;
+   background-size: auto;
+   background-attachment: fixed;
+   height: 100%;
+   overflow: hidden;
+}
+
 :root {
    --collapsible-transition-fn: ease;
    --collapsible-transition-duration: 0.3s;
@@ -34,7 +42,7 @@ a {
 
 .collapsible-header::after {
    color: #f2bbba;
-   content: "►";
+   content: ">";
    position: absolute;
    right: 2%;
    transition: transform var(--collapsible-transition-duration) var(--collapsible-transition-fn);
@@ -103,5 +111,258 @@ a {
 
    to {
       transform: rotate(180deg);
+   }
+}
+
+ul {
+   list-style: none;
+}
+
+li {
+   margin: 0;
+   padding: 0;
+   border: 0;
+   font-size: 100%;
+   font: inherit;
+   vertical-align: baseline;
+}
+
+.icons {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: var(--flex-alignment);
+   letter-spacing: 0;
+   padding: 0;
+   justify-content: center;
+   align-items: center;
+   text-align: center;
+}
+
+.icons li {
+   position: relative;
+   z-index: 1;
+}
+
+.icons li a {
+   align-items: center;
+   display: flex;
+   justify-content: center;
+}
+
+.icons li a svg {
+   display: block;
+   position: relative;
+}
+
+/* .icons li a + svg {
+   display: block;
+   height: 100%;
+   left: 0;
+   pointer-events: none;
+   position: absolute;
+   top: 0;
+   width: 100%;
+   z-index: -1;
+} */
+
+.icons li a .label {
+   display: none;
+}
+
+.icons.style1 {
+   font-size: 1.75em;
+   gap: 1.375rem;
+}
+
+/* .icons.style1 .n04 {
+   width: 10rem;
+   border-radius: 60px;
+   font-size: 20px;
+} */
+
+.icons.style1 li a {
+   border-radius: 100%;
+   height: 2em;
+   width: 2em;
+   transition: transform 0.375s ease, color 0.375s ease,
+      background-color 0.375s ease, border-color 0.375s ease;
+}
+
+.icons.style1 li a svg {
+   height: 60%;
+   width: 60%;
+   transition: fill 0.375s ease;
+}
+
+.icons.style1 a svg {
+   fill: #777777;
+}
+
+.icons.style1 a {
+   border: solid 1px #777777;
+   color: solid 1px #777777;
+}
+
+.icons.style1 a:hover {
+   border-color: #e98e8c !important;
+   color: #e98e8c !important;
+}
+
+.icons.style1 a:hover svg {
+   fill: #e98e8c !important;
+}
+
+/* .icons.style1 li a + svg {
+   transition: transform 0.375s ease, fill 0.375s ease, stroke 0.375s ease;
+} */
+
+.icons.style1 li a:hover {
+   transform: scale(1.1125);
+}
+
+/* .icons.style1 li a:hover + svg {
+   transform: scale(1.1125);
+} */
+
+.bg {
+   height: 110vh !important;
+   background: #f7f8f3;
+   content: url("https://media.discordapp.net/attachments/623893403339587624/1075435379970293871/background2.webp") !important;
+   background-repeat: no-repeat;
+}
+
+.parallax {
+   display: block;
+   justify-content: center;
+   position: absolute;
+   left: 50%;
+   top: 50%;
+   transform: translate(-50%, -50%) !important;
+}
+
+.profile {
+   position: relative !important;
+   left: -80% !important;
+   top: 50% !important;
+   max-width: 25.625rem;
+   background: #FBFBFB;
+   animation: float 2.7s infinite;
+   box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);
+   border-radius: 20px;
+   pointer-events: auto !important;
+}
+
+.profile > .magic {
+   display: inline-block;
+   position: relative;
+   width: 100%;
+   height: 100%;
+   z-index: 999;
+}
+
+.profile > .magic > .magic-star {
+   --size: clamp(20px, 1.5vw, 30px);
+   animation: scale 1000ms ease forwards;
+   display: block;
+   height: var(--size);
+   left: var(--star-left);
+   position: absolute;
+   top: var(--star-top);
+   width: var(--size);
+}
+
+.profile > .magic > .magic-star > svg {
+   animation: rotate 1000ms linear infinite;
+   display: block;
+   opacity: 0.5;
+}
+
+.profile > .magic > .magic-star > svg > path {
+   fill: #e98e8c;
+}
+
+.profile::before {
+   content: "☆~";
+   position: absolute;
+   top: -55px;
+   left: -15%;
+   font-size: 49px;
+   rotate: -45deg;
+   color: #e98e8c;
+   animation: bob 4s ease-in-out infinite;
+}
+
+@keyframes bob {
+   0%, 90% {
+      transform: translate(0,  0px);
+   }
+   50% {
+      transform: translate(0, -15px);
+   }
+}
+
+.profile::after {
+   content: "";
+   position: absolute;
+   border: 2px dashed #e98e8c;
+   width: 100%;
+   height: 100%;
+   padding: 10px;
+   left: -12px;
+   top: -12px;
+   align-items: center;
+   justify-content: center;
+   border-radius: 20px;
+}
+
+.discord {
+   pointer-events: none;
+   border-bottom: 2px dashed #e1e1e1;
+}
+
+.about {
+   display: block;
+   text-align: justify;
+   padding: 20px;
+   color: #777777;
+   font-family: "Inter Tight", sans-serif;
+   font-style: normal;
+   font-weight: 400;
+   font-display: swap;
+   /* letter-spacing: 0.04em; */
+}
+
+.about p {
+   margin: 0;
+}
+
+.about h4 {
+   color: #e98e8c;
+   margin-top: 0;
+}
+
+.centered {
+   animation: 3s fadeInfadeOut;
+   animation-fill-mode: forwards;
+   position: absolute;
+   left: 50%;
+   top: 50%;
+   transform: translate(-50%,-50%);
+   font-family: "Inter Tight", sans-serif;
+   font-style: normal;
+   font-weight: 200;
+   font-display: swap;
+   font-size: 46px;
+   letter-spacing: 0.04em;
+}
+
+.centered span {
+   will-change: filter;
+}
+
+@media only screen and (max-width: 767px) {
+   .profile {
+      left: 0% !important;
+      top: 50% !important;
    }
 }

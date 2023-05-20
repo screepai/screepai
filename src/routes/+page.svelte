@@ -10,12 +10,12 @@
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
  </svelte:head>
 
-<script>
+<script lang="ts">
    import ParallaxJS from "parallax-js"
    import j from "jquery"
    import aos from "aos"
-   import {circOut} from "svelte/easing";
-   import {onMount, tick} from "svelte";
+   import { circOut } from "svelte/easing";
+   import { onMount, tick } from "svelte";
    import { fade, fly } from "svelte/transition";
    import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
    import { Swiper, SwiperSlide } from "swiper/svelte";
@@ -31,8 +31,6 @@
 
    let ready = false;
    let visible = false;
-   let parallaxInstance;
-   let backgroundparallaxInstance;
   
    onMount(async () => {
       ready = true;
@@ -51,45 +49,45 @@
 
       const scene = document.getElementById("scene");
       const background = document.getElementById("background");
-      parallaxInstance = new ParallaxJS(scene);
-      backgroundparallaxInstance = new ParallaxJS(background);
+      new ParallaxJS(scene as HTMLElement);
+      new ParallaxJS(background as HTMLElement);
 
       let index = 0, interval = 2000;
 
-      const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-      const animate = star => {
-         star.style.setProperty("--star-left", `${rand(-20, 110)}%`);
-         star.style.setProperty("--star-top", `${rand(-20, 100)}%`);
+      const animate = (star: Element) => {
+         (star as HTMLElement).style.setProperty("--star-left", `${rand(-20, 110)}%`);
+         (star as HTMLElement).style.setProperty("--star-top", `${rand(-20, 100)}%`);
 
-         star.style.animation = "none";
-         star.offsetHeight;
-         star.style.animation = "";
+         (star as HTMLElement).style.animation = "none";
+         (star as HTMLElement).offsetHeight;
+         (star as HTMLElement).style.animation = "";
       }
 
-      for(const star of document.getElementsByClassName("magic-star")) {
+      const stars = document.getElementsByClassName("magic-star");
+      for (let i = 0; i < stars.length; i++) {
+         const star = stars[i];
          setTimeout(() => {
             animate(star);
-            
             setInterval(() => animate(star), interval);
          }, index++ * (interval / 6))
       }
 
       const collapsibles = document.querySelectorAll(".collapsible-header");
       let swiper = document.querySelector(`.swiper`);
-      if (!swiper) return console.log("swiper is null");
       let lastActiveCollapsibleBody = null;
 
-      function expand(el) {
+      function expand(el: HTMLElement) {
          el.style.maxHeight = el.scrollHeight + "px";
-         swiper.style.height = swiper.offsetHeight + el.scrollHeight + "px";
+         (swiper as HTMLElement).style.height = (swiper as HTMLElement).offsetHeight + el.scrollHeight + "px";
          el.classList.add("active");
          lastActiveCollapsibleBody = el;
       }
 
-      function unexpand(el) {
-         el.style.maxHeight = null;
-         swiper.style.height = swiper.offsetHeight - el.scrollHeight + "px";
+      function unexpand(el: HTMLElement) {
+         el.style.maxHeight = "";
+         (swiper as HTMLElement).style.height = (swiper as HTMLElement).offsetHeight - el.scrollHeight + "px";
          el.classList.remove("active");
       }
 
@@ -99,27 +97,27 @@
 
 
          if (collapsibleBody.classList.contains("active")) {
-            expand(collapsibleBody);
+            expand(collapsibleBody as HTMLElement);
          }
 
          collapsible.addEventListener("click", function () {
-            if (!!collapsibleBody.style.maxHeight) {
-               unexpand(collapsibleBody);
+            if (!!(collapsibleBody as HTMLElement).style.maxHeight) {
+               unexpand(collapsibleBody as HTMLElement);
             } else {
-               expand(collapsibleBody);
+               expand(collapsibleBody as HTMLElement);
             }
 
             j(collapsible).css({
                borderTopLeftRadius: 15, 
                borderTopRightRadius: 15, 
-               borderBottomLeftRadius: collapsibleBody.style.maxHeight ? 15 : 0, 
-               borderBottomRightRadius: collapsibleBody.style.maxHeight ? 15 : 0 
+               borderBottomLeftRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 15 : 0, 
+               borderBottomRightRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 15 : 0 
             })
             .animate({
                borderTopLeftRadius: 15,
                borderTopRightRadius: 15,
-               borderBottomLeftRadius: collapsibleBody.style.maxHeight ? 0 : 15, 
-               borderBottomRightRadius: collapsibleBody.style.maxHeight ? 0 : 15
+               borderBottomLeftRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 0 : 15, 
+               borderBottomRightRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 0 : 15
             }, 500);
          });
       });
@@ -127,13 +125,14 @@
    
    function setSwiperHeight() {
       const activeSlide = document.querySelector(".swiper-slide.swiper-slide-active");
-      if (!activeSlide) return console.log("activeSlide is null");
-      const contentDiv = activeSlide.querySelector("div");
-      if (!contentDiv) return console.log("contentDiv is null");
-      const height = contentDiv.offsetHeight + 35;
-      const swiper = document.querySelector(".swiper");
-      if (!swiper) return console.log("swiper is null");
-      swiper.style.height = `${height}px`;
+      const contentDiv = activeSlide?.querySelector("div");
+      if (contentDiv) {
+         const height = contentDiv.offsetHeight + 35;
+         const swiper = document.querySelector(".swiper");
+         (swiper as HTMLElement).style.height = `${height}px`;
+      } else {
+         location.reload();
+      }
    }
 </script>
 
@@ -158,7 +157,7 @@
    <div id="scene" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
       <div data-depth="0.2" class="profile">
          <span class="magic">
-            {#each Array(6) as _, i}
+            {#each Array(6) as _}
                <span class="magic-star">
                   <svg viewBox="0 0 512 512">
                      <path d={star} />
@@ -166,7 +165,7 @@
                </span>
             {/each}
             <div class="discord">
-               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB" alt="screepy"></a>
+               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=pls cure my boredom" alt="screepy"></a>
             </div>
             <Swiper
                modules={[Navigation, Pagination, Scrollbar, A11y]}
@@ -243,256 +242,3 @@
       </div>
    </div>
 {/if}
-
-<style>
-   :global(body) {
-      background: #f7f8f3;
-      background-size: auto;
-      background-attachment: fixed;
-      height: 100%;
-      overflow: hidden;
-   }
-
-   ul {
-      list-style: none;
-   }
-
-   li {
-      margin: 0;
-      padding: 0;
-      border: 0;
-      font-size: 100%;
-      font: inherit;
-      vertical-align: baseline;
-   }
-
-   .icons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: var(--flex-alignment);
-      letter-spacing: 0;
-      padding: 0;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-   }
-
-   .icons li {
-      position: relative;
-      z-index: 1;
-   }
-
-   .icons li a {
-      align-items: center;
-      display: flex;
-      justify-content: center;
-   }
-
-   .icons li a svg {
-      display: block;
-      position: relative;
-   }
-
-   .icons li a + svg {
-      display: block;
-      height: 100%;
-      left: 0;
-      pointer-events: none;
-      position: absolute;
-      top: 0;
-      width: 100%;
-      z-index: -1;
-   }
-
-   .icons li a .label {
-      display: none;
-   }
-
-   .icons.style1 {
-      font-size: 1.75em;
-      gap: 1.375rem;
-   }
-
-   .icons.style1 .n04 {
-      width: 10rem;
-      border-radius: 60px;
-      font-size: 20px;
-   }
-
-   .icons.style1 li a {
-      border-radius: 100%;
-      height: 2em;
-      width: 2em;
-      transition: transform 0.375s ease, color 0.375s ease,
-         background-color 0.375s ease, border-color 0.375s ease;
-   }
-
-   .icons.style1 li a svg {
-      height: 60%;
-      width: 60%;
-      transition: fill 0.375s ease;
-   }
-
-   .icons.style1 a svg {
-      fill: #777777;
-   }
-
-   .icons.style1 a {
-      border: solid 1px #777777;
-      color: solid 1px #777777;
-   }
-
-   .icons.style1 a:hover {
-      border-color: #e98e8c !important;
-      color: #e98e8c !important;
-   }
-
-   .icons.style1 a:hover svg {
-      fill: #e98e8c !important;
-   }
-
-   .icons.style1 li a + svg {
-      transition: transform 0.375s ease, fill 0.375s ease, stroke 0.375s ease;
-   }
-
-   .icons.style1 li a:hover {
-      transform: scale(1.1125);
-   }
-
-   .icons.style1 li a:hover + svg {
-      transform: scale(1.1125);
-   }
-
-   .bg {
-      height: 110vh !important;
-      background: #f7f8f3;
-      content: url("https://media.discordapp.net/attachments/623893403339587624/1075435379970293871/background2.webp") !important;
-      background-repeat: no-repeat;
-   }
-
-   .parallax {
-      display: block;
-      justify-content: center;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) !important;
-   }
-
-   .profile {
-      position: relative !important;
-      left: -80% !important;
-      top: 50% !important;
-      max-width: 25.625rem;
-      background: #FBFBFB;
-      animation: float 2.7s infinite;
-      box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);
-      border-radius: 20px;
-      pointer-events: auto !important;
-   }
-
-   .profile > .magic {
-      display: inline-block;
-      position: relative;
-      width: 100%;
-      height: 100%;
-      z-index: 999;
-   }
-
-   .profile > .magic > .magic-star {
-      --size: clamp(20px, 1.5vw, 30px);
-      animation: scale 1000ms ease forwards;
-      display: block;
-      height: var(--size);
-      left: var(--star-left);
-      position: absolute;
-      top: var(--star-top);
-      width: var(--size);
-   }
-
-   .profile > .magic > .magic-star > svg {
-      animation: rotate 1000ms linear infinite;
-      display: block;
-      opacity: 0.5;
-   }
-
-   .profile > .magic > .magic-star > svg > path {
-      fill: #e98e8c;
-   }
-
-   .profile::before {
-      content: "☆~";
-      position: absolute;
-      top: -55px;
-      left: -15%;
-      font-size: 49px;
-      rotate: -45deg;
-      color: #e98e8c;
-   }
-
-   .profile::after {
-      content: "";
-      position: absolute;
-      border: 2px dashed #e98e8c;
-      width: 100%;
-      height: 100%;
-      padding: 10px 10px 10px 10px;
-      left: -12px;
-      top: -12px;
-      align-items: center;
-      justify-content: center;
-      border-radius: 20px;
-   }
-
-   .discord {
-      pointer-events: none;
-      border-bottom: 2px dashed #e1e1e1;
-   }
-
-   .about {
-      display: block;
-      text-align: justify;
-      padding: 20px;
-      color: #777777;
-      font-family: "Inter Tight", sans-serif;
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-      /* letter-spacing: 0.04em; */
-   }
-
-   .about p {
-      margin: 0;
-   }
-
-   .about h4 {
-      color: #e98e8c;
-      margin-top: 0;
-   }
-
-   .centered {
-      animation: 3s fadeInfadeOut;
-      animation-fill-mode: forwards;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%,-50%);
-      font-family: "Inter Tight", sans-serif;
-      font-style: normal;
-      font-weight: 200;
-      font-display: swap;
-      font-size: 46px;
-      letter-spacing: 0.04em;
-   }
-
-   .centered span {
-      will-change: filter;
-   }
-
-  @media only screen and (max-width: 767px) {
-      .profile {
-         left: 0% !important;
-         top: 50% !important;
-      }
-   }
-</style>
