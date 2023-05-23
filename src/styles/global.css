@@ -246,9 +246,8 @@ li {
    top: 50% !important;
    max-width: 25.625rem;
    background: #FBFBFB;
-   animation: float 2.7s infinite;
    box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);
-   border-radius: 20px;
+   border-radius: 10px;
    pointer-events: auto !important;
 }
 
@@ -269,6 +268,7 @@ li {
    position: absolute;
    top: var(--star-top);
    width: var(--size);
+   z-index: 99999;
 }
 
 .profile > .magic > .magic-star > svg {
@@ -293,12 +293,8 @@ li {
 }
 
 @keyframes bob {
-   0%, 90% {
-      transform: translate(0,  0px);
-   }
-   50% {
-      transform: translate(0, -15px);
-   }
+   0%, 100% { transform: translate(0, 0px); }
+   50% { transform: translate(0, -15px); }
 }
 
 .profile::after {
@@ -312,7 +308,7 @@ li {
    top: -12px;
    align-items: center;
    justify-content: center;
-   border-radius: 20px;
+   border-radius: 10px;
 }
 
 .discord {

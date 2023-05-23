@@ -1,14 +1,16 @@
 <svelte:head>
    <title>screepy</title>
    <meta property="og:title" content="screepy" />
+   <meta name="description" content="about me" />
    <meta property="og:description" content="about me" />
    <meta property="og:url" content="https://screepai.vercel.app/" />
    <meta property="og:type" content="website" />
    <meta property="og:site_name" content="screepy" />
    <meta property="twitter:card" content="summary_large_image" />
    <meta property="og:image" content="https://media.discordapp.net/attachments/1043074163004424203/1076733997427740682/FhbziKRVUAAmdiE.png" />
+   <meta name="theme-color" content="#fe7585" />
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
- </svelte:head>
+</svelte:head>
 
 <script lang="ts">
    import ParallaxJS from "parallax-js"
@@ -52,7 +54,7 @@
       new ParallaxJS(scene as HTMLElement);
       new ParallaxJS(background as HTMLElement);
 
-      let index = 0, interval = 2000;
+      let interval = 2000;
 
       const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -71,7 +73,7 @@
          setTimeout(() => {
             animate(star);
             setInterval(() => animate(star), interval);
-         }, index++ * (interval / 6))
+         }, i * (interval / stars.length))
       }
 
       const collapsibles = document.querySelectorAll(".collapsible-header");
@@ -143,9 +145,9 @@
 </svg>
 
 {#if visible}
-   <div class="centered" out:fly="{{y: -20, duration: 800}}">
+   <div class="centered" out:fly="{{ y: -20, duration: 800 }}">
       {#each "hey there" as char, i}
-         <span in:fade="{{delay: i * 120, duration: 800}}">{char}</span>
+         <span in:fade="{{ delay: i * 120, duration: 800 }}">{char}</span>
       {/each}
    </div>
 {/if}
