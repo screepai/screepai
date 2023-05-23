@@ -167,7 +167,7 @@
                </span>
             {/each}
             <div class="discord">
-               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=	( ´ ω ` )ノﾞ" alt="screepy"></a>
+               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=( ´ ω ` )ノﾞ" alt="screepy"></a>
             </div>
             <Swiper
                modules={[Navigation, Pagination, Scrollbar, A11y]}
