@@ -19,6 +19,7 @@
    import { circOut } from "svelte/easing";
    import { onMount, tick } from "svelte";
    import { fade, fly } from "svelte/transition";
+   import { backInOut } from "svelte/easing"
    import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
    import { Swiper, SwiperSlide } from "swiper/svelte";
    import { star, github, twitter, youtube } from "../components/shapes.js"
@@ -145,9 +146,9 @@
 </svg>
 
 {#if visible}
-   <div class="centered" out:fly="{{ y: -20, duration: 800 }}">
-      {#each "hey there" as char, i}
-         <span in:fade="{{ delay: i * 120, duration: 800 }}">{char}</span>
+   <div class="centered" out:fly="{{ y: -20, duration: 800, easing: backInOut }}">
+      {#each "(´•ω•`)" as char, i}
+         <span in:fade="{{ delay: i * 120, duration: 800, easing: backInOut }}">{char}</span>
       {/each}
    </div>
 {/if}
