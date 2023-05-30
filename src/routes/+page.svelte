@@ -240,7 +240,7 @@
                   </div>
                </SwiperSlide>
             </Swiper>
-            <div class="about" style="text-align: center; border-top: 2px dashed #e1e1e1;">background from <a href="https://twitter.com/tubarururu" target="_blank" rel="noreferrer">@tubarururu</a></div>
+            <div class="about" style="text-align: center; border-top: 2px dashed #e1e1e1;">background art by <a href="https://twitter.com/tubarururu" target="_blank" rel="noreferrer">@tubarururu</a></div>
          </span>
       </div>
    </div>
