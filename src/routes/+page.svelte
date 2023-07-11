@@ -8,7 +8,6 @@
    <meta property="og:site_name" content="screepy" />
    <meta property="twitter:card" content="summary_large_image" />
    <meta property="og:image" content="https://media.discordapp.net/attachments/1043074163004424203/1076733997427740682/FhbziKRVUAAmdiE.png" />
-   <meta name="theme-color" content="#fe7585" />
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 </svelte:head>
 
@@ -168,7 +167,7 @@
                </span>
             {/each}
             <div class="discord">
-               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=( ´ ω ` )ノﾞ&hideDiscrim=true" alt="screepy"></a>
+               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=( ´ ω ` )ノﾞ&hideDiscrim=true&showDisplayName=true" alt="screepy"></a>
             </div>
             <Swiper
                modules={[Navigation, Pagination, Scrollbar, A11y]}

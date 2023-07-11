@@ -356,7 +356,7 @@ li {
    will-change: filter;
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 819px) {
    .profile {
       left: 0% !important;
       top: 50% !important;
