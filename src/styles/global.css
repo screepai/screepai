@@ -227,7 +227,7 @@ li {
 .bg {
    height: 110vh !important;
    background: #f7f8f3;
-   content: url("/background2.png") !important;
+   content: url("/background2.webp") !important;
    background-repeat: no-repeat;
 }
 
