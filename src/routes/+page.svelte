@@ -1,39 +1,26 @@
-<svelte:head>
-   <title>screepy</title>
-   <meta property="og:title" content="screepy" />
-   <meta name="description" content="about me" />
-   <meta property="og:description" content="about me" />
-   <meta property="og:url" content="https://screepai.vercel.app/" />
-   <meta property="og:type" content="website" />
-   <meta property="og:site_name" content="screepy" />
-   <meta property="twitter:card" content="summary_large_image" />
-   <meta property="og:image" content="https://media.discordapp.net/attachments/1043074163004424203/1076733997427740682/FhbziKRVUAAmdiE.png" />
-   <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-</svelte:head>
-
 <script lang="ts">
-   import ParallaxJS from "parallax-js"
-   import j from "jquery"
-   import aos from "aos"
+   import ParallaxJS from "parallax-js";
+   import j from "jquery";
+   import aos from "aos";
    import { circOut } from "svelte/easing";
    import { onMount, tick } from "svelte";
    import { fade, fly } from "svelte/transition";
    import { backInOut } from "svelte/easing";
    import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
    import { Swiper, SwiperSlide } from "swiper/svelte";
-   import { star, github, twitter, youtube } from "../components/shapes.js"
-   import { cards, items, socialLinks, menu } from "../components/contents.js"
-   
-   import "../styles/global.css"
-   import "../styles/swiper.css"
-   
+   import { star, github, twitter, youtube } from "../components/shapes.js";
+   import { cards, credits, socialLinks, menu } from "../components/contents.js";
+
+   import "../styles/global.css";
+   import "../styles/swiper.css";
+
    import "swiper/css";
    import "swiper/css/navigation";
    import "swiper/css/pagination";
 
    let ready = false;
    let visible = false;
-  
+
    onMount(async () => {
       ready = true;
       visible = true;
@@ -65,78 +52,41 @@
          (star as HTMLElement).style.animation = "none";
          (star as HTMLElement).offsetHeight;
          (star as HTMLElement).style.animation = "";
-      }
+      };
 
       const stars = document.getElementsByClassName("magic-star");
       for (let i = 0; i < stars.length; i++) {
          const star = stars[i];
          setTimeout(() => {
-            animate(star);
-            setInterval(() => animate(star), interval);
-         }, i * (interval / stars.length))
+               animate(star);
+               setInterval(() => animate(star), interval);
+            },
+            i * (interval / stars.length),
+         );
       }
-
-      const collapsibles = document.querySelectorAll(".collapsible-header");
-      let swiper = document.querySelector(`.swiper`);
-      let lastActiveCollapsibleBody = null;
-
-      function expand(el: HTMLElement) {
-         el.style.maxHeight = el.scrollHeight + "px";
-         (swiper as HTMLElement).style.height = (swiper as HTMLElement).offsetHeight + el.scrollHeight + "px";
-         el.classList.add("active");
-         lastActiveCollapsibleBody = el;
-      }
-
-      function unexpand(el: HTMLElement) {
-         el.style.maxHeight = "";
-         (swiper as HTMLElement).style.height = (swiper as HTMLElement).offsetHeight - el.scrollHeight + "px";
-         el.classList.remove("active");
-      }
-
-      collapsibles.forEach((collapsible) => {
-         const collapsibleBody = collapsible.nextElementSibling;
-         if (!collapsibleBody) return console.log("collapsibleBody is null");
-
-
-         if (collapsibleBody.classList.contains("active")) {
-            expand(collapsibleBody as HTMLElement);
-         }
-
-         collapsible.addEventListener("click", function () {
-            if (!!(collapsibleBody as HTMLElement).style.maxHeight) {
-               unexpand(collapsibleBody as HTMLElement);
-            } else {
-               expand(collapsibleBody as HTMLElement);
-            }
-
-            j(collapsible).css({
-               borderTopLeftRadius: 15, 
-               borderTopRightRadius: 15, 
-               borderBottomLeftRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 15 : 0, 
-               borderBottomRightRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 15 : 0 
-            })
-            .animate({
-               borderTopLeftRadius: 15,
-               borderTopRightRadius: 15,
-               borderBottomLeftRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 0 : 15, 
-               borderBottomRightRadius: (collapsibleBody as HTMLElement).style.maxHeight ? 0 : 15
-            }, 500);
-         });
-      });
    });
-   
+
    function setSwiperHeight() {
-      const activeSlide = document.querySelector(".swiper-slide.swiper-slide-active");
-      const contentDiv = activeSlide?.querySelector("div");
-      if (contentDiv) {
-         const height = contentDiv.offsetHeight + 35;
-         const swiper = document.querySelector(".swiper");
-         (swiper as HTMLElement).style.height = `${height}px`;
-      } else {
-         location.reload();
-      }
+      const activeSlide = document.getElementsByClassName("swiper-slide swiper-slide-active",)[0] as HTMLElement;
+      const contentDiv = activeSlide.querySelector("div") as HTMLElement;
+      const height = contentDiv.offsetHeight + 35;
+      const swiper = document.getElementsByClassName("swiper",)[0] as HTMLElement;
+      swiper.style.height = `${height}px`;
    }
 </script>
+
+<svelte:head>
+   <title>screepy</title>
+   <meta property="og:title" content="screepy" />
+   <meta name="description" content="about me" />
+   <meta property="og:description" content="about me" />
+   <meta property="og:url" content="https://screepai.vercel.app/" />
+   <meta property="og:type" content="website" />
+   <meta property="og:site_name" content="screepy" />
+   <meta property="twitter:card" content="summary_large_image" />
+   <meta property="og:image" content="/og.png" />
+   <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</svelte:head>
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" display="none" width="0" height="0">
    <symbol id="icon-969" viewBox="0 0 576 512"><path d={youtube} /></symbol>
@@ -167,7 +117,7 @@
                </span>
             {/each}
             <div class="discord">
-               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=( ´ ω ` )ノﾞ&hideDiscrim=true&showDisplayName=true&hideBadges=true" alt="screepy"></a>
+               <a href="https://discord.com/users/534375062099460097"><img src="https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=( ´ ω ` )ノﾞ&hideDiscrim=true&showDisplayName=true&hideBadges=true" alt="screepy"/></a>
             </div>
             <Swiper
                modules={[Navigation, Pagination, Scrollbar, A11y]}
@@ -194,32 +144,13 @@
                }}
             >
                <SwiperSlide>
-                  <div class="about">
+                  <div class="about" style="text-align: center;">
                      <div class="card" data-aos="fade-down">
                         <h4>About me</h4>
                      </div>
                      {#each cards as card, i}
                         <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
-                           <p>{card.text}</p>
-                        </div>
-                     {/each}
-                  </div>
-               </SwiperSlide>
-               <SwiperSlide>
-                  <div class="about">
-                     <div class="card" data-aos="fade-down">
-                        <h4>Like &amp; Hate</h4>
-                     </div>
-                     {#each items as item, i}
-                        <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
-                           <button class="collapsible-header">{item.header}</button>
-                           <div>
-                              <div class="collapsible-content">
-                                 {#each item.content as contentItem}
-                                    <p class="collapsible-content">{@html contentItem.replace(/\n/g, "<br>")}</p>
-                                 {/each}
-                              </div>
-                           </div>
+                           <p>{card}</p>
                         </div>
                      {/each}
                   </div>
@@ -238,8 +169,19 @@
                      </ul>
                   </div>
                </SwiperSlide>
+               <SwiperSlide>
+                  <div class="about" style="text-align: center;">
+                     <div class="card" data-aos="fade-down">
+                        <h4>Credits</h4>
+                     </div>
+                     {#each credits as credit, i}
+                        <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
+                           <p><a href={credit.url} target="_blank" rel="noreferrer">{credit.at}</a> - {credit.name}</p>
+                        </div>
+                     {/each}
+                  </div>
+               </SwiperSlide>
             </Swiper>
-            <div class="about" style="text-align: center; border-top: 2px dashed #e1e1e1;">background art by <a href="https://twitter.com/tubarururu" target="_blank" rel="noreferrer">@tubarururu</a></div>
          </span>
       </div>
    </div>

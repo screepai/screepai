@@ -1,33 +1,23 @@
-export const menu = ["About", "Like & Hate", "Socials"];
+export const menu = ["About", "Socials", "Credits"];
 
 export const cards = [
-   {
-      text: "profound mental retardation"
-   },
-   {
-      text: "vietnamese and english"
-   },
-   {
-      text: "programmer and hobbyist live2d rigger"
-   },
-   {
-      text: "old mental age and straightforward"
-   },
-   {
-      text: "rant to me whenever you want"
-   }
+   "profound mental retardation",
+   "programmer, hobbyist live2d rigger and editor",
+   "vietnamese and english"
 ]
 
-export const items = [
+export const credits = [
    {
-      header: "Like",
-      content: ["+ scenery that has sunlight and wind\n+ wholesome straight/yuri relationship\n+ coding\n+ making myself suffer\n+ reading manga and novel\n+ watching anime, 2d girls\n+ chess\n+ japanese songs"],
+      name: "background art",
+      url: "https://twitter.com/tubarururu",
+      at: "@tubarururu"
    },
    {
-      header: "Hate",
-      content: ["+ capitalizing letters when not needed\n+ homo and pedo\n+ toxic relationship with/and kdrama\n+ <a href='https://media.discordapp.net/attachments/974563744959049728/979415695370625085/unknown.png' target='_blank' rel='noreferrer'>average twitter users</a>\n+ cringe and toxic and annoying people\n+ <a href='https://www.urbandictionary.com/define.php?term=NTR' target='_blank' rel='noreferrer'>ntr</a> (go away if you like it)"],
+      name: "og image",
+      url: "https://twitter.com/MikaPikaZo",
+      at: "@MikaPikaZo"
    }
-];
+]
 
 export const socialLinks = [
    {

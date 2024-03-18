@@ -227,7 +227,7 @@ li {
 .bg {
    height: 110vh !important;
    background: #f7f8f3;
-   content: url("https://media.discordapp.net/attachments/623893403339587624/1075435379970293871/background2.webp") !important;
+   content: url("/background2.png") !important;
    background-repeat: no-repeat;
 }
 
