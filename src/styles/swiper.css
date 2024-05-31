@@ -7,17 +7,17 @@
 }
 
 .swiper-pagination-bullet {
-	padding: 5px 10px !important;
-	border-radius: 10px !important;
-	width: auto !important;
-	height: 20px !important;
-	text-align: center !important;
-	line-height: 20px !important;
-	font-size: 12px !important;
-	color:#e0e6fb !important;
+   padding: 5px 10px !important;
+   border-radius: 10px !important;
+   width: auto !important;
+   height: 20px !important;
+   text-align: center !important;
+   line-height: 20px !important;
+   font-size: 12px !important;
+   color: #e0e6fb !important;
    border: solid #e0e6fb 2px !important;
-	opacity: 1 !important;
-	background: #f2f4ff !important;
+   opacity: 1 !important;
+   background: #f2f4ff !important;
    font-family: "Inter Tight", sans-serif !important;
    transition: 500ms;
 }

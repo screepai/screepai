@@ -2,8 +2,8 @@ export const menu = ["About", "Socials", "Credits"];
 
 export const cards = [
    "profound mental retardation",
-   "programmer, hobbyist live2d rigger and editor",
-   "vietnamese and english"
+   "programmer / live2d rigger / editor",
+   "vietnamese / english",
 ]
 
 export const credits = [

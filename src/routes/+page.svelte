@@ -148,11 +148,13 @@
                      <div class="card" data-aos="fade-down">
                         <h4>About me</h4>
                      </div>
-                     {#each cards as card, i}
-                        <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
-                           <p>{card}</p>
-                        </div>
-                     {/each}
+                     <ul style="padding-inline-start: 0;">
+                        {#each cards as card, i}
+                           <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
+                              <p>{card}</p>
+                           </div>
+                        {/each}
+                     </ul>
                   </div>
                </SwiperSlide>
                <SwiperSlide>
@@ -167,6 +169,9 @@
                            </div>
                         {/each}
                      </ul>
+                     <div class="card" data-aos="fade-up" data-aos-delay={600}>
+                        <p style="font-size: 12px; text-align: center;">( i dont post anything, just here for the fancy )</p>
+                     </div>
                   </div>
                </SwiperSlide>
                <SwiperSlide>
@@ -174,11 +179,13 @@
                      <div class="card" data-aos="fade-down">
                         <h4>Credits</h4>
                      </div>
-                     {#each credits as credit, i}
-                        <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
-                           <p><a href={credit.url} target="_blank" rel="noreferrer">{credit.at}</a> - {credit.name}</p>
-                        </div>
-                     {/each}
+                     <ul style="padding-inline-start: 0;">
+                        {#each credits as credit, i}
+                           <div class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
+                              <p><a href={credit.url} target="_blank" rel="noreferrer">{credit.at}</a> - {credit.name}</p>
+                           </div>
+                        {/each}
+                     </ul>
                   </div>
                </SwiperSlide>
             </Swiper>
