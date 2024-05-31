@@ -76,13 +76,13 @@
 </script>
 
 <svelte:head>
-   <title>screepy</title>
+   <title>⸜( ´ ꒳ ` )⸝</title>
    <meta property="og:title" content="⸜( ´ ꒳ ` )⸝" />
    <meta name="description" content="about me" />
    <meta property="og:description" content="about me" />
    <meta property="og:url" content="https://screepai.vercel.app/" />
    <meta property="og:type" content="website" />
-   <meta property="og:site_name" content="⸜( ´ ꒳ ` )⸝" />
+   <meta property="og:site_name" content="seepie" />
    <meta property="twitter:card" content="summary_large_image" />
    <meta property="og:image" content="/og.png" />
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
