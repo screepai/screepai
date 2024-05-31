@@ -9,7 +9,6 @@
       "sourceMap": true,
       "strict": true,
       "outDir": "./dist",
-      "ignoreDeprecations": "5.0",
    },
    "exclude": ["src/**/*.js"]
 }
