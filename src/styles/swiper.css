@@ -1,3 +1,5 @@
+@import url("./global.css");
+
 .swiper-pagination {
    position: absolute !important;
 }
@@ -14,22 +16,22 @@
    text-align: center !important;
    line-height: 20px !important;
    font-size: 12px !important;
-   color: #e0e6fb !important;
-   border: solid #e0e6fb 2px !important;
+   color: var(--bullet-color) !important;
+   border: solid var(--bullet-color) 2px !important;
    opacity: 1 !important;
-   background: #f2f4ff !important;
+   background: var(--bullet-background-color) !important;
    font-family: "Inter Tight", sans-serif !important;
    transition: 500ms;
 }
 
 .swiper-pagination-bullet-active {
-   background: #FBFBFB !important;
+   background: var(--bullet-active-color) !important;
    text-decoration: none !important;
    transition: 500ms;
 }
 
 .swiper-pagination-bullet:hover {
-   background: #FBFBFB !important;
+   background: var(--bullet-active-color) !important;
    text-decoration: none !important;
    transition: 500ms;
 }

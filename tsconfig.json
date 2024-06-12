@@ -10,5 +10,5 @@
       "strict": true,
       "outDir": "./dist",
    },
-   "exclude": ["src/**/*.js"]
+   "exclude": ["src/**/*.js", "node_modules"]
 }

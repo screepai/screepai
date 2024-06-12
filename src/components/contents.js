@@ -8,9 +8,14 @@ export const cards = [
 
 export const credits = [
    {
-      name: "background art",
-      url: "https://twitter.com/tubarururu",
+      name: "background art (light)",
+      url: "https://x.com/tubarururu",
       at: "@tubarururu"
+   },
+   {
+      name: "background art (dark)",
+      url: "https://x.com/HcpWa",
+      at: "@HcpWa"
    },
    {
       name: "og image",

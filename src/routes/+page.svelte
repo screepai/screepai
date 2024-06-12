@@ -13,6 +13,7 @@
 
    import "../styles/global.css";
    import "../styles/swiper.css";
+   import "../styles/checkbox.css";
 
    import "swiper/css";
    import "swiper/css/navigation";
@@ -20,8 +21,10 @@
 
    let ready = false;
    let visible = false;
+   let darkMode = false;
 
    onMount(async () => {
+      setThemeFromLocalStorage();
       ready = true;
       visible = true;
       await tick();
@@ -73,6 +76,34 @@
       const swiper = document.getElementsByClassName("swiper",)[0] as HTMLElement;
       swiper.style.height = `${height}px`;
    }
+
+   function calculateSettingAsThemeString({ localStorageTheme, systemSettingDark }: { localStorageTheme: string | null, systemSettingDark: MediaQueryList }) {
+      if (localStorageTheme !== null) {
+         darkMode = localStorageTheme === "dark";
+      } else {
+         darkMode = systemSettingDark.matches;
+      }
+   }
+
+   function setThemeFromLocalStorage() {
+      const systemSettingDark = window.matchMedia("(prefers-color-scheme: dark)");
+      const localStorageTheme = localStorage.getItem("theme");
+      calculateSettingAsThemeString({ localStorageTheme, systemSettingDark });
+
+      systemSettingDark.addEventListener("change", e => {
+         darkMode = e.matches;
+         saveThemeToLocalStorage(darkMode ? "dark" : "light");
+      });
+   }
+
+   function toggleTheme() {
+      darkMode = !darkMode;
+      saveThemeToLocalStorage(darkMode ? "dark" : "light");
+   }
+
+   function saveThemeToLocalStorage(theme: string) {
+      localStorage.setItem("theme", theme);
+   }
 </script>
 
 <svelte:head>
@@ -86,6 +117,20 @@
    <meta property="twitter:card" content="summary_large_image" />
    <meta property="og:image" content="/og.png" />
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+   <script src="https://code.iconify.design/1/1.0.4/iconify.min.js"></script>
+   {#if darkMode}
+      <style>
+         :root {
+            --bg: #232a44;
+         }
+      </style>
+   {:else}
+      <style>
+         :root {
+            --bg: #f7f8f3;
+         }
+      </style>
+   {/if}
 </svelte:head>
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" display="none" width="0" height="0">
@@ -95,7 +140,7 @@
 </svg>
 
 {#if visible}
-   <div class="centered" out:fly="{{ y: -20, duration: 800, easing: backInOut }}">
+   <div class="centered" out:fly="{{ y: -20, duration: 800, easing: backInOut }}" class:light-mode={!darkMode} class:dark-mode={darkMode}>
       {#each "(´•ω•`)" as char, i}
          <span in:fade="{{ delay: i * 120, duration: 800, easing: backInOut }}">{char}</span>
       {/each}
@@ -104,10 +149,25 @@
 
 {#if ready}
    <div id="background" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
-      <div data-depth="0.05" class="bg" />
+      <!-- <div data-depth="0.05" class:light-mode={!darkMode} class:dark-mode={darkMode} class="bg"/> -->
+      <div data-depth="0.05" class="bg dark-mode" style:opacity="{darkMode ? 1 : 0}"></div>
+      <div data-depth="0.05" class="bg light-mode" style:opacity="{darkMode ? 0 : 1}"></div>
    </div>
    <div id="scene" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
-      <div data-depth="0.2" class="profile">
+      <div data-depth="0.15" class:light-mode={!darkMode} class:dark-mode={darkMode} class="profile">
+         <label>
+            <input class="toggle-checkbox" type="checkbox" bind:checked={darkMode} on:click={toggleTheme}>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <div class="toggle-slot">
+               <div class="sun-icon-wrapper">
+                  <div class="iconify sun-icon" data-icon="feather-sun" data-inline="false"></div>
+               </div>
+               <div class="toggle-button"></div>
+               <div class="moon-icon-wrapper">
+                  <div class="iconify moon-icon" data-icon="feather-moon" data-inline="false"></div>
+               </div>
+            </div>
+         </label>
          <span class="magic">
             {#each Array(6) as _}
                <span class="magic-star">
@@ -140,7 +200,7 @@
                   aos.refresh();
                }}
                on:swiper={() => {
-                  setTimeout(setSwiperHeight, 500); // how
+                  setTimeout(setSwiperHeight, 250); // how
                }}
             >
                <SwiperSlide>
