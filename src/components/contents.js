@@ -19,25 +19,25 @@ export const credits = [
    },
    {
       name: "og image",
-      url: "https://twitter.com/MikaPikaZo",
+      url: "https://x.com/MikaPikaZo",
       at: "@MikaPikaZo"
    }
 ]
 
 export const socialLinks = [
    {
-      url: 'https://github.com/screepai',
-      icon: '#icon-905',
-      label: 'GitHub'
+      url: "https://github.com/screepai",
+      icon: "#icon-905",
+      label: "GitHub"
    },
    {
-      url: 'https://twitter.com/akihitokamikoto',
-      icon: '#icon-910',
-      label: 'Twitter'
+      url: "https://x.com/akihitokamikoto",
+      icon: "#icon-910",
+      label: "X"
    },
    {
-      url: 'https://www.youtube.com/channel/UCmLrPwbAiDpiPbXjPrD22Hw',
-      icon: '#icon-969',
-      label: 'YouTube'
+      url: "https://www.youtube.com/channel/UCmLrPwbAiDpiPbXjPrD22Hw",
+      icon: "#icon-969",
+      label: "YouTube"
    }
 ]

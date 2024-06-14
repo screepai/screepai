@@ -8,7 +8,7 @@
    import { backInOut } from "svelte/easing";
    import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
    import { Swiper, SwiperSlide } from "swiper/svelte";
-   import { star, github, twitter, youtube } from "../components/shapes.js";
+   import { star, github, x, youtube } from "../components/shapes.js";
    import { cards, credits, socialLinks, menu } from "../components/contents.js";
 
    import "../styles/global.css";
@@ -22,6 +22,7 @@
    let ready = false;
    let visible = false;
    let darkMode = false;
+   let transitionEnd = true;
 
    onMount(async () => {
       setThemeFromLocalStorage();
@@ -97,8 +98,12 @@
    }
 
    function toggleTheme() {
+      transitionEnd = false;
       darkMode = !darkMode;
       saveThemeToLocalStorage(darkMode ? "dark" : "light");
+      setTimeout(() => {
+         transitionEnd = true;
+      }, 500);
    }
 
    function saveThemeToLocalStorage(theme: string) {
@@ -135,7 +140,7 @@
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" display="none" width="0" height="0">
    <symbol id="icon-969" viewBox="0 0 576 512"><path d={youtube} /></symbol>
-   <symbol id="icon-910" viewBox="328 355 335 276"><path d={twitter} /></symbol>
+   <symbol id="icon-910" viewBox="0 0 16 16"><path d={x} /></symbol>
    <symbol id="icon-905" viewBox="0 0 496 512"><path d={github} /></symbol>
 </svg>
 
@@ -149,9 +154,8 @@
 
 {#if ready}
    <div id="background" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
-      <!-- <div data-depth="0.05" class:light-mode={!darkMode} class:dark-mode={darkMode} class="bg"/> -->
-      <div data-depth="0.05" class="bg dark-mode" style:opacity="{darkMode ? 1 : 0}"></div>
-      <div data-depth="0.05" class="bg light-mode" style:opacity="{darkMode ? 0 : 1}"></div>
+      <div data-depth="0.05" class="bg dark-mode" style:opacity="{darkMode ? 1 : 0}" style:z-index="{!darkMode && transitionEnd ? 0 : 1}"></div>
+      <div data-depth="0.05" class="bg light-mode" style:opacity="{darkMode ? 0 : 1}" style:z-index="{darkMode && transitionEnd ? 0 : 2}"></div>
    </div>
    <div id="scene" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
       <div data-depth="0.15" class:light-mode={!darkMode} class:dark-mode={darkMode} class="profile">

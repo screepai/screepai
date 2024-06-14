@@ -12,8 +12,9 @@ a {
 
 body {
    background: var(--bg) !important;
+   background-size: cover;
+   overflow: hidden !important;
    height: 100%;
-   overflow: hidden;
    transition: background-color 0.5s ease, color 0.5s ease, fill 0.5s ease;
 }
 
@@ -191,6 +192,7 @@ li {
    background-repeat: no-repeat !important;
    background-position: center center !important;
    background-size: cover !important;
+   pointer-events: none;
    transition: opacity 0.5s ease;
    opacity: 0;
 }
@@ -198,10 +200,12 @@ li {
 .bg.light-mode {
    background-image: url("/background2.jpg") !important;
    background-position: center -3.5em !important;
+   z-index: 1;
 }
 
 .bg.dark-mode {
    background-image: url("/sw.jpg") !important;
+   z-index: 2;
 }
 
 .parallax {
