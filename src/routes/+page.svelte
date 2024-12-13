@@ -50,8 +50,12 @@
       const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
       const animate = (star: Element) => {
-         (star as HTMLElement).style.setProperty("--star-left", `${rand(-20, 110)}%`);
-         (star as HTMLElement).style.setProperty("--star-top", `${rand(-20, 100)}%`);
+         const colors = ["--color1", "--color2", "--color3", "--color4"];
+         const randomColor = colors[Math.floor(Math.random() * colors.length)];
+         (star as HTMLElement).style.setProperty("--star-left", `${rand(-5, 95)}%`);
+         (star as HTMLElement).style.setProperty("--star-top", `${rand(-5, 95)}%`);
+         (star as HTMLElement).style.setProperty("--star-color", `var(${randomColor})`);
+         (star as HTMLElement).querySelector("path")!.style.fill = `var(${randomColor})`;
 
          (star as HTMLElement).style.animation = "none";
          (star as HTMLElement).offsetHeight;
