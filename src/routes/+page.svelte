@@ -19,6 +19,19 @@
    import "swiper/css/navigation";
    import "swiper/css/pagination";
 
+   const ANIMATION = {
+      CENTERED_TEXT: {
+         DURATION: 800,
+         CHAR_DELAY: 120,
+         DISPLAY_TIME: 2000
+      },
+      TRANSITION: {
+         FADE_DURATION: 3500,
+         FADE_DELAY: 250,
+         THEME_DURATION: 500
+      }
+   };
+
    let ready = false;
    let visible = false;
    let darkMode = false;
@@ -26,24 +39,50 @@
 
    onMount(async () => {
       setThemeFromLocalStorage();
-      ready = true;
+
+      await new Promise((resolve) => {
+         const img = new Image();
+         img.onload = resolve;
+         img.src = "https://lanyard.cnrad.dev/api/534375062099460097?theme=light&bg=FBFBFB&idleMessage=( ´ ω ` )ノﾞ&hideDiscrim=true&showDisplayName=true&hideBadges=true";
+      });
+
       visible = true;
       await tick();
+      
+      const startProfileAt = ANIMATION.CENTERED_TEXT.DISPLAY_TIME;
+      const startFadeAt = startProfileAt + ANIMATION.TRANSITION.FADE_DELAY;
+      const startAOSAt = startFadeAt + ANIMATION.TRANSITION.FADE_DELAY;
+
+      setTimeout(() => {
+         visible = false;
+      }, startProfileAt);
+
+      setTimeout(async () => {
+         ready = true;
+         await tick();
+         const scene = document.getElementById("scene");
+         const background = document.getElementById("background");
+         if (scene) new ParallaxJS(scene);
+         if (background) new ParallaxJS(background);
+
+         const stars = document.getElementsByClassName("magic-star");
+         for (let i = 0; i < stars.length; i++) {
+            const star = stars[i];
+            setTimeout(() => {
+                  animate(star);
+                  setInterval(() => animate(star), interval);
+               },
+               i * (interval / stars.length),
+            );
+         }
+      }, startProfileAt + ANIMATION.TRANSITION.FADE_DELAY / 2);
+
       setTimeout(() => {
          aos.init({
             easing: "ease-out-back",
             offset: -999,
          });
-      }, 3000);
-
-      setTimeout(() => {
-         visible = false;
-      }, 2000);
-
-      const scene = document.getElementById("scene");
-      const background = document.getElementById("background");
-      new ParallaxJS(scene as HTMLElement);
-      new ParallaxJS(background as HTMLElement);
+      }, startAOSAt);
 
       let interval = 2000;
 
@@ -61,17 +100,6 @@
          (star as HTMLElement).offsetHeight;
          (star as HTMLElement).style.animation = "";
       };
-
-      const stars = document.getElementsByClassName("magic-star");
-      for (let i = 0; i < stars.length; i++) {
-         const star = stars[i];
-         setTimeout(() => {
-               animate(star);
-               setInterval(() => animate(star), interval);
-            },
-            i * (interval / stars.length),
-         );
-      }
    });
 
    function setSwiperHeight() {
@@ -94,9 +122,11 @@
       const systemSettingDark = window.matchMedia("(prefers-color-scheme: dark)");
       const localStorageTheme = localStorage.getItem("theme");
       calculateSettingAsThemeString({ localStorageTheme, systemSettingDark });
+      document.documentElement.style.setProperty("--bg", darkMode ? "#232a44" : "#f7f8f3");
 
       systemSettingDark.addEventListener("change", e => {
          darkMode = e.matches;
+         document.documentElement.style.setProperty("--bg", e.matches ? "#232a44" : "#f7f8f3");
          saveThemeToLocalStorage(darkMode ? "dark" : "light");
       });
    }
@@ -104,10 +134,11 @@
    function toggleTheme() {
       transitionEnd = false;
       darkMode = !darkMode;
+      document.documentElement.style.setProperty("--bg", darkMode ? "#232a44" : "#f7f8f3");
       saveThemeToLocalStorage(darkMode ? "dark" : "light");
       setTimeout(() => {
          transitionEnd = true;
-      }, 500);
+      }, ANIMATION.TRANSITION.THEME_DURATION);
    }
 
    function saveThemeToLocalStorage(theme: string) {
@@ -127,19 +158,20 @@
    <meta property="og:image" content="/og.png" />
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
    <script src="https://code.iconify.design/1/1.0.4/iconify.min.js"></script>
-   {#if darkMode}
-      <style>
-         :root {
-            --bg: #232a44;
-         }
-      </style>
-   {:else}
-      <style>
-         :root {
-            --bg: #f7f8f3;
-         }
-      </style>
-   {/if}
+   <script>
+      (function() {
+         const localStorageTheme = localStorage.getItem("theme");
+         const isDark = localStorageTheme 
+            ? localStorageTheme === "dark"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches;
+         document.documentElement.style.setProperty("--bg", isDark ? "#232a44" : "#f7f8f3");
+      })();
+   </script>
+   <style>
+      :root {
+         --bg: #f7f8f3;
+      }
+   </style>
 </svelte:head>
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" display="none" width="0" height="0">
@@ -149,19 +181,19 @@
 </svg>
 
 {#if visible}
-   <div class="centered" out:fly="{{ y: -20, duration: 800, easing: backInOut }}" class:light-mode={!darkMode} class:dark-mode={darkMode}>
+   <div class="centered" out:fly="{{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}" class:light-mode={!darkMode} class:dark-mode={darkMode}>
       {#each "(´•ω•`)" as char, i}
-         <span in:fade="{{ delay: i * 120, duration: 800, easing: backInOut }}">{char}</span>
+         <span in:fade="{{ delay: i * ANIMATION.CENTERED_TEXT.CHAR_DELAY, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}">{char}</span>
       {/each}
    </div>
 {/if}
 
 {#if ready}
-   <div id="background" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
+   <div id="background" transition:fade={{ delay: ANIMATION.TRANSITION.FADE_DELAY, duration: ANIMATION.TRANSITION.FADE_DURATION, easing: circOut }} class="parallax">
       <div data-depth="0.05" class="bg dark-mode" style:opacity="{darkMode ? 1 : 0}" style:z-index="{!darkMode && transitionEnd ? 0 : 1}"></div>
       <div data-depth="0.05" class="bg light-mode" style:opacity="{darkMode ? 0 : 1}" style:z-index="{darkMode && transitionEnd ? 0 : 2}"></div>
    </div>
-   <div id="scene" transition:fade={{ delay: 2750, duration: 3500, easing: circOut }} class="parallax">
+   <div id="scene" transition:fade={{ delay: ANIMATION.TRANSITION.FADE_DELAY, duration: ANIMATION.TRANSITION.FADE_DURATION, easing: circOut }} class="parallax">
       <div data-depth="0.15" class:light-mode={!darkMode} class:dark-mode={darkMode} class="profile">
          <label>
             <input class="toggle-checkbox" type="checkbox" bind:checked={darkMode} on:click={toggleTheme}>
