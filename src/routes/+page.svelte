@@ -3,7 +3,7 @@
    import { fade, fly } from "svelte/transition";
    import { backInOut } from "svelte/easing";
    import aos from "aos";
-   import { github, x, youtube } from "../config/shapes.ts";
+   import { github, x, youtube } from "../config/shapes";
    import ThemeToggle from "../components/ThemeToggle.svelte";
    import DiscordProfile from "../components/DiscordProfile.svelte";
    import StarAnimation from "../components/StarAnimation.svelte";
@@ -56,7 +56,7 @@
       }, startAOSAt);
    }
 
-   onMount(async () => {
+   onMount(() => {
       const localStorageTheme = localStorage.getItem("theme");
       const systemSettingDark = window.matchMedia("(prefers-color-scheme: dark)");
       darkMode = localStorageTheme 
@@ -64,7 +64,7 @@
          : systemSettingDark.matches;
       
       visible = true;
-      await tick();
+      tick();
       
       const timeout = setTimeout(() => {
          if (preloadingProfile) {
