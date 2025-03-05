@@ -347,7 +347,19 @@ li {
 
 .discord {
    pointer-events: none;
-   border-bottom: 2px dashed #e1e1e1;
+   width: 100%;
+}
+
+.discord a {
+   pointer-events: auto;
+   display: block;
+   width: 100%;
+}
+
+.discord img {
+   display: block;
+   width: 100%;
+   max-width: 100%;
 }
 
 .about {
