@@ -10,5 +10,6 @@
       "strict": true,
       "outDir": "./dist"
    },
+   "extends": "./.svelte-kit/tsconfig.json",
    "exclude": ["src/**/*.js", "node_modules"]
 }

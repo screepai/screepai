@@ -56,7 +56,7 @@
       }, startAOSAt);
    }
 
-   onMount(async () => {
+   onMount(() => {
       const localStorageTheme = localStorage.getItem("theme");
       const systemSettingDark = window.matchMedia("(prefers-color-scheme: dark)");
       darkMode = localStorageTheme 
@@ -64,7 +64,7 @@
          : systemSettingDark.matches;
       
       visible = true;
-      await tick();
+      tick();
       
       const timeout = setTimeout(() => {
          if (preloadingProfile) {
