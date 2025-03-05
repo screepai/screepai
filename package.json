@@ -14,8 +14,8 @@
    },
    "devDependencies": {
       "@playwright/test": "^1.21.0",
-      "@sveltejs/adapter-vercel": "^3.0.0",
-      "@sveltejs/kit": "next",
+      "@sveltejs/adapter-vercel": "^5.6.3",
+      "@sveltejs/kit": "^2.18.0",
       "@types/aos": "^3.0.4",
       "@types/cookie": "^0.4.1",
       "@types/jquery": "^3.5.16",
@@ -28,7 +28,7 @@
       "svelte-check": "^2.2.6",
       "svelte-preprocess": "^5.0.1",
       "tslib": "^2.3.1",
-      "typescript": "~4.6.2",
+      "typescript": "^5.8.2",
       "vite": "^4.3.8",
       "vite-plugin-restart": "^0.3.1"
    },
