@@ -8,9 +8,7 @@
       "skipLibCheck": true,
       "sourceMap": true,
       "strict": true,
-      "outDir": "./dist",
-      "allowImportingTsExtensions": true
+      "outDir": "./dist"
    },
-   "extends": "./.svelte-kit/tsconfig.json",
    "exclude": ["src/**/*.js", "node_modules"]
 }

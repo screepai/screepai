@@ -3,7 +3,7 @@
    import { Swiper, SwiperSlide } from "swiper/svelte";
    import aos from "aos";
    import j from "jquery";
-   import { cards, credits, socialLinks, menu } from "../config/contents";
+   import { cards, credits, socialLinks, menu } from "../config/contents.js";
 
    function setSwiperHeight() {
       const activeSlide = document.getElementsByClassName("swiper-slide swiper-slide-active",)[0] as HTMLElement;

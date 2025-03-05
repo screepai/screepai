@@ -9,5 +9,5 @@ export const ANIMATION = {
       FADE_DELAY: 250,
       THEME_DURATION: 300
    }
-} as const;
+};
  
