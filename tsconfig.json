@@ -8,7 +8,8 @@
       "skipLibCheck": true,
       "sourceMap": true,
       "strict": true,
-      "outDir": "./dist"
+      "outDir": "./dist",
+      "verbatimModuleSyntax": true
    },
    "extends": "./.svelte-kit/tsconfig.json",
    "exclude": ["src/**/*.js", "node_modules"]

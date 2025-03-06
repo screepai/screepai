@@ -8,7 +8,7 @@
 
    onMount(() => {
       const stars = document.getElementsByClassName("magic-star");
-      const interval = 2000;
+      const interval = 1500;
 
       for (let i = 0; i < stars.length; i++) {
          const star = stars[i];
@@ -25,8 +25,8 @@
       const animate = (star: Element) => {
          const colors = ["--color1", "--color2", "--color3", "--color4"];
          const randomColor = colors[Math.floor(Math.random() * colors.length)];
-         (star as HTMLElement).style.setProperty("--star-left", `${rand(-5, 95)}%`);
-         (star as HTMLElement).style.setProperty("--star-top", `${rand(-5, 95)}%`);
+         (star as HTMLElement).style.setProperty("--star-left", `${rand(-30, 130)}%`);
+         (star as HTMLElement).style.setProperty("--star-top", `${rand(-30, 130)}%`);
          (star as HTMLElement).style.setProperty("--star-color", `var(${randomColor})`);
          (star as HTMLElement).querySelector("path")!.style.fill = `var(${randomColor})`;
 
@@ -82,7 +82,7 @@
          star.style.top = px(position.y);
          star.style.fontSize = config.sizes[Math.floor(Math.random() * config.sizes.length)];
          star.style.color = color;
-         star.style.textShadow = `0px 0px 1.5rem ${color}80`;
+         star.style.filter = `drop-shadow(0px 0px 0.625rem ${color})`;
          star.style.animationName = config.animations[count++ % 3];
          star.style.animationDuration = ms(config.starAnimationDuration);
          

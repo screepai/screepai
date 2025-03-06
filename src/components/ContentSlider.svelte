@@ -2,7 +2,6 @@
    import { Navigation, Pagination, Scrollbar, A11y } from "swiper";
    import { Swiper, SwiperSlide } from "swiper/svelte";
    import aos from "aos";
-   import j from "jquery";
    import { cards, credits, socialLinks, menu } from "../config/contents.js";
 
    function setSwiperHeight() {
@@ -30,7 +29,9 @@
    watchOverflow={true}
    on:slideChangeTransitionStart={() => {
       setSwiperHeight();
-      j(".card").removeClass("aos-init").removeClass("aos-animate");
+      document.querySelectorAll('.card').forEach(card => {
+         card.classList.remove('aos-init', 'aos-animate');
+      });
    }}
    on:slideChangeTransitionEnd={() => {
       aos.refresh();

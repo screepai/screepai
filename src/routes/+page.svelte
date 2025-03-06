@@ -25,13 +25,35 @@
    let transitionEnd = true;
    let preloadingProfile = true;
    let showPreloader = true;
+   let preloadingBackground = true;
+   let darkBgPreloaded = false;
+   let lightBgPreloaded = false;
    let owo = ["(´•ω•`)", "(˶°ㅁ°)!!"];
    let randomOwo = owo[Math.floor(Math.random() * owo.length)];
 
    function handleDiscordPreloaded() {
       preloadingProfile = false;
-      showPreloader = false;
-      startAnimationSequence();
+      checkAllPreloaded();
+   }
+   
+   function handleBackgroundPreloaded(event: {detail?: {type: string}}) {
+      if (event.detail && event.detail.type === 'dark') {
+         darkBgPreloaded = true;
+      } else if (event.detail && event.detail.type === 'light') {
+         lightBgPreloaded = true;
+      }
+      
+      if (darkBgPreloaded && lightBgPreloaded) {
+         preloadingBackground = false;
+         checkAllPreloaded();
+      }
+   }
+   
+   function checkAllPreloaded() {
+      if (!preloadingProfile && !preloadingBackground) {
+         showPreloader = false;
+         startAnimationSequence();
+      }
    }
 
    function startAnimationSequence() {
@@ -63,7 +85,10 @@
          ? localStorageTheme === "dark"
          : systemSettingDark.matches;
       
-      visible = true;
+      setTimeout(() => {
+         visible = true;
+      }, 100);
+      
       tick();
       
       const timeout = setTimeout(() => {
@@ -118,7 +143,13 @@
 {#if visible}
    <div class="centered" out:fly="{{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}" class:light-mode={!darkMode} class:dark-mode={darkMode}>
       {#each randomOwo as char, i}
-         <span in:fade="{{ delay: i * ANIMATION.CENTERED_TEXT.CHAR_DELAY, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}">{char}</span>
+         <span 
+            in:fade="{{ 
+               delay: i * ANIMATION.CENTERED_TEXT.CHAR_DELAY, 
+               duration: ANIMATION.CENTERED_TEXT.DURATION * 1.2, 
+               easing: backInOut 
+            }}"
+         >{char}</span>
       {/each}
    </div>
 {/if}
@@ -126,6 +157,10 @@
 {#if showPreloader}
    <div style="position: absolute; opacity: 0; pointer-events: none;" transition:fade={{ duration: 300 }}>
       <DiscordProfile {darkMode} on:preloaded={handleDiscordPreloaded} />
+      <div style="position: absolute;">
+         <ParallaxBackground darkMode={true} transitionEnd={true} onPreloaded={(data) => handleBackgroundPreloaded({detail: data})} />
+         <ParallaxBackground darkMode={false} transitionEnd={true} onPreloaded={(data) => handleBackgroundPreloaded({detail: data})} />
+      </div>
    </div>
 {/if}
 
