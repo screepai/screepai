@@ -196,6 +196,7 @@ li {
    pointer-events: none;
    transition: opacity 0.5s ease;
    opacity: 0;
+   border-radius: 10px;
 }
 
 .bg.light-mode {
