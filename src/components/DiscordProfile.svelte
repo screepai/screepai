@@ -16,10 +16,11 @@
       const bg = "FBFBFB";
       const idleMessage = "( ´ ω ` )ノﾞ";
       const hideBadges = "true";
+      const hideNameplate = "true";
       const useDisplayName = "true";
       const waveColor = isDark ? "bfc5e7-light" : "f3bdbb";
       const gradient = isDark ? "bfc5e7-a9b0e6-868ac9-6065da" : "f3bdbb-f7a9a7-e98e8c-fe7585";
-      return `https://lanyard.kyrie25.dev/api/534375062099460097?theme=${theme}&bg=${bg}&idleMessage=${encodeURIComponent(idleMessage)}&hideBadges=${hideBadges}&useDisplayName=${useDisplayName}&waveColor=${waveColor}&waveSpotifyColor=${waveColor}&gradient=${gradient}`;
+      return `https://lanyard.kyrie25.dev/api/534375062099460097?theme=${theme}&bg=${bg}&idleMessage=${encodeURIComponent(idleMessage)}&hideBadges=${hideBadges}&hideNameplate=${hideNameplate}&useDisplayName=${useDisplayName}&waveColor=${waveColor}&waveSpotifyColor=${waveColor}&gradient=${gradient}`;
    }
 
    $: newDiscordUrl = getDiscordUrl(darkMode);
