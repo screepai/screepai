@@ -53,7 +53,7 @@
             {/each}
          </ul>
          <div class="card" data-aos="fade-up" data-aos-delay={600}>
-            <p style="font-size: 12px; text-align: center;">(lately feeling bad towards other heroines whenever i<br> switch routes, i think im mentally and emotionally unwell)</p>
+            <p style="font-size: 12px; text-align: center;">(lately feeling empathetic toward the other heroines whenever i<br> switch routes, i think im mentally and emotionally unwell)</p>
          </div>
       </div>
    </SwiperSlide>
