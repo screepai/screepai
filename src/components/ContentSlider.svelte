@@ -52,6 +52,9 @@
                </div>
             {/each}
          </ul>
+         <div class="card" data-aos="fade-up" data-aos-delay={600}>
+            <p style="font-size: 12px; text-align: center;">(lately feeling bad towards other heroines whenever i<br> switch routes, i think im mentally and emotionally unwell)</p>
+         </div>
       </div>
    </SwiperSlide>
    <SwiperSlide>
@@ -67,7 +70,7 @@
             {/each}
          </ul>
          <div class="card" data-aos="fade-up" data-aos-delay={600}>
-            <p style="font-size: 12px; text-align: center;">( i dont post anything, just here for the fancy )</p>
+            <p style="font-size: 12px; text-align: center;">(i dont post anything, just here for the fancy)</p>
          </div>
       </div>
    </SwiperSlide>
