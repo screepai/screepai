@@ -1,6 +1,5 @@
 <script lang="ts">
    import { onMount, createEventDispatcher } from "svelte";
-   import { fade } from "svelte/transition";
    import { ANIMATION } from "../config/animation";
 
    export let darkMode: boolean;
@@ -79,23 +78,32 @@
    });
 </script>
 
+<style>
+   @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+   }
+   .fade-in {
+      animation: fadeIn var(--theme-duration) cubic-bezier(.26, 1.5, .46, 1) forwards;
+   }
+</style>
+
 <div class="discord">
    <a href="https://discord.com/users/534375062099460097" target="_blank">
       <div style="position: relative; width: 100%;">
          <img 
-            style="opacity: 1; transition: opacity {ANIMATION.TRANSITION.THEME_DURATION}ms;" 
+            style="opacity: 1; transition: opacity {ANIMATION.TRANSITION.THEME_DURATION}ms cubic-bezier(.26, 1.5, .46, 1);" 
             src={currentDiscordUrl} 
             alt="screepy"
          />
          {#if showNextImage}
             <img 
-               in:fade={{ duration: ANIMATION.TRANSITION.THEME_DURATION }}
-               out:fade={{ duration: ANIMATION.TRANSITION.THEME_DURATION }}
-               style="position: absolute; top: 0; left: 0; width: 100%;" 
+               class="fade-in"
+               style="position: absolute; top: 0; left: 0; width: 100%; --theme-duration: {ANIMATION.TRANSITION.THEME_DURATION}ms;" 
                src={nextDiscordUrl} 
                alt="screepy"
             />
          {/if}
       </div>
    </a>
-</div> 
+</div>

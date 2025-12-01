@@ -28,7 +28,7 @@
    border-radius: 50%;
    background-color: #e98e8c;
    box-shadow: inset 0px 0px 0px 0.25em #f58b98;
-   transition: background-color 250ms, border-color 250ms, transform 500ms cubic-bezier(.26, 2, .46, .71);
+   transition: background-color 250ms, border-color 250ms, transform 500ms cubic-bezier(.26, 1.5, .46, 1);
 }
 
 .toggle-checkbox:checked~.toggle-slot .toggle-button {
@@ -51,7 +51,7 @@
    transform: translate(0.5em, 0.25em) rotate(15deg);
    opacity: 1;
    transform-origin: 50% 50%;
-   transition: opacity 150ms, transform 500ms cubic-bezier(.26, 2, .46, .71);
+   transition: opacity 150ms, transform 500ms cubic-bezier(.26, 1.5, .46, 1);
 }
 
 .toggle-checkbox:checked~.toggle-slot .sun-icon-wrapper {
@@ -73,7 +73,7 @@
    transform: translate(3.05em, 0.25em) rotate(0deg);
    opacity: 0;
    transform-origin: 50% 50%;
-   transition: opacity 150ms, transform 500ms cubic-bezier(.26, 2.5, .46, .71);
+   transition: opacity 150ms, transform 500ms cubic-bezier(.26, 2, .46, 1);
 }
 
 .toggle-checkbox:checked~.toggle-slot .moon-icon-wrapper {

@@ -21,7 +21,9 @@
       clickable: true,
       // @ts-ignore
       renderBullet: function (index, className) {
-         return `<span class=${className}>${menu[index]}</span>`;
+         const r1 = Math.floor(Math.random() * 40) - 10;
+         const r2 = Math.floor(Math.random() * 40) - 30;
+         return `<span class="${className}" style="--r1: ${r1}deg; --r2: ${r2}deg">${menu[index]}</span>`;
       },
    }}
    speed={700}
@@ -52,9 +54,6 @@
                </div>
             {/each}
          </ul>
-         <div class="card" data-aos="fade-up" data-aos-delay={600}>
-            <p style="font-size: 12px; text-align: center;">(lately feeling empathetic toward the other heroines whenever i<br> switch routes, i think im mentally and emotionally unwell)</p>
-         </div>
       </div>
    </SwiperSlide>
    <SwiperSlide>

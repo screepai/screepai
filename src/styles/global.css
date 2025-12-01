@@ -52,7 +52,7 @@ body {
    }
 
    50% {
-      transform: scale(1);
+      transform: scale(var(--star-scale, 1));
    }
 }
 
@@ -228,7 +228,7 @@ li {
    box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);
    border-radius: 10px;
    pointer-events: auto !important;
-   transition: left 0.5s cubic-bezier(.26, 2, .46, .9);
+   transition: left 0.5s cubic-bezier(.26, 1.5, .46, 1);
 }
 
 .toggle-checkbox+.toggle-slot {

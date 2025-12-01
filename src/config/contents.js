@@ -1,7 +1,7 @@
 export const menu = ["About", "Socials", "Credits"];
 
 export const cards = [
-   "programmer / live2d rigger / editor",
+   "programmer / animator / editor",
    "profound mental retardation",
    "visual novel enthusiast",
    "vietnamese / english",

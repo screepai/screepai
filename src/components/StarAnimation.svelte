@@ -30,9 +30,19 @@
          (star as HTMLElement).style.setProperty("--star-color", `var(${randomColor})`);
          (star as HTMLElement).querySelector("path")!.style.fill = `var(${randomColor})`;
 
+         // Randomize scale
+         (star as HTMLElement).style.setProperty("--star-scale", `${rand(70, 100) / 100}`);
+
+         // Randomize rotation speed
+         const rotationDuration = rand(1000, 3000);
+         (star as HTMLElement).querySelector("svg")!.style.animationDuration = `${rotationDuration}ms`;
+
          (star as HTMLElement).style.animation = "none";
          (star as HTMLElement).offsetHeight;
-         (star as HTMLElement).style.animation = "";
+         
+         // Randomize animation duration
+         const duration = rand(800, 1600);
+         (star as HTMLElement).style.animation = `scale ${duration}ms ease forwards`;
       };
 
       let start = new Date().getTime();
