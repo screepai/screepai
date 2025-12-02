@@ -400,6 +400,7 @@ li {
    letter-spacing: 0.04em;
    color: var(--uwu);
    transition: color 0.5s ease;
+   animation: none;
 }
 
 .centered.light-mode {
@@ -412,6 +413,25 @@ li {
 
 .centered span {
    will-change: filter;
+}
+
+.centered.winking {
+   animation: wink-shake 0.4s ease-in-out forwards;
+}
+
+@keyframes wink-shake {
+   0% {
+      transform: translate(-50%, -50%);
+   }
+   25% {
+      transform: translate(-50%, calc(-50% + 2px));
+   }
+   50% {
+      transform: translate(-50%, calc(-50% - 2px));
+   }
+   100% {
+      transform: translate(-50%, -50%);
+   }
 }
 
 .star {

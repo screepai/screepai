@@ -28,8 +28,12 @@
    let preloadingBackground = true;
    let darkBgPreloaded = false;
    let lightBgPreloaded = false;
-   let owo = ["(´•ω•`)", "(˶°ㅁ°)!!"];
-   let randomOwo = owo[Math.floor(Math.random() * owo.length)];
+   let owoText = "(´•ω•`)";
+   let winkText = "(´•ω<`)";
+   let displayOwo = owoText;
+   let isWinking = false;
+   let initialAnimationComplete = false;
+   let preloadComplete = false;
 
    function handleDiscordPreloaded() {
       preloadingProfile = false;
@@ -52,6 +56,15 @@
    function checkAllPreloaded() {
       if (!preloadingProfile && !preloadingBackground) {
          showPreloader = false;
+         preloadComplete = true;
+         tryTriggerWink();
+      }
+   }
+
+   function tryTriggerWink() {
+      if (preloadComplete && initialAnimationComplete && !isWinking) {
+         isWinking = true;
+         displayOwo = winkText;
          startAnimationSequence();
       }
    }
@@ -88,6 +101,13 @@
       setTimeout(() => {
          visible = true;
       }, 100);
+
+      const initialAnimationDuration = displayOwo.length * ANIMATION.CENTERED_TEXT.CHAR_DELAY + ANIMATION.CENTERED_TEXT.DURATION * 1.2;
+      setTimeout(() => {
+         console.log('[DEBUG] Initial animation complete');
+         initialAnimationComplete = true;
+         tryTriggerWink();
+      }, 200 + initialAnimationDuration);
       
       tick();
       
@@ -141,8 +161,8 @@
 </svg>
 
 {#if visible}
-   <div class="centered" out:fly="{{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}" class:light-mode={!darkMode} class:dark-mode={darkMode}>
-      {#each randomOwo as char, i}
+   <div class="centered" class:winking={isWinking} out:fly="{{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}" class:light-mode={!darkMode} class:dark-mode={darkMode}>
+      {#each displayOwo as char, i}
          <span 
             in:fade="{{ 
                delay: i * ANIMATION.CENTERED_TEXT.CHAR_DELAY, 
