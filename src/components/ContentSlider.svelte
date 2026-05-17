@@ -1,7 +1,7 @@
 <script lang="ts">
    import { onMount, tick } from "svelte";
    import aos from "aos";
-   import { cards, credits, socialLinks, menu } from "../config/contents.js";
+   import { cards, credits, socialLinks, menu } from "../config/contents";
 
    type SwiperContainerElement = HTMLElement & {
       initialize: () => void;

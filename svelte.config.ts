@@ -1,8 +1,8 @@
 import vercel from "@sveltejs/adapter-vercel";
-import { sveltePreprocess } from 'svelte-preprocess'
+import type { Config } from "@sveltejs/kit";
+import { sveltePreprocess } from "svelte-preprocess";
 
-/** @type {import("@sveltejs/kit").Config} */
-const config = {
+const config: Config = {
 	preprocess: sveltePreprocess(),
 	kit: {
 		adapter: vercel({ runtime: "nodejs20.x" }),

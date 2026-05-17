@@ -1,6 +1,6 @@
 <script lang="ts">
    import { onMount } from "svelte";
-   import { star } from "../config/shapes.js";
+   import { star } from "../config/shapes";
 
    export let darkMode = false;
    

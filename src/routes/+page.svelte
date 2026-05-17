@@ -3,13 +3,13 @@
    import { fade, fly } from "svelte/transition";
    import { backInOut } from "svelte/easing";
    import aos from "aos";
-   import { github, star, x, youtube } from "../config/shapes.js";
+   import { github, star, x, youtube } from "../config/shapes";
    import ThemeToggle from "../components/ThemeToggle.svelte";
    import DiscordProfile from "../components/DiscordProfile.svelte";
    import StarAnimation from "../components/StarAnimation.svelte";
    import ContentSlider from "../components/ContentSlider.svelte";
    import ParallaxBackground from "../components/ParallaxBackground.svelte";
-   import { ANIMATION } from "../config/animation.js";
+   import { ANIMATION } from "../config/animation";
 
    import "../styles/global.css";
    import "../styles/swiper.css";

@@ -1,7 +1,10 @@
 import js from "@eslint/js";
 import ts from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
+import type { Linter } from "eslint";
 import svelte from "eslint-plugin-svelte";
+
+const tsRecommendedConfigs = ts.configs["flat/recommended"] as Linter.Config[];
 
 const browserGlobals = {
    customElements: "readonly",
@@ -40,7 +43,7 @@ export default [
       ],
    },
    js.configs.recommended,
-   ...ts.configs["flat/recommended"],
+   ...tsRecommendedConfigs,
    ...svelte.configs["flat/recommended"],
    {
       files: ["**/*.{js,ts,svelte}"],

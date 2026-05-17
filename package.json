@@ -24,6 +24,7 @@
       "@typescript-eslint/parser": "^8.59.3",
       "eslint": "^10.4.0",
       "eslint-plugin-svelte": "^3.17.1",
+      "jiti": "^2.7.0",
       "svelte": "^5.55.7",
       "svelte-check": "^4.4.8",
       "svelte-eslint-parser": "^1.6.1",
