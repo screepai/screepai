@@ -1,10 +1,11 @@
 <script lang="ts">
-   import { onMount, onDestroy } from "svelte";
+   import { onMount } from "svelte";
    import { star } from "../config/shapes.js";
 
-   export let darkMode: boolean = false;
+   export let darkMode = false;
    
-   let starAnimationIntervals: number[] = [];
+   let starAnimationIntervals: Array<ReturnType<typeof setInterval> | ReturnType<typeof setTimeout>> = [];
+   const magicStars = Array.from({ length: 6 }, (_, index) => index);
 
    onMount(() => {
       const stars = document.getElementsByClassName("magic-star");
@@ -23,26 +24,31 @@
       const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
       const animate = (star: Element) => {
+         const starElement = star as HTMLElement;
+         const starPath = starElement.querySelector("path");
+         const starSvg = starElement.querySelector("svg");
+         if (!starPath || !starSvg) return;
+
          const colors = ["--color1", "--color2", "--color3", "--color4"];
          const randomColor = colors[Math.floor(Math.random() * colors.length)];
-         (star as HTMLElement).style.setProperty("--star-left", `${rand(-30, 130)}%`);
-         (star as HTMLElement).style.setProperty("--star-top", `${rand(-30, 130)}%`);
-         (star as HTMLElement).style.setProperty("--star-color", `var(${randomColor})`);
-         (star as HTMLElement).querySelector("path")!.style.fill = `var(${randomColor})`;
+         starElement.style.setProperty("--star-left", `${rand(-30, 130)}%`);
+         starElement.style.setProperty("--star-top", `${rand(-30, 130)}%`);
+         starElement.style.setProperty("--star-color", `var(${randomColor})`);
+         starPath.style.fill = `var(${randomColor})`;
 
          // Randomize scale
-         (star as HTMLElement).style.setProperty("--star-scale", `${rand(70, 100) / 100}`);
+         starElement.style.setProperty("--star-scale", `${rand(70, 100) / 100}`);
 
          // Randomize rotation speed
          const rotationDuration = rand(1000, 3000);
-         (star as HTMLElement).querySelector("svg")!.style.animationDuration = `${rotationDuration}ms`;
+         starSvg.style.animationDuration = `${rotationDuration}ms`;
 
-         (star as HTMLElement).style.animation = "none";
-         (star as HTMLElement).offsetHeight;
+         starElement.style.animation = "none";
+         void starElement.offsetHeight;
          
          // Randomize animation duration
          const duration = rand(800, 1600);
-         (star as HTMLElement).style.animation = `scale ${duration}ms ease forwards`;
+         starElement.style.animation = `scale ${duration}ms ease forwards`;
       };
 
       let start = new Date().getTime();
@@ -130,21 +136,28 @@
          updateLastMousePosition(mousePosition);
       };
 
-      window.onmousemove = (e: MouseEvent) => handleOnMove(e);
-      window.ontouchmove = (e: TouchEvent) => handleOnMove(e.touches[0]);
-      document.body.onmouseleave = () => updateLastMousePosition(originPosition);
-   });
+      const handleMouseMove = (e: MouseEvent) => handleOnMove(e);
+      const handleTouchMove = (e: TouchEvent) => handleOnMove(e.touches[0]);
+      const handleMouseLeave = () => updateLastMousePosition(originPosition);
 
-   onDestroy(() => {
-      starAnimationIntervals.forEach(id => {
-         clearInterval(id);
-         clearTimeout(id);
-      });
-      starAnimationIntervals = [];
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("touchmove", handleTouchMove);
+      document.body.addEventListener("mouseleave", handleMouseLeave);
+
+      return () => {
+         window.removeEventListener("mousemove", handleMouseMove);
+         window.removeEventListener("touchmove", handleTouchMove);
+         document.body.removeEventListener("mouseleave", handleMouseLeave);
+         starAnimationIntervals.forEach(id => {
+            clearInterval(id);
+            clearTimeout(id);
+         });
+         starAnimationIntervals = [];
+      };
    });
 </script>
 
-{#each Array(6) as _}
+{#each magicStars as starId (starId)}
    <span class="magic-star" class:dark-mode={darkMode} class:light-mode={!darkMode}>
       <svg viewBox="0 0 512 512">
          <path d={star} />

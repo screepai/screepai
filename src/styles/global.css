@@ -387,50 +387,137 @@ li {
    margin-top: 0;
 }
 
-.centered {
+.centered-shell {
    position: absolute;
    left: 50%;
    top: 50%;
    transform: translate(-50%, -50%);
+   color: var(--uwu);
+   transition: color 0.5s ease;
+}
+
+.centered-motion {
+   position: relative;
+   display: inline-block;
+   will-change: transform, opacity;
+}
+
+.centered {
    font-family: "Inter Tight", sans-serif;
    font-style: normal;
    font-weight: 200;
    font-display: swap;
    font-size: 46px;
    letter-spacing: 0.04em;
-   color: var(--uwu);
-   transition: color 0.5s ease;
    animation: none;
 }
 
-.centered.light-mode {
+.centered-shell.light-mode {
    color: var(--uwu);
 }
 
-.centered.dark-mode {
+.centered-shell.dark-mode {
    color: var(--uwu);
 }
 
 .centered span {
-   will-change: filter;
+   will-change: opacity, filter;
+}
+
+.centered-char {
+   display: inline-block;
+   opacity: 0;
+   animation-name: centered-char-fade-in;
+   animation-fill-mode: forwards;
+   animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes centered-char-fade-in {
+   from {
+      opacity: 0;
+   }
+
+   to {
+      opacity: 1;
+   }
 }
 
 .centered.winking {
    animation: wink-shake 0.4s ease-in-out forwards;
 }
 
+.wink-shooting-star {
+   position: absolute;
+   left: calc(100% - 0.4rem);
+   top: -0.25rem;
+   width: 1.45rem;
+   height: 1.45rem;
+   color: var(--fill);
+   pointer-events: none;
+   transform-origin: 50% 50%;
+   backface-visibility: hidden;
+   contain: paint;
+   will-change: transform, opacity;
+   animation:
+      wink-star-travel 650ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
+      wink-star-fade 650ms ease-out forwards;
+   z-index: 1;
+}
+
+.wink-shooting-star svg {
+   display: block;
+   width: 100%;
+   height: 100%;
+}
+
+.wink-shooting-star path {
+   fill: currentColor;
+}
+
 @keyframes wink-shake {
    0% {
-      transform: translate(-50%, -50%);
+      transform: translateY(0);
    }
    25% {
-      transform: translate(-50%, calc(-50% + 2px));
+      transform: translateY(2px);
    }
    50% {
-      transform: translate(-50%, calc(-50% - 2px));
+      transform: translateY(-2px);
    }
    100% {
-      transform: translate(-50%, -50%);
+      transform: translateY(0);
+   }
+}
+
+@keyframes wink-star-travel {
+   0% {
+      transform: translate3d(0, 0, 0) rotate(-10deg) scale(0.45);
+   }
+
+   100% {
+      transform: translate3d(48px, -21.4px, 0) rotate(105deg) scale(0.7);
+   }
+}
+
+@keyframes wink-star-fade {
+   0% {
+      opacity: 0;
+   }
+
+   12% {
+      opacity: 1;
+   }
+
+   45% {
+      opacity: 0.72;
+   }
+
+   75% {
+      opacity: 0.28;
+   }
+
+   100% {
+      opacity: 0;
    }
 }
 

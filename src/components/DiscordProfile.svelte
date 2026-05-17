@@ -64,6 +64,7 @@
             const url = getDiscordUrl(theme === "dark");
             let img = new Image();
             img.onload = () => resolve();
+            img.onerror = () => resolve();
             img.src = url;
             imageCache[theme] = img;
          });

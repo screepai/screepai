@@ -3,7 +3,7 @@
    import { fade, fly } from "svelte/transition";
    import { backInOut } from "svelte/easing";
    import aos from "aos";
-   import { github, x, youtube } from "../config/shapes.js";
+   import { github, star, x, youtube } from "../config/shapes.js";
    import ThemeToggle from "../components/ThemeToggle.svelte";
    import DiscordProfile from "../components/DiscordProfile.svelte";
    import StarAnimation from "../components/StarAnimation.svelte";
@@ -14,10 +14,6 @@
    import "../styles/global.css";
    import "../styles/swiper.css";
    import "../styles/checkbox.css";
-
-   import "swiper/css";
-   import "swiper/css/navigation";
-   import "swiper/css/pagination";
 
    let ready = false;
    let visible = false;
@@ -32,8 +28,13 @@
    let winkText = "(´•ω<`)";
    let displayOwo = owoText;
    let isWinking = false;
+   let winkStarVisible = false;
    let initialAnimationComplete = false;
    let preloadComplete = false;
+   let winkStarTimeout: ReturnType<typeof setTimeout> | undefined;
+   let introSequenceStarted = false;
+
+   const WINK_STAR_DURATION = 650;
 
    function handleDiscordPreloaded() {
       preloadingProfile = false;
@@ -62,9 +63,15 @@
    }
 
    function tryTriggerWink() {
-      if (preloadComplete && initialAnimationComplete && !isWinking) {
+      if (preloadComplete && initialAnimationComplete && !introSequenceStarted) {
+         introSequenceStarted = true;
          isWinking = true;
          displayOwo = winkText;
+         winkStarVisible = true;
+         clearTimeout(winkStarTimeout);
+         winkStarTimeout = setTimeout(() => {
+            winkStarVisible = false;
+         }, WINK_STAR_DURATION);
          startAnimationSequence();
       }
    }
@@ -104,22 +111,15 @@
 
       const initialAnimationDuration = displayOwo.length * ANIMATION.CENTERED_TEXT.CHAR_DELAY + ANIMATION.CENTERED_TEXT.DURATION * 1.2;
       setTimeout(() => {
-         console.log('[DEBUG] Initial animation complete');
          initialAnimationComplete = true;
          tryTriggerWink();
       }, 200 + initialAnimationDuration);
       
       tick();
       
-      const timeout = setTimeout(() => {
-         if (preloadingProfile) {
-            preloadingProfile = false;
-            showPreloader = false;
-            startAnimationSequence();
-         }
-      }, 5000);
-      
-      return () => clearTimeout(timeout);
+      return () => {
+         clearTimeout(winkStarTimeout);
+      };
    });
 </script>
 
@@ -161,16 +161,25 @@
 </svg>
 
 {#if visible}
-   <div class="centered" class:winking={isWinking} out:fly="{{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}" class:light-mode={!darkMode} class:dark-mode={darkMode}>
-      {#each displayOwo as char, i}
-         <span 
-            in:fade="{{ 
-               delay: i * ANIMATION.CENTERED_TEXT.CHAR_DELAY, 
-               duration: ANIMATION.CENTERED_TEXT.DURATION * 1.2, 
-               easing: backInOut 
-            }}"
-         >{char}</span>
-      {/each}
+   <div class="centered-shell" class:light-mode={!darkMode} class:dark-mode={darkMode}>
+      <div class="centered-motion" out:fly={{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}>
+         <div class="centered" class:winking={isWinking}>
+            {#each displayOwo as char, i (i)}
+               <span
+                  class="centered-char"
+                  style:animation-delay={`${i * ANIMATION.CENTERED_TEXT.CHAR_DELAY}ms`}
+                  style:animation-duration={`${ANIMATION.CENTERED_TEXT.DURATION * 1.2}ms`}
+               >{char}</span>
+            {/each}
+         </div>
+         {#if winkStarVisible}
+            <span class="wink-shooting-star" aria-hidden="true">
+               <svg viewBox="0 0 512 512">
+                  <path d={star} />
+               </svg>
+            </span>
+         {/if}
+      </div>
    </div>
 {/if}
 

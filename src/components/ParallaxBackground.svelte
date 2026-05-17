@@ -6,7 +6,7 @@
 
    export let darkMode: boolean;
    export let transitionEnd: boolean;
-   export let onPreloaded: (data: {type: string}) => void = () => {};
+   export let onPreloaded: (data: {type: string}) => void = () => undefined;
    
    let darkBgLoaded = false;
    let lightBgLoaded = false;
@@ -35,10 +35,12 @@
       
       const darkBgImg = new Image();
       darkBgImg.onload = handleDarkBgLoaded;
+      darkBgImg.onerror = handleDarkBgLoaded;
       darkBgImg.src = '/sw.jpg';
       
       const lightBgImg = new Image();
       lightBgImg.onload = handleLightBgLoaded;
+      lightBgImg.onerror = handleLightBgLoaded;
       lightBgImg.src = '/background2.jpg';
    });
 </script>
