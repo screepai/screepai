@@ -24,5 +24,6 @@ declare module 'parallax-js' {
          selector?: string | null;
          onReady?: () => void;
       });
+      destroy(): void;
    }
 } 

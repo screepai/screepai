@@ -1,7 +1,7 @@
 <script lang="ts">
    import { onDestroy } from "svelte";
    import { ANIMATION } from "../config/animation";
-   import { getDiscordUrl, type DiscordTheme } from "../config/discord";
+   import { getDiscordUrl, type ThemeName } from "../config/theme";
    import { preloadImage } from "../utils/preload";
 
    export let darkMode: boolean;
@@ -9,7 +9,7 @@
    let currentDiscordUrl = "";
    let nextDiscordUrl = "";
    let showNextImage = false;
-   let theme: DiscordTheme;
+   let theme: ThemeName;
    let requestedDiscordUrl = "";
    let transitionRequest = 0;
    let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -58,6 +58,24 @@
       from { opacity: 0; }
       to { opacity: 1; }
    }
+
+   .discord {
+      pointer-events: none;
+      width: 100%;
+   }
+
+   .discord a {
+      pointer-events: auto;
+      display: block;
+      width: 100%;
+   }
+
+   .discord img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+   }
+
    .fade-in {
       animation: fadeIn var(--theme-duration) cubic-bezier(.26, 1.5, .46, 1) forwards;
    }

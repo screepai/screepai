@@ -1,8 +1,6 @@
 <script lang="ts">
    import { onMount } from "svelte";
 
-   export let darkMode = false;
-
    type Position = {
       x: number;
       y: number;
@@ -56,11 +54,10 @@
 
       function createStar(position: Position) {
          const star = document.createElement("span");
-         const themeClass = darkMode ? "dark-mode" : "light-mode";
          const colorVars = ["var(--color1)", "var(--color2)", "var(--color3)", "var(--color4)"];
          const color = colorVars[rand(colorVars.length)];
 
-         star.className = `star fa-solid fa-star ${themeClass}`;
+         star.className = "star fa-solid fa-star";
          star.style.left = px(position.x);
          star.style.top = px(position.y);
          star.style.fontSize = config.sizes[rand(config.sizes.length)];
@@ -124,3 +121,66 @@
       };
    });
 </script>
+
+<style>
+   :global(.star) {
+      position: absolute;
+      z-index: 999;
+      color: white;
+      font-size: 1rem;
+      animation-duration: 1500ms;
+      animation-fill-mode: forwards;
+      pointer-events: none;
+   }
+
+   @keyframes -global-fall-1 {
+      0% {
+         transform: translate(0px, 0px) rotateX(45deg) rotateY(30deg) rotateZ(0deg) scale(0.25);
+         opacity: 0;
+      }
+
+      5% {
+         transform: translate(10px, -10px) rotateX(45deg) rotateY(30deg) rotateZ(0deg) scale(1);
+         opacity: 1;
+      }
+
+      100% {
+         transform: translate(25px, 200px) rotateX(180deg) rotateY(270deg) rotateZ(90deg) scale(1);
+         opacity: 0;
+      }
+   }
+
+   @keyframes -global-fall-2 {
+      0% {
+         transform: translate(0px, 0px) rotateX(-20deg) rotateY(10deg) scale(0.25);
+         opacity: 0;
+      }
+
+      10% {
+         transform: translate(-10px, -5px) rotateX(-20deg) rotateY(10deg) scale(1);
+         opacity: 1;
+      }
+
+      100% {
+         transform: translate(-10px, 160px) rotateX(-90deg) rotateY(45deg) scale(0.25);
+         opacity: 0;
+      }
+   }
+
+   @keyframes -global-fall-3 {
+      0% {
+         transform: translate(0px, 0px) rotateX(0deg) rotateY(45deg) scale(0.5);
+         opacity: 0;
+      }
+
+      15% {
+         transform: translate(7px, 5px) rotateX(0deg) rotateY(45deg) scale(1);
+         opacity: 1;
+      }
+
+      100% {
+         transform: translate(20px, 120px) rotateX(-180deg) rotateY(-90deg) scale(0.5);
+         opacity: 0;
+      }
+   }
+</style>

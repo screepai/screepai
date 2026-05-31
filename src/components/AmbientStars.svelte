@@ -2,8 +2,6 @@
    import { onMount } from "svelte";
    import { star } from "../config/shapes";
 
-   export let darkMode = false;
-
    const magicStars = Array.from({ length: 6 }, (_, index) => index);
    let starElements: HTMLElement[] = [];
    let animationTimers: Array<ReturnType<typeof setInterval> | ReturnType<typeof setTimeout>> = [];
@@ -50,8 +48,54 @@
    });
 </script>
 
+<style>
+   .magic-star {
+      --size: clamp(20px, 1.5vw, 69px);
+      animation: scale 800ms ease forwards;
+      display: block;
+      height: var(--size);
+      left: var(--star-left);
+      position: absolute;
+      top: var(--star-top);
+      width: var(--size);
+      z-index: 99999;
+   }
+
+   .magic-star > svg {
+      animation: rotate 1000ms linear infinite;
+      display: block;
+      opacity: 0.7;
+      filter: drop-shadow(0 0 0.625rem var(--star-color));
+   }
+
+   .magic-star > svg > path {
+      fill: var(--star-color);
+   }
+
+   @keyframes -global-scale {
+      from,
+      to {
+         transform: scale(0);
+      }
+
+      50% {
+         transform: scale(var(--star-scale, 1));
+      }
+   }
+
+   @keyframes -global-rotate {
+      from {
+         transform: rotate(0deg);
+      }
+
+      to {
+         transform: rotate(180deg);
+      }
+   }
+</style>
+
 {#each magicStars as starId (starId)}
-   <span bind:this={starElements[starId]} class="magic-star" class:dark-mode={darkMode} class:light-mode={!darkMode}>
+   <span bind:this={starElements[starId]} class="magic-star">
       <svg viewBox="0 0 512 512">
          <path d={star} />
       </svg>

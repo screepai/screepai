@@ -10,16 +10,38 @@ export type SocialLink = {
    label: string;
 };
 
-export const menu = ["About", "Socials", "Credits"] as const;
+type AboutSlide = {
+   kind: "about";
+   label: string;
+   heading: string;
+   items: readonly string[];
+};
 
-export const cards = [
+type SocialsSlide = {
+   kind: "socials";
+   label: string;
+   heading: string;
+   links: readonly SocialLink[];
+   note: string;
+};
+
+type CreditsSlide = {
+   kind: "credits";
+   label: string;
+   heading: string;
+   credits: readonly Credit[];
+};
+
+export type ContentSlide = AboutSlide | SocialsSlide | CreditsSlide;
+
+const aboutItems = [
    "programmer / animator / editor",
    "profound mental retardation",
    "visual novel enthusiast",
    "vietnamese / english",
 ] as const;
 
-export const credits: Credit[] = [
+const credits: readonly Credit[] = [
    {
       name: "background art (light)",
       url: "https://x.com/tubarururu",
@@ -37,7 +59,7 @@ export const credits: Credit[] = [
    }
 ];
 
-export const socialLinks: SocialLink[] = [
+const socialLinks: readonly SocialLink[] = [
    {
       url: "https://github.com/screepai",
       icon: "#icon-905",
@@ -54,3 +76,25 @@ export const socialLinks: SocialLink[] = [
       label: "YouTube"
    }
 ];
+
+export const contentSlides = [
+   {
+      kind: "about",
+      label: "About",
+      heading: "About me",
+      items: aboutItems,
+   },
+   {
+      kind: "socials",
+      label: "Socials",
+      heading: "Socials",
+      links: socialLinks,
+      note: "(i dont post anything, just here for the fancy)",
+   },
+   {
+      kind: "credits",
+      label: "Credits",
+      heading: "Credits",
+      credits,
+   },
+] as const satisfies readonly ContentSlide[];
