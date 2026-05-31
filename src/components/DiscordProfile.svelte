@@ -1,46 +1,53 @@
 <script lang="ts">
+   import { onDestroy } from "svelte";
    import { ANIMATION } from "../config/animation";
    import { getDiscordUrl, type DiscordTheme } from "../config/discord";
+   import { preloadImage } from "../utils/preload";
 
    export let darkMode: boolean;
 
    let currentDiscordUrl = "";
    let nextDiscordUrl = "";
    let showNextImage = false;
-   let imageCache: { [key in DiscordTheme]: HTMLImageElement | null } = { light: null, dark: null };
    let theme: DiscordTheme;
+   let requestedDiscordUrl = "";
+   let transitionRequest = 0;
+   let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
 
    $: theme = darkMode ? "dark" : "light";
    $: newDiscordUrl = getDiscordUrl(theme);
-
-   $: {
-      if (currentDiscordUrl === "") {
-         currentDiscordUrl = newDiscordUrl;
-      }
-      if (newDiscordUrl !== currentDiscordUrl && currentDiscordUrl !== "") {
-         nextDiscordUrl = newDiscordUrl;
-         let cachedImg = imageCache[theme];
-         if (cachedImg && cachedImg.complete) {
-            showNextImage = true;
-            setTimeout(() => {
-               currentDiscordUrl = newDiscordUrl;
-               showNextImage = false;
-            }, ANIMATION.TRANSITION.THEME_DURATION);
-         } else {
-            let img = new Image();
-            img.onload = () => {
-               showNextImage = true;
-               setTimeout(() => {
-                  currentDiscordUrl = newDiscordUrl;
-                  showNextImage = false;
-               }, ANIMATION.TRANSITION.THEME_DURATION);
-            };
-            img.src = newDiscordUrl;
-            imageCache[theme] = img;
-         }
-      }
+   $: if (newDiscordUrl !== requestedDiscordUrl) {
+      requestedDiscordUrl = newDiscordUrl;
+      void transitionToDiscordUrl(newDiscordUrl);
    }
 
+   async function transitionToDiscordUrl(url: string) {
+      const requestId = ++transitionRequest;
+
+      if (currentDiscordUrl === "") {
+         currentDiscordUrl = url;
+         return;
+      }
+
+      nextDiscordUrl = url;
+      await preloadImage(url);
+      if (requestId !== transitionRequest) return;
+
+      showNextImage = true;
+      clearTimeout(transitionTimeout);
+      transitionTimeout = setTimeout(() => {
+         if (requestId !== transitionRequest) return;
+
+         currentDiscordUrl = url;
+         nextDiscordUrl = "";
+         showNextImage = false;
+      }, ANIMATION.TRANSITION.THEME_DURATION);
+   }
+
+   onDestroy(() => {
+      transitionRequest += 1;
+      clearTimeout(transitionTimeout);
+   });
 </script>
 
 <style>
@@ -61,7 +68,7 @@
             src={currentDiscordUrl} 
             alt="screepy"
          />
-         {#if showNextImage}
+          {#if showNextImage && nextDiscordUrl}
             <img 
                class="fade-in"
                style="position: absolute; top: 0; left: 0; width: 100%; --theme-duration: {ANIMATION.TRANSITION.THEME_DURATION}ms;" 
