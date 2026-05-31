@@ -10,6 +10,9 @@
    import ContentSlider from "../components/ContentSlider.svelte";
    import ParallaxBackground from "../components/ParallaxBackground.svelte";
    import { ANIMATION } from "../config/animation";
+   import { backgroundImageUrls } from "../config/backgrounds";
+   import { discordImageUrls } from "../config/discord";
+   import { preloadImages } from "../utils/preload";
 
    import "../styles/global.css";
    import "../styles/swiper.css";
@@ -19,11 +22,6 @@
    let visible = false;
    let darkMode = false;
    let transitionEnd = true;
-   let preloadingProfile = true;
-   let showPreloader = true;
-   let preloadingBackground = true;
-   let darkBgPreloaded = false;
-   let lightBgPreloaded = false;
    let owoText = "(´•ω•`)";
    let winkText = "(´•ω<`)";
    let displayOwo = owoText;
@@ -36,30 +34,14 @@
 
    const WINK_STAR_DURATION = 650;
 
-   function handleDiscordPreloaded() {
-      preloadingProfile = false;
-      checkAllPreloaded();
-   }
-   
-   function handleBackgroundPreloaded(event: {detail?: {type: string}}) {
-      if (event.detail && event.detail.type === 'dark') {
-         darkBgPreloaded = true;
-      } else if (event.detail && event.detail.type === 'light') {
-         lightBgPreloaded = true;
-      }
-      
-      if (darkBgPreloaded && lightBgPreloaded) {
-         preloadingBackground = false;
-         checkAllPreloaded();
-      }
-   }
-   
-   function checkAllPreloaded() {
-      if (!preloadingProfile && !preloadingBackground) {
-         showPreloader = false;
-         preloadComplete = true;
-         tryTriggerWink();
-      }
+   async function preloadIntroAssets() {
+      await Promise.all([
+         preloadImages(backgroundImageUrls),
+         preloadImages(discordImageUrls),
+      ]);
+
+      preloadComplete = true;
+      tryTriggerWink();
    }
 
    function tryTriggerWink() {
@@ -108,6 +90,8 @@
       setTimeout(() => {
          visible = true;
       }, 100);
+
+      void preloadIntroAssets();
 
       const initialAnimationDuration = displayOwo.length * ANIMATION.CENTERED_TEXT.CHAR_DELAY + ANIMATION.CENTERED_TEXT.DURATION * 1.2;
       setTimeout(() => {
@@ -180,17 +164,6 @@
       </div>
    </div>
 {/if}
-
-{#if showPreloader}
-   <div style="position: absolute; opacity: 0; pointer-events: none;" transition:fade={{ duration: 300 }}>
-      <DiscordProfile {darkMode} on:preloaded={handleDiscordPreloaded} />
-      <div style="position: absolute;">
-         <ParallaxBackground darkMode={true} transitionEnd={true} onPreloaded={(data) => handleBackgroundPreloaded({detail: data})} />
-         <ParallaxBackground darkMode={false} transitionEnd={true} onPreloaded={(data) => handleBackgroundPreloaded({detail: data})} />
-      </div>
-   </div>
-{/if}
-
 {#if ready}
    <ParallaxBackground {darkMode} {transitionEnd} />
    <div id="scene" transition:fade={{ delay: ANIMATION.TRANSITION.FADE_DELAY, duration: ANIMATION.TRANSITION.FADE_DURATION }} class="parallax">

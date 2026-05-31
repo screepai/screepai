@@ -1,29 +1,17 @@
 <script lang="ts">
-   import { onMount, createEventDispatcher } from "svelte";
    import { ANIMATION } from "../config/animation";
+   import { getDiscordUrl, type DiscordTheme } from "../config/discord";
 
    export let darkMode: boolean;
-   const dispatch = createEventDispatcher<{ preloaded: void }>();
 
-   let currentDiscordUrl = ""; 
+   let currentDiscordUrl = "";
    let nextDiscordUrl = "";
    let showNextImage = false;
-   let imageCache: { [key in "light" | "dark"]: HTMLImageElement | null } = { light: null, dark: null };
+   let imageCache: { [key in DiscordTheme]: HTMLImageElement | null } = { light: null, dark: null };
+   let theme: DiscordTheme;
 
-   function getDiscordUrl(isDark: boolean) {
-      const theme = isDark ? "dark" : "light";
-      const bg = "FBFBFB";
-      const idleMessage = "( ´ ω ` )ノﾞ";
-      const hideBadges = "true";
-      const hideNameplate = "true";
-      const useDisplayName = "true";
-      const waveColor = isDark ? "bfc5e7-light" : "f3bdbb";
-      const gradient = isDark ? "bfc5e7-a9b0e6-868ac9-6065da" : "f3bdbb-f7a9a7-e98e8c-fe7585";
-      const forceGradient = "true";
-      return `https://lanyard.kyrie25.dev/api/534375062099460097?theme=${theme}&bg=${bg}&idleMessage=${encodeURIComponent(idleMessage)}&hideBadges=${hideBadges}&hideNameplate=${hideNameplate}&useDisplayName=${useDisplayName}&waveColor=${waveColor}&waveSpotifyColor=${waveColor}&gradient=${gradient}&forceGradient=${forceGradient}`;
-   }
-
-   $: newDiscordUrl = getDiscordUrl(darkMode);
+   $: theme = darkMode ? "dark" : "light";
+   $: newDiscordUrl = getDiscordUrl(theme);
 
    $: {
       if (currentDiscordUrl === "") {
@@ -31,8 +19,7 @@
       }
       if (newDiscordUrl !== currentDiscordUrl && currentDiscordUrl !== "") {
          nextDiscordUrl = newDiscordUrl;
-         let themeKey: "light" | "dark" = darkMode ? "dark" : "light";
-         let cachedImg = imageCache[themeKey];
+         let cachedImg = imageCache[theme];
          if (cachedImg && cachedImg.complete) {
             showNextImage = true;
             setTimeout(() => {
@@ -49,34 +36,11 @@
                }, ANIMATION.TRANSITION.THEME_DURATION);
             };
             img.src = newDiscordUrl;
-            imageCache[themeKey] = img;
+            imageCache[theme] = img;
          }
       }
    }
 
-   onMount(async () => {
-      currentDiscordUrl = newDiscordUrl;
-      
-      const preloadPromises = [];
-      
-      const preloadImage = (theme: "light" | "dark") => {
-         return new Promise<void>((resolve) => {
-            const url = getDiscordUrl(theme === "dark");
-            let img = new Image();
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-            img.src = url;
-            imageCache[theme] = img;
-         });
-      };
-      
-      preloadPromises.push(preloadImage("light"));
-      preloadPromises.push(preloadImage("dark"));
-      
-      await Promise.all(preloadPromises);
-      
-      dispatch('preloaded');
-   });
 </script>
 
 <style>
