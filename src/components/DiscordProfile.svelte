@@ -24,8 +24,11 @@
    async function transitionToDiscordUrl(url: string) {
       const requestId = ++transitionRequest;
 
-      if (currentDiscordUrl === "") {
+      if (currentDiscordUrl === "" || url === currentDiscordUrl) {
          currentDiscordUrl = url;
+         nextDiscordUrl = "";
+         showNextImage = false;
+         clearTimeout(transitionTimeout);
          return;
       }
 
@@ -68,7 +71,7 @@
             src={currentDiscordUrl} 
             alt="screepy"
          />
-          {#if showNextImage && nextDiscordUrl}
+         {#if showNextImage && nextDiscordUrl}
             <img 
                class="fade-in"
                style="position: absolute; top: 0; left: 0; width: 100%; --theme-duration: {ANIMATION.TRANSITION.THEME_DURATION}ms;" 
