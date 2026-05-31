@@ -28,22 +28,24 @@
    import "../styles/swiper.css";
    import "../styles/checkbox.css";
 
-   let ready = false;
-   let visible = false;
    let darkMode = false;
    let transitionEnd = true;
-   let owoText = "(´•ω•`)";
-   let winkText = "(´•ω<`)";
-   let displayOwo = owoText;
-   let isWinking = false;
-   let winkStarVisible = false;
-   let initialAnimationComplete = false;
-   let preloadComplete = false;
-   let winkStarTimeout: ReturnType<typeof setTimeout> | undefined;
    let themeTransitionTimeout: ReturnType<typeof setTimeout> | undefined;
-   let introSequenceStarted = false;
+   let introPhase: IntroPhase = "hidden";
+   let introRunId = 0;
 
+   type IntroPhase = "hidden" | "typing" | "wink" | "holdingWink" | "leaving" | "ready";
+
+   const OWO_TEXT = "(´•ω•`)";
+   const WINK_TEXT = "(´•ω<`)";
    const WINK_STAR_DURATION = 650;
+   let introTimeouts: ReturnType<typeof setTimeout>[] = [];
+
+   $: visible = introPhase === "typing" || introPhase === "wink" || introPhase === "holdingWink";
+   $: ready = introPhase === "ready";
+   $: isWinking = introPhase === "wink" || introPhase === "holdingWink";
+   $: winkStarVisible = introPhase === "wink";
+   $: displayOwo = isWinking ? WINK_TEXT : OWO_TEXT;
 
    function setTheme(theme: ThemeName) {
       darkMode = isDarkTheme(theme);
@@ -67,67 +69,73 @@
          preloadImages(backgroundImageUrls),
          preloadImages(discordImageUrls),
       ]);
-
-      preloadComplete = true;
-      tryTriggerWink();
    }
 
-   function tryTriggerWink() {
-      if (preloadComplete && initialAnimationComplete && !introSequenceStarted) {
-         introSequenceStarted = true;
-         isWinking = true;
-         displayOwo = winkText;
-         winkStarVisible = true;
-         clearTimeout(winkStarTimeout);
-         winkStarTimeout = setTimeout(() => {
-            winkStarVisible = false;
-         }, WINK_STAR_DURATION);
-         startAnimationSequence();
-      }
+   function getInitialAnimationDelay() {
+      return 200 + OWO_TEXT.length * ANIMATION.CENTERED_TEXT.CHAR_DELAY + ANIMATION.CENTERED_TEXT.DURATION * 1.2;
    }
 
-   function startAnimationSequence() {
-      const startProfileAt = ANIMATION.CENTERED_TEXT.DISPLAY_TIME;
-      const startFadeAt = startProfileAt + ANIMATION.TRANSITION.FADE_DELAY;
-      const startAOSAt = startFadeAt + ANIMATION.TRANSITION.FADE_DELAY;
+   function wait(ms: number) {
+      if (ms <= 0) return Promise.resolve();
 
-      setTimeout(() => {
-         visible = false;
-      }, startProfileAt);
+      return new Promise<void>((resolve) => {
+         const timeout = setTimeout(() => {
+            introTimeouts = introTimeouts.filter(introTimeout => introTimeout !== timeout);
+            resolve();
+         }, ms);
+         introTimeouts = [...introTimeouts, timeout];
+      });
+   }
 
-      setTimeout(async () => {
-         ready = true;
-         await tick();
-      }, startFadeAt);
+   function clearIntroTimeouts() {
+      introTimeouts.forEach(timeout => clearTimeout(timeout));
+      introTimeouts = [];
+   }
 
-      setTimeout(() => {
-         aos.init({
-            easing: "ease-out-back",
-            offset: -999,
-         });
-      }, startAOSAt);
+   async function runIntroSequence() {
+      const runId = ++introRunId;
+      const isCurrentRun = () => runId === introRunId;
+      const assetsReady = preloadIntroAssets();
+      const textReady = wait(getInitialAnimationDelay());
+
+      await wait(100);
+      if (!isCurrentRun()) return;
+      introPhase = "typing";
+
+      await Promise.all([assetsReady, textReady]);
+      if (!isCurrentRun()) return;
+      introPhase = "wink";
+
+      await wait(WINK_STAR_DURATION);
+      if (!isCurrentRun()) return;
+      introPhase = "holdingWink";
+
+      await wait(ANIMATION.CENTERED_TEXT.DISPLAY_TIME - WINK_STAR_DURATION);
+      if (!isCurrentRun()) return;
+      introPhase = "leaving";
+
+      await wait(ANIMATION.TRANSITION.FADE_DELAY);
+      if (!isCurrentRun()) return;
+      introPhase = "ready";
+      await tick();
+
+      await wait(ANIMATION.TRANSITION.FADE_DELAY);
+      if (!isCurrentRun()) return;
+      aos.init({
+         easing: "ease-out-back",
+         offset: -999,
+      });
    }
 
    onMount(() => {
       setTheme(getInitialTheme());
       const stopWatchingSystemTheme = watchSystemTheme(setTheme);
 
-      setTimeout(() => {
-         visible = true;
-      }, 100);
+      void runIntroSequence();
 
-      void preloadIntroAssets();
-
-      const initialAnimationDuration = displayOwo.length * ANIMATION.CENTERED_TEXT.CHAR_DELAY + ANIMATION.CENTERED_TEXT.DURATION * 1.2;
-      setTimeout(() => {
-         initialAnimationComplete = true;
-         tryTriggerWink();
-      }, 200 + initialAnimationDuration);
-      
-      tick();
-      
       return () => {
-         clearTimeout(winkStarTimeout);
+         introRunId += 1;
+         clearIntroTimeouts();
          clearTimeout(themeTransitionTimeout);
          stopWatchingSystemTheme();
       };
