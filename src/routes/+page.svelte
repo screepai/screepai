@@ -12,6 +12,16 @@
    import { ANIMATION } from "../config/animation";
    import { backgroundImageUrls } from "../config/backgrounds";
    import { discordImageUrls } from "../config/discord";
+   import {
+      applyTheme,
+      getInitialTheme,
+      isDarkTheme,
+      saveTheme,
+      themeFromDarkMode,
+      toggleTheme,
+      watchSystemTheme,
+      type ThemeName,
+   } from "../config/theme";
    import { preloadImages } from "../utils/preload";
 
    import "../styles/global.css";
@@ -30,9 +40,27 @@
    let initialAnimationComplete = false;
    let preloadComplete = false;
    let winkStarTimeout: ReturnType<typeof setTimeout> | undefined;
+   let themeTransitionTimeout: ReturnType<typeof setTimeout> | undefined;
    let introSequenceStarted = false;
 
    const WINK_STAR_DURATION = 650;
+
+   function setTheme(theme: ThemeName) {
+      darkMode = isDarkTheme(theme);
+      applyTheme(theme);
+   }
+
+   function handleThemeToggle() {
+      transitionEnd = false;
+      clearTimeout(themeTransitionTimeout);
+      const nextTheme = toggleTheme(themeFromDarkMode(darkMode));
+      setTheme(nextTheme);
+      saveTheme(nextTheme);
+
+      themeTransitionTimeout = setTimeout(() => {
+         transitionEnd = true;
+      }, ANIMATION.TRANSITION.THEME_DURATION);
+   }
 
    async function preloadIntroAssets() {
       await Promise.all([
@@ -81,12 +109,9 @@
    }
 
    onMount(() => {
-      const localStorageTheme = localStorage.getItem("theme");
-      const systemSettingDark = window.matchMedia("(prefers-color-scheme: dark)");
-      darkMode = localStorageTheme 
-         ? localStorageTheme === "dark"
-         : systemSettingDark.matches;
-      
+      setTheme(getInitialTheme());
+      const stopWatchingSystemTheme = watchSystemTheme(setTheme);
+
       setTimeout(() => {
          visible = true;
       }, 100);
@@ -103,6 +128,8 @@
       
       return () => {
          clearTimeout(winkStarTimeout);
+         clearTimeout(themeTransitionTimeout);
+         stopWatchingSystemTheme();
       };
    });
 </script>
@@ -120,18 +147,15 @@
    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
    <script src="https://code.iconify.design/1/1.0.4/iconify.min.js"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
-   <script>
-      (function() {
-         const localStorageTheme = localStorage.getItem("theme");
-         const isDark = localStorageTheme 
-            ? localStorageTheme === "dark"
-            : window.matchMedia("(prefers-color-scheme: dark)").matches;
-         document.documentElement.style.setProperty("--bg", isDark ? "#232a44" : "#f7f8f3");
-      })();
-   </script>
    <style>
       :root {
          --bg: #f7f8f3;
+      }
+
+      @media (prefers-color-scheme: dark) {
+         :root {
+            --bg: #232a44;
+         }
       }
    </style>
 </svelte:head>
@@ -168,7 +192,7 @@
    <ParallaxBackground {darkMode} {transitionEnd} />
    <div id="scene" transition:fade={{ delay: ANIMATION.TRANSITION.FADE_DELAY, duration: ANIMATION.TRANSITION.FADE_DURATION }} class="parallax">
       <div data-depth="0.15" class:light-mode={!darkMode} class:dark-mode={darkMode} class="profile">
-         <ThemeToggle bind:darkMode bind:transitionEnd />
+         <ThemeToggle {darkMode} onToggle={handleThemeToggle} />
          <span class="magic">
             <StarAnimation {darkMode} />
             <DiscordProfile {darkMode} />
