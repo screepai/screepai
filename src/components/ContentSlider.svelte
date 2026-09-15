@@ -433,7 +433,7 @@
       transform: scale(1.1125);
    }
 
-   .social-tooltip {
+   .profile-tip {
       position: absolute;
       left: var(--tooltip-x);
       top: var(--tooltip-y);
@@ -457,7 +457,7 @@
          both;
    }
 
-   .social-tooltip::after {
+   .profile-tip::after {
       content: "";
       position: absolute;
       left: 50%;
@@ -812,7 +812,7 @@
 
    {#if socialTooltip}
       <div
-         class="social-tooltip"
+         class="profile-tip"
          style={`--tooltip-x:${socialTooltip.x}px;--tooltip-y:${socialTooltip.y}px;`}
          aria-hidden="true"
       >
