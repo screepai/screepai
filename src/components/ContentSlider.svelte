@@ -1,45 +1,356 @@
 <script lang="ts">
-   import { onMount } from "svelte";
+   import { onMount, tick } from "svelte";
+   import type { TransitionConfig } from "svelte/transition";
    import { contentSlides } from "../config/contents";
-   import { setupContentSlider, type SwiperContainerElement } from "./contentSliderSwiper";
 
-   let swiperElement: SwiperContainerElement;
+   type SwipeParams = {
+      direction: number;
+   };
 
-   function renderPaginationBullet(index: number, className: string) {
-      const r1 = Math.floor(Math.random() * 40) - 10;
-      const r2 = Math.floor(Math.random() * 40) - 30;
-      return `<span class="${className}" style="--r1: ${r1}deg; --r2: ${r2}deg">${contentSlides[index]?.label ?? ""}</span>`;
+   type SocialTooltip = {
+      name: string;
+      text: string;
+      x: number;
+      y: number;
+   };
+
+   let activeIndex = 0;
+   let direction = 1;
+   let slideViewport: HTMLDivElement | null = null;
+   let sliderRoot: HTMLDivElement | null = null;
+   let changingSlide = false;
+   let socialTooltip: SocialTooltip | null = null;
+
+   $: activeSlide = contentSlides[activeIndex];
+
+   function softBackOut(t: number) {
+      const strength = 0.75;
+      const value = t - 1;
+      return 1 + value * value * ((strength + 1) * value + strength);
+   }
+
+   function swipeIn(_node: Element, { direction }: SwipeParams): TransitionConfig {
+      void _node;
+
+      return {
+         duration: 420,
+         easing: softBackOut,
+         css: (t) => `
+            transform: translate3d(${direction * (1 - t) * 100}%, 0, 0);
+            opacity: ${0.65 + t * 0.35};
+         `,
+      };
+   }
+
+   function swipeOut(_node: Element): TransitionConfig {
+      void _node;
+
+      const outgoingDirection = direction;
+
+      return {
+         duration: 420,
+         css: (t) => {
+            const u = 1 - t;
+            const movement = u * u;
+
+            return `
+               transform: translate3d(${-outgoingDirection * movement * 100}%, 0, 0);
+               opacity: ${0.25 + t * 0.75};
+            `;
+         },
+      };
+   }
+
+   function playOutAnimations(panel: HTMLElement, outgoingDirection: number) {
+      const heading = panel.querySelector<HTMLElement>(".heading-card");
+      const items = panel.querySelectorAll<HTMLElement>(".item-card");
+      const note = panel.querySelector<HTMLElement>(".note-card");
+      const itemX = outgoingDirection > 0 ? -110 : 110;
+
+      if (heading) {
+         heading.getAnimations().forEach((animation) => animation.cancel());
+
+         heading.animate(
+            [
+               {
+                  opacity: 1,
+                  transform: "translate3d(0, 0, 0) scale(1)",
+               },
+               {
+                  opacity: 0.8,
+                  offset: 0.25,
+                  transform: "translate3d(0, -10px, 0) scale(1)",
+               },
+               {
+                  opacity: 0,
+                  transform: "translate3d(0, -70px, 0) scale(0.94)",
+               },
+            ],
+            {
+               duration: 330,
+               easing: "cubic-bezier(0.55, 0, 1, 0.45)",
+               fill: "forwards",
+            }
+         );
+      }
+
+      items.forEach((item, index) => {
+         item.getAnimations().forEach((animation) => animation.cancel());
+
+         item.animate(
+            [
+               {
+                  opacity: 1,
+                  transform: "translate3d(0, 0, 0) scale(1)",
+               },
+               {
+                  opacity: 0.85,
+                  offset: 0.2,
+                  transform: `translate3d(${itemX * 0.15}px, 0, 0) scale(1)`,
+               },
+               {
+                  opacity: 0,
+                  transform: `translate3d(${itemX}px, 0, 0) scale(0.94)`,
+               },
+            ],
+            {
+               delay: index * 25,
+               duration: 320,
+               easing: "cubic-bezier(0.55, 0, 1, 0.45)",
+               fill: "forwards",
+            }
+         );
+      });
+
+      if (note) {
+         note.getAnimations().forEach((animation) => animation.cancel());
+
+         note.animate(
+            [
+               {
+                  opacity: 1,
+                  transform: "translate3d(0, 0, 0) scale(1)",
+               },
+               {
+                  opacity: 0.8,
+                  offset: 0.25,
+                  transform: "translate3d(0, 10px, 0) scale(1)",
+               },
+               {
+                  opacity: 0,
+                  transform: "translate3d(0, 70px, 0) scale(0.94)",
+               },
+            ],
+            {
+               duration: 330,
+               easing: "cubic-bezier(0.55, 0, 1, 0.45)",
+               fill: "forwards",
+            }
+         );
+      }
+   }
+
+   function nextFrame() {
+      return new Promise<void>((resolve) => {
+         requestAnimationFrame(() => resolve());
+      });
+   }
+
+   function showSocialTooltip(
+      event: MouseEvent | FocusEvent,
+      name: string,
+      text: string
+   ) {
+      if (!sliderRoot) return;
+
+      const button = event.currentTarget as HTMLElement;
+      const buttonRect = button.getBoundingClientRect();
+      const rootRect = sliderRoot.getBoundingClientRect();
+
+      socialTooltip = {
+         name,
+         text,
+         x: buttonRect.left + buttonRect.width / 2 - rootRect.left,
+         y: buttonRect.top - rootRect.top,
+      };
+   }
+
+   function hideSocialTooltip() {
+      socialTooltip = null;
+   }
+
+   async function changeSlide(nextIndex: number) {
+      if (
+         nextIndex === activeIndex ||
+         !slideViewport ||
+         changingSlide
+      ) {
+         return;
+      }
+
+      changingSlide = true;
+      socialTooltip = null;
+
+      const viewport = slideViewport;
+      const currentHeight = viewport.getBoundingClientRect().height;
+
+      viewport.style.height = `${currentHeight}px`;
+      direction = nextIndex > activeIndex ? 1 : -1;
+
+      const currentPanels =
+         viewport.querySelectorAll<HTMLElement>(".slide-panel");
+
+      const outgoingPanel =
+         currentPanels[currentPanels.length - 1];
+
+      if (outgoingPanel) {
+         playOutAnimations(outgoingPanel, direction);
+      }
+
+      await nextFrame();
+
+      activeIndex = nextIndex;
+
+      await tick();
+
+      const panels =
+         viewport.querySelectorAll<HTMLElement>(".slide-panel");
+
+      const incomingPanel =
+         panels[panels.length - 1];
+
+      if (!incomingPanel) {
+         changingSlide = false;
+         return;
+      }
+
+      const incomingContent =
+         incomingPanel.querySelector<HTMLElement>(".slide-content");
+
+      if (!incomingContent) {
+         changingSlide = false;
+         return;
+      }
+
+      const targetHeight = incomingContent.scrollHeight;
+
+      await nextFrame();
+
+      viewport.style.height = `${targetHeight}px`;
+
+      window.setTimeout(() => {
+         changingSlide = false;
+      }, 440);
+   }
+
+   function syncCurrentHeight() {
+      socialTooltip = null;
+
+      if (!slideViewport) return;
+
+      const panels =
+         slideViewport.querySelectorAll<HTMLElement>(".slide-panel");
+
+      const currentPanel = panels[panels.length - 1];
+
+      if (!currentPanel) return;
+
+      const content =
+         currentPanel.querySelector<HTMLElement>(".slide-content");
+
+      if (!content) return;
+
+      slideViewport.style.height = `${content.scrollHeight}px`;
+   }
+
+   function rotationOne(index: number) {
+      return ((index * 17) % 40) - 10;
+   }
+
+   function rotationTwo(index: number) {
+      return ((index * 23) % 40) - 30;
    }
 
    onMount(() => {
-      let cleanup: () => void = () => undefined;
-      let cancelled = false;
+      let mounted = true;
 
-      void setupContentSlider(swiperElement, renderPaginationBullet).then(removeSwiperListeners => {
-         if (cancelled) {
-            removeSwiperListeners();
-            return;
-         }
+      async function init() {
+         await tick();
 
-         cleanup = removeSwiperListeners;
-      });
+         if (!mounted || !slideViewport) return;
+
+         const viewport = slideViewport;
+         const panel =
+            viewport.querySelector<HTMLElement>(".slide-panel");
+
+         if (!panel) return;
+
+         const content =
+            panel.querySelector<HTMLElement>(".slide-content");
+
+         if (!content) return;
+
+         viewport.style.transition = "none";
+         viewport.style.height = `${content.scrollHeight}px`;
+
+         requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+               if (!mounted) return;
+               viewport.style.transition = "";
+            });
+         });
+      }
+
+      void init();
+
+      window.addEventListener("resize", syncCurrentHeight);
 
       return () => {
-         cancelled = true;
-         cleanup();
+         mounted = false;
+         window.removeEventListener("resize", syncCurrentHeight);
       };
    });
 </script>
 
 <style>
+   .content-slider {
+      position: relative;
+      width: 100%;
+      overflow: visible;
+   }
+
+   .slide-viewport {
+      display: grid;
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1);
+   }
+
+   .slide-panel {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: start;
+      width: 100%;
+      min-width: 0;
+      backface-visibility: hidden;
+      will-change: transform, opacity;
+      pointer-events: none;
+   }
+
+   .slide-panel:last-child {
+      pointer-events: auto;
+   }
+
    .slide-content {
       display: block;
+      width: 100%;
+      box-sizing: border-box;
       padding: 20px;
       color: #777777;
       font-family: "Inter Tight", sans-serif;
       font-style: normal;
       font-weight: 400;
-      font-display: swap;
    }
 
    .centered-content {
@@ -71,7 +382,6 @@
    .social-icons {
       display: flex;
       flex-wrap: wrap;
-      letter-spacing: 0;
       padding: 0;
       justify-content: center;
       align-items: center;
@@ -86,25 +396,28 @@
    }
 
    .social-icons li a {
-      align-items: center;
       display: flex;
+      align-items: center;
       justify-content: center;
-      border-radius: 100%;
-      height: 2em;
       width: 2em;
-      transition: transform 0.375s ease, color 0.375s ease,
-         background-color 0.375s ease, border-color 0.375s ease;
+      height: 2em;
       border: solid 1px #777777;
+      border-radius: 100%;
       color: #777777;
+      transition:
+         transform 0.375s ease,
+         color 0.375s ease,
+         background-color 0.375s ease,
+         border-color 0.375s ease;
    }
 
    .social-icons li a svg {
-      display: block;
       position: relative;
-      height: 60%;
+      display: block;
       width: 60%;
-      transition: fill 0.375s ease;
+      height: 60%;
       fill: #777777;
+      transition: fill 0.375s ease;
    }
 
    .social-icons a:hover {
@@ -120,47 +433,414 @@
       transform: scale(1.1125);
    }
 
+   .social-tooltip {
+      position: absolute;
+      left: var(--tooltip-x);
+      top: var(--tooltip-y);
+      width: 280px;
+      max-width: calc(100vw - 24px);
+      padding: 9px 12px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      background: var(--fill);
+      color: #ffffff;
+      text-align: center;
+      pointer-events: none;
+      transform: translate(-50%, calc(-100% - 14px));
+      transform-origin: bottom center;
+      box-shadow: 0 5px 14px rgb(0 0 0 / 0.14);
+      z-index: 10000;
+      animation:
+         tooltip-in
+         220ms
+         cubic-bezier(0.16, 1, 0.3, 1)
+         both;
+   }
+
+   .social-tooltip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid var(--fill);
+   }
+
+   .tooltip-name {
+      display: block;
+      font-family: "Inter Tight", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+   }
+
+   .tooltip-text {
+      display: block;
+      margin-top: 3px;
+      font-family: "Inter Tight", sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      white-space: normal;
+      overflow-wrap: break-word;
+      opacity: 0.85;
+   }
+
+   @keyframes tooltip-in {
+      from {
+         opacity: 0;
+         transform:
+            translate(-50%, calc(-100% - 7px))
+            scale(0.92);
+      }
+
+      to {
+         opacity: 1;
+         transform:
+            translate(-50%, calc(-100% - 14px))
+            scale(1);
+      }
+   }
+
    .label {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+   }
+
+   .heading-card {
+      opacity: 1;
+      animation:
+         heading-enter
+         700ms
+         cubic-bezier(0.16, 1, 0.3, 1)
+         100ms
+         both;
+   }
+
+   .item-card {
+      opacity: 1;
+      animation-name: item-enter;
+      animation-duration: 820ms;
+      animation-timing-function: linear;
+      animation-delay: var(--in-delay, 0ms);
+      animation-fill-mode: both;
+      will-change: transform, opacity;
+   }
+
+   .note-card {
+      opacity: 1;
+      animation:
+         note-enter
+         700ms
+         cubic-bezier(0.16, 1, 0.3, 1)
+         500ms
+         both;
+   }
+
+   @keyframes heading-enter {
+      0% {
+         opacity: 0;
+         transform: translateY(-48px) scale(0.94);
+      }
+
+      60% {
+         opacity: 1;
+         transform: translateY(4px) scale(1.01);
+      }
+
+      82% {
+         transform: translateY(-1.5px) scale(0.998);
+      }
+
+      100% {
+         opacity: 1;
+         transform: translateY(0) scale(1);
+      }
+   }
+
+   @keyframes item-enter {
+      0% {
+         opacity: 0;
+         transform: translate3d(-52px, 0, 0) scale(0.95);
+         animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      52% {
+         opacity: 1;
+         transform: translate3d(5px, 0, 0) scale(1);
+         animation-timing-function: cubic-bezier(0.25, 0.7, 0.35, 1);
+      }
+
+      68% {
+         transform: translate3d(-2.2px, 0, 0) scale(1);
+         animation-timing-function: cubic-bezier(0.25, 0.7, 0.35, 1);
+      }
+
+      81% {
+         transform: translate3d(0.8px, 0, 0) scale(1);
+         animation-timing-function: cubic-bezier(0.25, 0.7, 0.35, 1);
+      }
+
+      91% {
+         transform: translate3d(-0.25px, 0, 0) scale(1);
+         animation-timing-function: ease-out;
+      }
+
+      100% {
+         opacity: 1;
+         transform: translate3d(0, 0, 0) scale(1);
+      }
+   }
+
+   @keyframes note-enter {
+      0% {
+         opacity: 0;
+         transform: translateY(42px) scale(0.94);
+      }
+
+      60% {
+         opacity: 1;
+         transform: translateY(-4px) scale(1.01);
+      }
+
+      82% {
+         transform: translateY(1.5px) scale(0.998);
+      }
+
+      100% {
+         opacity: 1;
+         transform: translateY(0) scale(1);
+      }
+   }
+
+   .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0 20px 18px;
+      position: relative;
+      z-index: 5;
+   }
+
+   .pagination-button {
+      position: relative;
+      width: auto;
+      height: 34px;
+      padding: 5px 10px;
+      border: solid var(--bullet-color) 2px;
+      border-radius: 10px;
+      background: var(--bullet-background-color);
+      color: var(--bullet-color);
+      font-family: "Inter Tight", sans-serif;
+      font-size: 12px;
+      line-height: 20px;
+      cursor: pointer;
+      transition:
+         background 300ms ease,
+         transform 300ms ease,
+         box-shadow 300ms ease;
+   }
+
+   .pagination-button:hover,
+   .pagination-button.active {
+      background: var(--bullet-active-color);
+      box-shadow: 0 0 10px var(--bullet-active-color);
+   }
+
+   .pagination-button:hover {
+      transform: translateY(-2px);
+   }
+
+   .pagination-button::before,
+   .pagination-button::after {
+      position: absolute;
+      opacity: 0;
+      color: var(--bullet-color);
+      pointer-events: none;
+      transition:
+         opacity 0.3s ease,
+         transform 0.3s ease;
+   }
+
+   .pagination-button::before {
+      content: "★";
+      top: -14px;
+      right: -10px;
+      font-size: 16px;
+      transform: scale(0) rotate(-45deg);
+   }
+
+   .pagination-button::after {
+      content: "✦";
+      bottom: -14px;
+      left: -8px;
+      font-size: 14px;
+      transform: scale(0) rotate(45deg);
+   }
+
+   .pagination-button:hover::before,
+   .pagination-button.active::before {
+      opacity: 1;
+      transform: scale(1) rotate(var(--r1));
+   }
+
+   .pagination-button:hover::after,
+   .pagination-button.active::after {
+      opacity: 1;
+      transform: scale(1) rotate(var(--r2));
    }
 </style>
 
-<swiper-container bind:this={swiperElement} init="false">
-   {#each contentSlides as slide (slide.label)}
-      <swiper-slide>
-         <div class="slide-content" class:centered-content={slide.kind !== "socials"}>
-            <div class="card" data-aos="fade-down">
-               <h4 class:centered-heading={slide.kind === "socials"}>{slide.heading}</h4>
-            </div>
-            {#if slide.kind === "about"}
-               <ul class="content-list">
-                  {#each slide.items as item, i (item)}
-                     <li class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
-                        <p>{item}</p>
-                     </li>
-                  {/each}
-               </ul>
-            {:else if slide.kind === "socials"}
-               <ul class="social-icons">
-                  {#each slide.links as socialLink, i (socialLink.url)}
-                     <li class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
-                        <a href={socialLink.url} target="_blank" rel="noreferrer"><svg><use xlink:href={socialLink.icon}></use></svg><span class="label">{socialLink.label}</span></a>
-                     </li>
-                  {/each}
-               </ul>
-               <div class="card" data-aos="fade-up" data-aos-delay={600}>
-                  <p class="social-note">{slide.note}</p>
+<div
+   class="content-slider"
+   bind:this={sliderRoot}
+>
+   <div
+      class="slide-viewport"
+      bind:this={slideViewport}
+   >
+      {#key activeIndex}
+         <div
+            class="slide-panel"
+            in:swipeIn={{ direction }}
+            out:swipeOut
+         >
+            <div
+               class="slide-content"
+               class:centered-content={activeSlide.kind !== "socials"}
+            >
+               <div class="heading-card">
+                  <h4
+                     class:centered-heading={activeSlide.kind === "socials"}
+                  >
+                     {activeSlide.heading}
+                  </h4>
                </div>
-            {:else}
-               <ul class="content-list">
-                  {#each slide.credits as credit, i (credit.url)}
-                     <li class="card" data-aos="fade-right" data-aos-delay={(i + 2) * 100}>
-                        <p><a href={credit.url} target="_blank" rel="noreferrer">{credit.at}</a> - {credit.name}</p>
-                     </li>
-                  {/each}
-               </ul>
-            {/if}
+
+               {#if activeSlide.kind === "about"}
+                  <ul class="content-list">
+                     {#each activeSlide.items as item, i (item)}
+                        <li
+                           class="item-card"
+                           style={`--in-delay:${180 + i * 85}ms;`}
+                        >
+                           <p>{item}</p>
+                        </li>
+                     {/each}
+                  </ul>
+               {:else if activeSlide.kind === "socials"}
+                  <ul class="social-icons">
+                     {#each activeSlide.links as socialLink, i (socialLink.url)}
+                        <li
+                           class="item-card"
+                           style={`--in-delay:${180 + i * 85}ms;`}
+                        >
+                           <a
+                              href={socialLink.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              aria-label={socialLink.label}
+                              on:mouseenter={(event) =>
+                                 showSocialTooltip(
+                                    event,
+                                    socialLink.label,
+                                    socialLink.tooltip || ""
+                                 )}
+                              on:mouseleave={hideSocialTooltip}
+                              on:focus={(event) =>
+                                 showSocialTooltip(
+                                    event,
+                                    socialLink.label,
+                                    socialLink.tooltip || ""
+                                 )}
+                              on:blur={hideSocialTooltip}
+                           >
+                              <svg aria-hidden="true">
+                                 <use href={socialLink.icon}></use>
+                              </svg>
+
+                              <span class="label">
+                                 {socialLink.label}
+                              </span>
+                           </a>
+                        </li>
+                     {/each}
+                  </ul>
+
+                  <div class="note-card">
+                     <p class="social-note">
+                        {activeSlide.note}
+                     </p>
+                  </div>
+               {:else}
+                  <ul class="content-list">
+                     {#each activeSlide.credits as credit, i (credit.url)}
+                        <li
+                           class="item-card"
+                           style={`--in-delay:${180 + i * 85}ms;`}
+                        >
+                           <p>
+                              <a
+                                 href={credit.url}
+                                 target="_blank"
+                                 rel="noreferrer"
+                              >
+                                 {credit.at}
+                              </a>
+                              - {credit.name}
+                           </p>
+                        </li>
+                     {/each}
+                  </ul>
+               {/if}
+            </div>
          </div>
-      </swiper-slide>
-   {/each}
-</swiper-container>
+      {/key}
+   </div>
+
+   {#if socialTooltip}
+      <div
+         class="social-tooltip"
+         style={`--tooltip-x:${socialTooltip.x}px;--tooltip-y:${socialTooltip.y}px;`}
+         aria-hidden="true"
+      >
+         <span class="tooltip-name">
+            {socialTooltip.name}
+         </span>
+
+         <span class="tooltip-text">
+            {socialTooltip.text}
+         </span>
+      </div>
+   {/if}
+
+   <div
+      class="pagination"
+      aria-label="Profile sections"
+   >
+      {#each contentSlides as slide, index (slide.label)}
+         <button
+            type="button"
+            class="pagination-button"
+            class:active={index === activeIndex}
+            aria-pressed={index === activeIndex}
+            style={`--r1:${rotationOne(index)}deg;--r2:${rotationTwo(index)}deg;`}
+            on:click={() => changeSlide(index)}
+         >
+            {slide.label}
+         </button>
+      {/each}
+   </div>
+</div>

@@ -1,13 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200;400&display=swap");
+@import "@fontsource/inter-tight/200.css";
+@import "@fontsource/inter-tight/400.css";
 
 :root {
    --bg: #f7f8f3;
-}
-
-* {
-   -webkit-user-select: none;
-   -ms-user-select: none;
-   user-select: none;
 }
 
 a {
@@ -20,7 +15,10 @@ body {
    overflow-x: hidden !important;
    overflow-y: hidden !important;
    height: 100%;
-   transition: background-color 0.5s ease, color 0.5s ease, fill 0.5s ease;
+   transition:
+      background-color 0.5s ease,
+      color 0.5s ease,
+      fill 0.5s ease;
 }
 
 ul {
@@ -34,4 +32,21 @@ li {
    font-size: 100%;
    font: inherit;
    vertical-align: baseline;
+}
+
+@media (
+   prefers-reduced-motion: reduce
+) {
+   *,
+   *::before,
+   *::after {
+      animation-duration:
+         0.01ms !important;
+
+      animation-iteration-count:
+         1 !important;
+
+      transition-duration:
+         0.01ms !important;
+   }
 }

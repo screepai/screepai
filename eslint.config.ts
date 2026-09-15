@@ -57,6 +57,12 @@ export default [
       },
    },
    {
+      files: ["**/*.{ts,svelte}"],
+      rules: {
+         "no-undef": "off",
+      },
+   },
+   {
       files: ["**/*.svelte"],
       languageOptions: {
          parserOptions: {

@@ -1,186 +1,361 @@
 <script lang="ts">
    import { onMount } from "svelte";
+   import { star } from "../config/shapes";
 
    type Position = {
       x: number;
       y: number;
    };
 
-   const originPosition = { x: 0, y: 0 };
+   const POOL_SIZE = 12;
+
    const config = {
-      starAnimationDuration: 1500,
+      duration: 1500,
       minimumTimeBetweenStars: 250,
       minimumDistanceBetweenStars: 75,
-      sizes: ["1.4rem", "1rem", "0.6rem"],
-      animations: ["fall-1", "fall-2", "fall-3"]
+
+      sizes: [
+         "1.4rem",
+         "1rem",
+         "0.6rem",
+      ],
    };
 
-   const withUnit = (value: number, unit: string) => `${value}${unit}`;
-   const px = (value: number) => withUnit(value, "px");
-   const ms = (value: number) => withUnit(value, "ms");
-   const rand = (max: number) => Math.floor(Math.random() * max);
-   const calcElapsedTime = (start: number, end: number) => end - start;
+   const colors = [
+      "var(--color1)",
+      "var(--color2)",
+      "var(--color3)",
+      "var(--color4)",
+   ];
 
-   function calcDistance(a: Position, b: Position) {
-      const diffX = b.x - a.x;
-      const diffY = b.y - a.y;
-      return Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
+   const animations: Keyframe[][] = [
+      [
+         {
+            opacity: 0,
+            transform:
+               "translate3d(0, 0, 0) rotateX(45deg) rotateY(30deg) rotateZ(0deg) scale(0.25)",
+         },
+         {
+            opacity: 1,
+            offset: 0.05,
+            transform:
+               "translate3d(10px, -10px, 0) rotateX(45deg) rotateY(30deg) rotateZ(0deg) scale(1)",
+         },
+         {
+            opacity: 0,
+            transform:
+               "translate3d(25px, 200px, 0) rotateX(180deg) rotateY(270deg) rotateZ(90deg) scale(1)",
+         },
+      ],
+
+      [
+         {
+            opacity: 0,
+            transform:
+               "translate3d(0, 0, 0) rotateX(-20deg) rotateY(10deg) scale(0.25)",
+         },
+         {
+            opacity: 1,
+            offset: 0.1,
+            transform:
+               "translate3d(-10px, -5px, 0) rotateX(-20deg) rotateY(10deg) scale(1)",
+         },
+         {
+            opacity: 0,
+            transform:
+               "translate3d(-10px, 160px, 0) rotateX(-90deg) rotateY(45deg) scale(0.25)",
+         },
+      ],
+
+      [
+         {
+            opacity: 0,
+            transform:
+               "translate3d(0, 0, 0) rotateX(0deg) rotateY(45deg) scale(0.5)",
+         },
+         {
+            opacity: 1,
+            offset: 0.15,
+            transform:
+               "translate3d(7px, 5px, 0) rotateX(0deg) rotateY(45deg) scale(1)",
+         },
+         {
+            opacity: 0,
+            transform:
+               "translate3d(20px, 120px, 0) rotateX(-180deg) rotateY(-90deg) scale(0.5)",
+         },
+      ],
+   ];
+
+   let poolIndex = 0;
+   let animationIndex = 0;
+
+   const rand = (max: number) =>
+      Math.floor(Math.random() * max);
+
+   function distanceSquared(
+      a: Position,
+      b: Position
+   ) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+
+      return dx * dx + dy * dy;
    }
 
    onMount(() => {
-      const removeTimers: ReturnType<typeof setTimeout>[] = [];
-      const trailStars: HTMLElement[] = [];
-      let count = 0;
-      const last = {
-         starTimestamp: Date.now(),
-         starPosition: originPosition,
-         mousePosition: originPosition
-      };
+      const layer =
+         window.document.createElement("div");
 
-      function removeStar(element: HTMLElement) {
-         element.remove();
-         const index = trailStars.indexOf(element);
-         if (index !== -1) {
-            trailStars.splice(index, 1);
+      layer.className =
+         "pointer-trail-layer";
+
+      Object.assign(layer.style, {
+         position: "fixed",
+         inset: "0",
+         width: "100vw",
+         height: "100vh",
+         pointerEvents: "none",
+         overflow: "visible",
+         zIndex: "999999",
+      });
+
+      window.document.body.appendChild(layer);
+
+      const starElements:
+         HTMLSpanElement[] = [];
+
+      const runningAnimations:
+         (Animation | undefined)[] =
+            Array(POOL_SIZE);
+
+      for (
+         let index = 0;
+         index < POOL_SIZE;
+         index++
+      ) {
+         const element =
+            window.document.createElement(
+               "span"
+            );
+
+         element.setAttribute(
+            "aria-hidden",
+            "true"
+         );
+
+         Object.assign(
+            element.style,
+            {
+               position: "fixed",
+               left: "0",
+               top: "0",
+               display: "block",
+               width: "1rem",
+               height: "1rem",
+               translate: "-50% -50%",
+               opacity: "0",
+               pointerEvents: "none",
+               willChange:
+                  "transform, opacity",
+            }
+         );
+
+         const svg =
+            window.document.createElementNS(
+               "http://www.w3.org/2000/svg",
+               "svg"
+            );
+
+         svg.setAttribute(
+            "viewBox",
+            "0 0 512 512"
+         );
+
+         svg.style.display = "block";
+         svg.style.width = "100%";
+         svg.style.height = "100%";
+
+         const path =
+            window.document.createElementNS(
+               "http://www.w3.org/2000/svg",
+               "path"
+            );
+
+         path.setAttribute("d", star);
+         path.setAttribute(
+            "fill",
+            "currentColor"
+         );
+
+         svg.appendChild(path);
+         element.appendChild(svg);
+
+         layer.appendChild(element);
+         starElements.push(element);
+      }
+
+      function launchStar(
+         position: Position
+      ) {
+         const index =
+            poolIndex++ % POOL_SIZE;
+
+         const element =
+            starElements[index];
+
+         if (!element) return;
+
+         runningAnimations[
+            index
+         ]?.cancel();
+
+         const color =
+            colors[
+               rand(colors.length)
+            ];
+
+         const size =
+            config.sizes[
+               rand(
+                  config.sizes.length
+               )
+            ];
+
+         element.style.left =
+            `${position.x}px`;
+
+         element.style.top =
+            `${position.y}px`;
+
+         element.style.width = size;
+         element.style.height = size;
+
+         element.style.color =
+            color;
+
+         element.style.filter =
+            `drop-shadow(0 0 0.625rem ${color})`;
+
+         const keyframes =
+            animations[
+               animationIndex++ %
+               animations.length
+            ];
+
+         const animation =
+            element.animate(
+               keyframes,
+               {
+                  duration:
+                     config.duration,
+
+                  easing:
+                     "ease-out",
+
+                  fill:
+                     "forwards",
+               }
+            );
+
+         runningAnimations[
+            index
+         ] = animation;
+
+         animation.onfinish =
+            () => {
+               if (
+                  runningAnimations[
+                     index
+                  ] === animation
+               ) {
+                  runningAnimations[
+                     index
+                  ] = undefined;
+               }
+            };
+      }
+
+      let lastStarPosition:
+         Position | null = null;
+
+      let lastStarTimestamp =
+         window.performance.now();
+
+      const minimumDistanceSquared =
+         config
+            .minimumDistanceBetweenStars *
+         config
+            .minimumDistanceBetweenStars;
+
+      function handlePointerMove(
+         event: PointerEvent
+      ) {
+         const position: Position = {
+            x: event.clientX,
+            y: event.clientY,
+         };
+
+         const now =
+            window.performance.now();
+
+         if (!lastStarPosition) {
+            lastStarPosition =
+               position;
+
+            lastStarTimestamp =
+               now;
+
+            return;
+         }
+
+         const movedFarEnough =
+            distanceSquared(
+               lastStarPosition,
+               position
+            ) >=
+            minimumDistanceSquared;
+
+         const waitedLongEnough =
+            now -
+               lastStarTimestamp >=
+            config
+               .minimumTimeBetweenStars;
+
+         if (
+            movedFarEnough ||
+            waitedLongEnough
+         ) {
+            launchStar(position);
+
+            lastStarPosition =
+               position;
+
+            lastStarTimestamp =
+               now;
          }
       }
 
-      function appendStar(element: HTMLElement) {
-         document.body.appendChild(element);
-         trailStars.push(element);
-         const removeTimer = setTimeout(() => removeStar(element), config.starAnimationDuration);
-         removeTimers.push(removeTimer);
-      }
-
-      function createStar(position: Position) {
-         const star = document.createElement("span");
-         const colorVars = ["var(--color1)", "var(--color2)", "var(--color3)", "var(--color4)"];
-         const color = colorVars[rand(colorVars.length)];
-
-         star.className = "star fa-solid fa-star";
-         star.style.left = px(position.x);
-         star.style.top = px(position.y);
-         star.style.fontSize = config.sizes[rand(config.sizes.length)];
-         star.style.color = color;
-         star.style.filter = `drop-shadow(0px 0px 0.625rem ${color})`;
-         star.style.animationName = config.animations[count++ % config.animations.length];
-         star.style.animationDuration = ms(config.starAnimationDuration);
-
-         appendStar(star);
-      }
-
-      function updateLastStar(position: Position) {
-         last.starTimestamp = Date.now();
-         last.starPosition = position;
-      }
-
-      function updateLastMousePosition(position: Position) {
-         last.mousePosition = position;
-      }
-
-      function adjustLastMousePosition(position: Position) {
-         if (last.mousePosition.x === 0 && last.mousePosition.y === 0) {
-            last.mousePosition = position;
+      window.addEventListener(
+         "pointermove",
+         handlePointerMove,
+         {
+            passive: true,
          }
-      }
-
-      function handleOnMove(position: Position) {
-         adjustLastMousePosition(position);
-
-         const now = Date.now();
-         const hasMovedFarEnough = calcDistance(last.starPosition, position) >= config.minimumDistanceBetweenStars;
-         const hasBeenLongEnough = calcElapsedTime(last.starTimestamp, now) > config.minimumTimeBetweenStars;
-
-         if (hasMovedFarEnough || hasBeenLongEnough) {
-            createStar(position);
-            updateLastStar(position);
-         }
-
-         updateLastMousePosition(position);
-      }
-
-      const handleMouseMove = (event: MouseEvent) => handleOnMove({ x: event.clientX, y: event.clientY });
-      const handleTouchMove = (event: TouchEvent) => {
-         const touch = event.touches[0];
-         if (touch) {
-            handleOnMove({ x: touch.clientX, y: touch.clientY });
-         }
-      };
-      const handleMouseLeave = () => updateLastMousePosition(originPosition);
-
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("touchmove", handleTouchMove);
-      document.body.addEventListener("mouseleave", handleMouseLeave);
+      );
 
       return () => {
-         window.removeEventListener("mousemove", handleMouseMove);
-         window.removeEventListener("touchmove", handleTouchMove);
-         document.body.removeEventListener("mouseleave", handleMouseLeave);
-         removeTimers.forEach(timer => clearTimeout(timer));
-         trailStars.forEach(star => star.remove());
+         window.removeEventListener(
+            "pointermove",
+            handlePointerMove
+         );
+
+         runningAnimations.forEach(
+            (animation) =>
+               animation?.cancel()
+         );
+
+         layer.remove();
       };
    });
 </script>
-
-<style>
-   :global(.star) {
-      position: absolute;
-      z-index: 999;
-      color: white;
-      font-size: 1rem;
-      animation-duration: 1500ms;
-      animation-fill-mode: forwards;
-      pointer-events: none;
-   }
-
-   @keyframes -global-fall-1 {
-      0% {
-         transform: translate(0px, 0px) rotateX(45deg) rotateY(30deg) rotateZ(0deg) scale(0.25);
-         opacity: 0;
-      }
-
-      5% {
-         transform: translate(10px, -10px) rotateX(45deg) rotateY(30deg) rotateZ(0deg) scale(1);
-         opacity: 1;
-      }
-
-      100% {
-         transform: translate(25px, 200px) rotateX(180deg) rotateY(270deg) rotateZ(90deg) scale(1);
-         opacity: 0;
-      }
-   }
-
-   @keyframes -global-fall-2 {
-      0% {
-         transform: translate(0px, 0px) rotateX(-20deg) rotateY(10deg) scale(0.25);
-         opacity: 0;
-      }
-
-      10% {
-         transform: translate(-10px, -5px) rotateX(-20deg) rotateY(10deg) scale(1);
-         opacity: 1;
-      }
-
-      100% {
-         transform: translate(-10px, 160px) rotateX(-90deg) rotateY(45deg) scale(0.25);
-         opacity: 0;
-      }
-   }
-
-   @keyframes -global-fall-3 {
-      0% {
-         transform: translate(0px, 0px) rotateX(0deg) rotateY(45deg) scale(0.5);
-         opacity: 0;
-      }
-
-      15% {
-         transform: translate(7px, 5px) rotateX(0deg) rotateY(45deg) scale(1);
-         opacity: 1;
-      }
-
-      100% {
-         transform: translate(20px, 120px) rotateX(-180deg) rotateY(-90deg) scale(0.5);
-         opacity: 0;
-      }
-   }
-</style>

@@ -8,6 +8,7 @@ export type SocialLink = {
    url: string;
    icon: string;
    label: string;
+   tooltip?: string;
 };
 
 type AboutSlide = {
@@ -35,6 +36,7 @@ type CreditsSlide = {
 export type ContentSlide = AboutSlide | SocialsSlide | CreditsSlide;
 
 const aboutItems = [
+   "AI researcher / AI & software engineer",
    "programmer / animator / editor",
    "profound mental retardation",
    "visual novel enthusiast",
@@ -62,18 +64,21 @@ const credits: readonly Credit[] = [
 const socialLinks: readonly SocialLink[] = [
    {
       url: "https://github.com/screepai",
-      icon: "#icon-905",
-      label: "GitHub"
+      icon: "#icon-github",
+      label: "GitHub",
+      tooltip: "i write code to make money now so less active on here, but i do have 3 (three) public repos including this website's source code"
    },
    {
-      url: "https://x.com/akihitokamikoto",
-      icon: "#icon-910",
-      label: "X"
+      url: "https://myanimelist.net/animelist/screepy",
+      icon: "#icon-mal",
+      label: "MyAnimeList",
+      tooltip: "i barely watch anime nowadays, manga list is also here if youre interested. i also dont update this list as often as i should"
    },
    {
-      url: "https://www.youtube.com/channel/UCmLrPwbAiDpiPbXjPrD22Hw",
-      icon: "#icon-969",
-      label: "YouTube"
+      url: "https://vndb.org/u326697/ulist?q=&ch=&f=&l=1&l=2&l=3&l=4&l=5&l=6&l=7&mul=1&s=3q02",
+      icon: "#icon-vndb",
+      label: "VNDB",
+      tooltip: "oh my god i love reading romance slop"
    }
 ];
 

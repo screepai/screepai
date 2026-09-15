@@ -15,9 +15,6 @@
       "@sveltejs/adapter-vercel": "^6.3.3",
       "@sveltejs/kit": "^2.60.1",
       "@sveltejs/vite-plugin-svelte": "^7.1.2",
-      "@types/aos": "^3.0.4",
-      "@types/cookie": "^0.4.1",
-      "@types/jquery": "^3.5.16",
       "@types/node": "^25.8.0",
       "@types/parallax-js": "^3.1.0",
       "@typescript-eslint/eslint-plugin": "^8.59.3",
@@ -31,15 +28,10 @@
       "svelte-preprocess": "^6.0.3",
       "tslib": "^2.3.1",
       "typescript": "^6.0.3",
-      "vite": "^8.0.13",
-      "vite-plugin-restart": "^0.3.1"
+      "vite": "^8.0.13"
    },
    "dependencies": {
-      "@fontsource/fira-mono": "^4.5.0",
-      "aos": "^2.3.4",
-      "clsx": "^1.1.1",
-      "cookie": "^0.4.1",
-      "parallax-js": "^3.1.0",
-      "swiper": "^12.1.4"
+      "@fontsource/inter-tight": "^5.3.0",
+      "parallax-js": "^3.1.0"
    }
 }

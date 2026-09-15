@@ -135,11 +135,12 @@ export function getDiscordUrl(theme: ThemeName) {
    const bg = "FBFBFB";
    const idleMessage = "( ´ ω ` )ノﾞ";
    const hideBadges = "true";
-   const hideNameplate = "true";
+   const hideNameplate = "false";
    const useDisplayName = "true";
    const forceGradient = "true";
+   const animatedDecoration = "true";
 
-   return `https://lanyard.kyrie25.dev/api/${DISCORD_USER_ID}?theme=${theme}&bg=${bg}&idleMessage=${encodeURIComponent(idleMessage)}&hideBadges=${hideBadges}&hideNameplate=${hideNameplate}&useDisplayName=${useDisplayName}&waveColor=${discord.waveColor}&waveSpotifyColor=${discord.waveColor}&gradient=${discord.gradient}&forceGradient=${forceGradient}`;
+   return `https://lanyard.kyrie25.dev/api/${DISCORD_USER_ID}?theme=${theme}&bg=${bg}&idleMessage=${encodeURIComponent(idleMessage)}&hideBadges=${hideBadges}&hideNameplate=${hideNameplate}&useDisplayName=${useDisplayName}&waveColor=${discord.waveColor}&waveSpotifyColor=${discord.waveColor}&gradient=${discord.gradient}&forceGradient=${forceGradient}&animatedDecoration=${animatedDecoration}`;
 }
 
 export const backgroundImageUrls = themeNames.map(theme => getThemeDefinition(theme).backgroundImage);

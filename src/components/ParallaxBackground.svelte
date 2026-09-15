@@ -14,26 +14,35 @@
 <style>
    .background-parallax {
       display: block;
-      justify-content: center;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) !important;
-      width: 100%;
-      height: 100%;
+      position: fixed;
+      inset: 0;
+
+      width: 100vw;
+      height: 100vh;
+
+      overflow: hidden;
+      transform: none !important;
    }
 
    .bg-layer {
-      position: fixed;
-      width: 100%;
-      height: 110vh;
-      background-attachment: fixed;
+      width: 106vw;
+      height: 106vh;
+
+      margin-left: -3vw;
+      margin-top: -3vh;
+
       background-repeat: no-repeat;
       background-size: cover;
+
       pointer-events: none;
+
       transition: opacity 0.5s ease;
       opacity: 0;
+
       border-radius: 10px;
+
+      will-change: transform, opacity;
+      backface-visibility: hidden;
    }
 </style>
 

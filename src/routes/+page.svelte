@@ -1,9 +1,8 @@
 <script lang="ts">
-   import { onMount, tick } from "svelte";
+   import { onMount } from "svelte";
    import { fade, fly } from "svelte/transition";
    import { backInOut } from "svelte/easing";
-   import aos from "aos";
-   import { github, star, x, youtube } from "../config/shapes";
+   import { github, star, mal } from "../config/shapes";
    import ThemeToggle from "../components/ThemeToggle.svelte";
    import DiscordProfile from "../components/DiscordProfile.svelte";
    import StarAnimation from "../components/StarAnimation.svelte";
@@ -13,9 +12,9 @@
    import { ANIMATION } from "../config/animation";
    import {
       applyTheme,
-      backgroundImageUrls,
-      discordImageUrls,
+      getDiscordUrl,
       getInitialTheme,
+      getThemeDefinition,
       isDarkTheme,
       saveTheme,
       themeFromDarkMode,
@@ -26,7 +25,6 @@
    import { preloadImages } from "../utils/preload";
 
    import "../styles/global.css";
-   import "../styles/swiper.css";
 
    let darkMode = false;
    let transitionEnd = true;
@@ -64,11 +62,29 @@
       }, ANIMATION.TRANSITION.THEME_DURATION);
    }
 
+   function preloadOtherThemeAssets(currentTheme: ThemeName) {
+      const otherTheme = toggleTheme(currentTheme);
+
+      const otherThemeUrls = [
+         getThemeDefinition(otherTheme).backgroundImage,
+         getDiscordUrl(otherTheme),
+      ];
+
+      setTimeout(() => {
+         void preloadImages(otherThemeUrls);
+      }, 500);
+   }
+
    async function preloadIntroAssets() {
-      await Promise.all([
-         preloadImages(backgroundImageUrls),
-         preloadImages(discordImageUrls),
-      ]);
+      const currentTheme = themeFromDarkMode(darkMode);
+
+      const currentThemeUrls = [
+         getThemeDefinition(currentTheme).backgroundImage,
+         getDiscordUrl(currentTheme),
+      ];
+
+      await preloadImages(currentThemeUrls);
+      preloadOtherThemeAssets(currentTheme);
    }
 
    function getInitialAnimationDelay() {
@@ -117,14 +133,6 @@
       await wait(ANIMATION.TRANSITION.FADE_DELAY);
       if (!isCurrentRun()) return;
       introPhase = "ready";
-      await tick();
-
-      await wait(ANIMATION.TRANSITION.FADE_DELAY);
-      if (!isCurrentRun()) return;
-      aos.init({
-         easing: "ease-out-back",
-         offset: -999,
-      });
    }
 
    onMount(() => {
@@ -145,7 +153,6 @@
 <style>
    .scene-parallax {
       display: block;
-      justify-content: center;
       position: absolute;
       left: 50%;
       top: 50%;
@@ -174,7 +181,8 @@
       color: var(--fill);
       filter: drop-shadow(0 0 0.625rem var(--fill));
       animation: bob 4s ease-in-out infinite;
-      transition: left 0.5s cubic-bezier(0.25, 1.25, 0.75, 1),
+      transition:
+         left 0.5s cubic-bezier(0.25, 1.25, 0.75, 1),
          rotate 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
       transform-origin: center center;
       max-width: 100vw;
@@ -190,8 +198,6 @@
       padding: 10px;
       left: -12px;
       top: -12px;
-      align-items: center;
-      justify-content: center;
       border-radius: 10px;
    }
 
@@ -222,7 +228,6 @@
       font-family: "Inter Tight", sans-serif;
       font-style: normal;
       font-weight: 200;
-      font-display: swap;
       font-size: 46px;
       letter-spacing: 0.04em;
       animation: none;
@@ -237,11 +242,52 @@
       opacity: 0;
       animation-name: centered-char-fade-in;
       animation-fill-mode: forwards;
-      animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      animation-timing-function: cubic-bezier(
+         0.68,
+         -0.55,
+         0.265,
+         1.55
+      );
    }
 
    .centered.winking {
-      animation: wink-shake 0.4s ease-in-out forwards;
+      animation:
+         wink-pop 650ms
+         cubic-bezier(0.22, 1, 0.36, 1)
+         forwards;
+   }
+
+   @keyframes wink-pop {
+      0% {
+         transform:
+            translateY(0)
+            scale(1, 1)
+            rotate(0deg);
+      }
+      18% {
+         transform:
+            translateY(2px)
+            scale(1.08, 0.91)
+            rotate(-1.5deg);
+      }
+      42% {
+         transform:
+            translateY(-3px)
+            scale(0.96, 1.08)
+            rotate(1.3deg);
+      }
+      68% {
+         transform:
+            translateY(1px)
+            scale(1.025, 0.98)
+            rotate(-0.5deg);
+      }
+      100% {
+         transform:
+            translateY(0)
+            scale(1, 1)
+            rotate(0deg);
+      }
    }
 
    .wink-shooting-star {
@@ -252,13 +298,28 @@
       height: 1.45rem;
       color: var(--fill);
       pointer-events: none;
-      transform-origin: 50% 50%;
+      offset-path: path(
+         "M 0 0 C 13 -42, 40 -45, 52 -12"
+      );
+      offset-distance: 0%;
+      offset-rotate: 0deg;
+      transform-origin: center center;
       backface-visibility: hidden;
-      contain: paint;
-      will-change: transform, opacity;
+      will-change:
+         transform,
+         opacity,
+         offset-distance;
       animation:
-         wink-star-travel 650ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
-         wink-star-fade 650ms ease-out forwards;
+         wink-star-curve
+         590ms
+         cubic-bezier(0.16, 1, 0.3, 1)
+         60ms
+         forwards,
+         wink-star-fade
+         590ms
+         ease-out
+         60ms
+         forwards;
       z-index: 1;
    }
 
@@ -266,18 +327,74 @@
       display: block;
       width: 100%;
       height: 100%;
+      transform-origin: center center;
+      transform-box: fill-box;
+      backface-visibility: hidden;
+      animation:
+         wink-star-spin
+         590ms
+         linear
+         60ms
+         forwards;
+      will-change: transform;
    }
 
    .wink-shooting-star path {
       fill: currentColor;
    }
 
+   @keyframes wink-star-curve {
+      0% {
+         offset-distance: 0%;
+         transform: scale(0.4);
+      }
+      22% {
+         transform: scale(1.1);
+      }
+      48% {
+         transform: scale(0.98);
+      }
+      72% {
+         transform: scale(0.85);
+      }
+      100% {
+         offset-distance: 100%;
+         transform: scale(0.65);
+      }
+   }
+
+   @keyframes wink-star-spin {
+      from {
+         transform: rotate(-15deg);
+      }
+      to {
+         transform: rotate(90deg);
+      }
+   }
+
+   @keyframes wink-star-fade {
+      0% {
+         opacity: 0;
+      }
+      10% {
+         opacity: 1;
+      }
+      55% {
+         opacity: 0.9;
+      }
+      78% {
+         opacity: 0.45;
+      }
+      100% {
+         opacity: 0;
+      }
+   }
+
    @keyframes bob {
       0%,
       100% {
-         transform: translate(0, 0px);
+         transform: translate(0, 0);
       }
-
       50% {
          transform: translate(0, -10px);
       }
@@ -287,56 +404,8 @@
       from {
          opacity: 0;
       }
-
       to {
          opacity: 1;
-      }
-   }
-
-   @keyframes wink-shake {
-      0% {
-         transform: translateY(0);
-      }
-      25% {
-         transform: translateY(2px);
-      }
-      50% {
-         transform: translateY(-2px);
-      }
-      100% {
-         transform: translateY(0);
-      }
-   }
-
-   @keyframes wink-star-travel {
-      0% {
-         transform: translate3d(0, 0, 0) rotate(-10deg) scale(0.45);
-      }
-
-      100% {
-         transform: translate3d(48px, -21.4px, 0) rotate(105deg) scale(0.7);
-      }
-   }
-
-   @keyframes wink-star-fade {
-      0% {
-         opacity: 0;
-      }
-
-      12% {
-         opacity: 1;
-      }
-
-      45% {
-         opacity: 0.72;
-      }
-
-      75% {
-         opacity: 0.28;
-      }
-
-      100% {
-         opacity: 0;
       }
    }
 
@@ -352,20 +421,43 @@
    <meta property="og:title" content="⸜( ´ ꒳ ` )⸝" />
    <meta name="description" content="about me" />
    <meta property="og:description" content="about me" />
-   <meta property="og:url" content="https://screepai.vercel.app/" />
+   <meta property="og:url" content="https://screepy.vercel.app/" />
    <meta property="og:type" content="website" />
    <meta property="og:site_name" content="seepie" />
    <meta property="twitter:card" content="summary_large_image" />
    <meta property="og:image" content="/og.png" />
-   <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-   <script src="https://code.iconify.design/1/1.0.4/iconify.min.js"></script>
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </svelte:head>
 
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" display="none" width="0" height="0">
-   <symbol id="icon-969" viewBox="0 0 576 512"><path d={youtube} /></symbol>
-   <symbol id="icon-910" viewBox="0 0 16 16"><path d={x} /></symbol>
-   <symbol id="icon-905" viewBox="0 0 496 512"><path d={github} /></symbol>
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   aria-hidden="true"
+   width="0"
+   height="0"
+   style="position: absolute; overflow: hidden;"
+>
+   <symbol id="icon-mal" viewBox="0 0 24 24">
+      <path d={mal} fill="currentColor" />
+   </symbol>
+
+   <symbol id="icon-vndb" viewBox="0 0 64 24">
+      <text
+         x="32"
+         y="19"
+         text-anchor="middle"
+         fill="currentColor"
+         font-family="Futura, 'Century New Gothic', Arial, serif"
+         font-size="24"
+         font-weight="bold"
+         font-style="italic"
+         letter-spacing="-1.5"
+      >
+         vndb
+      </text>
+   </symbol>
+
+   <symbol id="icon-github" viewBox="0 0 496 512">
+      <path d={github} fill="currentColor" />
+   </symbol>
 </svg>
 
 {#if visible}

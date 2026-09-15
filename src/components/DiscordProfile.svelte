@@ -1,64 +1,14 @@
 <script lang="ts">
-   import { onDestroy } from "svelte";
    import { ANIMATION } from "../config/animation";
-   import { getDiscordUrl, type ThemeName } from "../config/theme";
-   import { preloadImage } from "../utils/preload";
+   import { getDiscordUrl } from "../config/theme";
 
    export let darkMode: boolean;
 
-   let currentDiscordUrl = "";
-   let nextDiscordUrl = "";
-   let showNextImage = false;
-   let theme: ThemeName;
-   let requestedDiscordUrl = "";
-   let transitionRequest = 0;
-   let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
-
-   $: theme = darkMode ? "dark" : "light";
-   $: newDiscordUrl = getDiscordUrl(theme);
-   $: if (newDiscordUrl !== requestedDiscordUrl) {
-      requestedDiscordUrl = newDiscordUrl;
-      void transitionToDiscordUrl(newDiscordUrl);
-   }
-
-   async function transitionToDiscordUrl(url: string) {
-      const requestId = ++transitionRequest;
-
-      if (currentDiscordUrl === "" || url === currentDiscordUrl) {
-         currentDiscordUrl = url;
-         nextDiscordUrl = "";
-         showNextImage = false;
-         clearTimeout(transitionTimeout);
-         return;
-      }
-
-      nextDiscordUrl = url;
-      await preloadImage(url);
-      if (requestId !== transitionRequest) return;
-
-      showNextImage = true;
-      clearTimeout(transitionTimeout);
-      transitionTimeout = setTimeout(() => {
-         if (requestId !== transitionRequest) return;
-
-         currentDiscordUrl = url;
-         nextDiscordUrl = "";
-         showNextImage = false;
-      }, ANIMATION.TRANSITION.THEME_DURATION);
-   }
-
-   onDestroy(() => {
-      transitionRequest += 1;
-      clearTimeout(transitionTimeout);
-   });
+   const lightUrl = getDiscordUrl("light");
+   const darkUrl = getDiscordUrl("dark");
 </script>
 
 <style>
-   @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-   }
-
    .discord {
       pointer-events: none;
       width: 100%;
@@ -70,33 +20,76 @@
       width: 100%;
    }
 
-   .discord img {
+   .card-stack {
+      position: relative;
+      width: 100%;
+
+      -webkit-mask-image: linear-gradient(
+         to bottom,
+         black 0%,
+         black 88%,
+         rgba(0, 0, 0, 0.8) 92%,
+         rgba(0, 0, 0, 0.4) 96%,
+         transparent 100%
+      );
+
+      mask-image: linear-gradient(
+         to bottom,
+         black 0%,
+         black 88%,
+         rgba(0, 0, 0, 0.8) 92%,
+         rgba(0, 0, 0, 0.4) 96%,
+         transparent 100%
+      );
+   }
+
+   .card {
       display: block;
       width: 100%;
       max-width: 100%;
+      transition: opacity var(--theme-duration) ease;
+      backface-visibility: hidden;
    }
 
-   .fade-in {
-      animation: fadeIn var(--theme-duration) cubic-bezier(.26, 1.5, .46, 1) forwards;
+   .card-overlay {
+      position: absolute;
+      inset: 0;
+   }
+
+   .visible {
+      opacity: 1;
+   }
+
+   .hidden {
+      opacity: 0;
    }
 </style>
 
 <div class="discord">
-   <a href="https://discord.com/users/534375062099460097" target="_blank">
-      <div style="position: relative; width: 100%;">
-         <img 
-            style="opacity: 1; transition: opacity {ANIMATION.TRANSITION.THEME_DURATION}ms cubic-bezier(.26, 1.5, .46, 1);" 
-            src={currentDiscordUrl} 
+   <a
+      href="https://discord.com/users/534375062099460097"
+      target="_blank"
+      rel="noreferrer"
+   >
+      <div
+         class="card-stack"
+         style="--theme-duration: {ANIMATION.TRANSITION.THEME_DURATION}ms"
+      >
+         <img
+            class="card"
+            class:visible={!darkMode}
+            class:hidden={darkMode}
+            src={lightUrl}
             alt="screepy"
          />
-         {#if showNextImage && nextDiscordUrl}
-            <img 
-               class="fade-in"
-               style="position: absolute; top: 0; left: 0; width: 100%; --theme-duration: {ANIMATION.TRANSITION.THEME_DURATION}ms;" 
-               src={nextDiscordUrl} 
-               alt="screepy"
-            />
-         {/if}
+
+         <img
+            class="card card-overlay"
+            class:visible={darkMode}
+            class:hidden={!darkMode}
+            src={darkUrl}
+            alt="screepy"
+         />
       </div>
    </a>
 </div>
