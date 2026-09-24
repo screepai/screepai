@@ -160,16 +160,19 @@
    }
 
    .profile {
+      --theme-space: 5em;
       position: relative !important;
       left: var(--profile-left) !important;
       top: 50% !important;
-      width: clamp(15rem, 68vw, 25.625rem);
+      width: clamp(15rem, 72vw, 25.625rem);
       max-width: 25.625rem;
+      max-height: calc(85dvh - var(--theme-space));
       background: #FBFBFB;
       box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);
       border-radius: 10px;
       pointer-events: auto !important;
-      transition: left 0.5s cubic-bezier(.26, 1.5, .46, 1);
+      transition:
+         left 0.5s cubic-bezier(.26, 1.5, .46, 1);
    }
 
    .profile::before {
@@ -204,11 +207,50 @@
    }
 
    .profile > .magic {
-      display: inline-block;
+      display: flex;
+      flex-direction: column;
       position: relative;
       width: 100%;
-      height: 100%;
+      height: auto;
+      max-height: calc(85dvh - var(--theme-space));
+      min-height: 0;
+      overflow: hidden;
+      border-radius: inherit;
       z-index: 999;
+   }
+
+   .profile > .magic::-webkit-scrollbar {
+      width: 6px;
+   }
+
+   .profile > .magic::-webkit-scrollbar-track {
+      background: transparent;
+   }
+
+   .profile > .magic::-webkit-scrollbar-thumb {
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 45%,
+            transparent
+         );
+
+      border-radius: 999px;
+   }
+
+   .profile > .magic::-webkit-scrollbar-thumb:hover {
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 70%,
+            transparent
+         );
+   }
+
+   .profile-header {
+      flex: 0 0 auto;
+      position: relative;
+      z-index: 2;
    }
 
    .centered-shell {
@@ -489,11 +531,13 @@
    <div use:parallax transition:fade={{ delay: ANIMATION.TRANSITION.FADE_DELAY, duration: ANIMATION.TRANSITION.FADE_DURATION }} class="scene-parallax">
       <div data-depth="0.15" class="profile">
          <ThemeToggle {darkMode} onToggle={handleThemeToggle} />
-         <span class="magic">
-            <StarAnimation />
-            <DiscordProfile {darkMode} />
+         <StarAnimation />
+         <div class="magic">
+            <div class="profile-header">
+               <DiscordProfile {darkMode} />
+            </div>
             <ContentSlider />
-         </span>
+         </div>
       </div>
    </div>
 {/if}

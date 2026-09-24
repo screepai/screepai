@@ -20,6 +20,7 @@
    let sliderRoot: HTMLDivElement | null = null;
    let changingSlide = false;
    let socialTooltip: SocialTooltip | null = null;
+   let scrollRegion: HTMLDivElement | null = null;
 
    $: activeSlide = contentSlides[activeIndex];
 
@@ -213,6 +214,10 @@
 
       await tick();
 
+      if (scrollRegion) {
+         scrollRegion.scrollTop = 0;
+      }
+
       const panels =
          viewport.querySelectorAll<HTMLElement>(".slide-panel");
 
@@ -315,9 +320,10 @@
 <style>
    .content-slider {
       position: relative;
+      display: flex;
+      flex-direction: column;
       width: 100%;
-      overflow: visible;
-      container-type: inline-size;
+      min-height: 0;
    }
 
    .slide-viewport {
@@ -326,6 +332,55 @@
       width: 100%;
       overflow: hidden;
       transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1);
+   }
+
+   .slide-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+
+      overflow-y: auto;
+      overflow-x: hidden;
+
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+
+      scrollbar-width: thin;
+
+      scrollbar-color:
+         color-mix(
+            in srgb,
+            var(--fill) 45%,
+            transparent
+         )
+         transparent;
+   }
+
+   .slide-scroll::-webkit-scrollbar {
+      width: 5px;
+   }
+
+   .slide-scroll::-webkit-scrollbar-track {
+      background: transparent;
+   }
+
+   .slide-scroll::-webkit-scrollbar-thumb {
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 45%,
+            transparent
+         );
+
+      border-radius: 999px;
+   }
+
+   .slide-scroll::-webkit-scrollbar-thumb:hover {
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 70%,
+            transparent
+         );
    }
 
    .slide-panel {
@@ -355,7 +410,7 @@
       font-size: clamp(
          10px,
          calc(5.5px + 1.35vw),
-         15px
+         16px
       );
       line-height: 1.3;
    }
@@ -638,6 +693,7 @@
    .pagination {
       display: flex;
       justify-content: center;
+      flex: 0 0 auto;
       font-size: clamp(
          10px,
          calc(5.5px + 1.35vw),
@@ -647,6 +703,7 @@
       padding: 0 20px 18px;
       position: relative;
       z-index: 5;
+      background: #FBFBFB;
    }
 
    .pagination-button {
@@ -762,106 +819,112 @@
    bind:this={sliderRoot}
 >
    <div
-      class="slide-viewport"
-      bind:this={slideViewport}
+      class="slide-scroll"
+      bind:this={scrollRegion}
+      on:scroll={hideSocialTooltip}
    >
-      {#key activeIndex}
-         <div
-            class="slide-panel"
-            in:swipeIn={{ direction }}
-            out:swipeOut
-         >
+      <div
+         class="slide-viewport"
+         bind:this={slideViewport}
+      >
+         {#key activeIndex}
             <div
-               class="slide-content"
-               class:centered-content={activeSlide.kind !== "socials"}
+               class="slide-panel"
+               in:swipeIn={{ direction }}
+               out:swipeOut
             >
-               <div class="heading-card">
-                  <h4
-                     class:centered-heading={activeSlide.kind === "socials"}
-                  >
-                     {activeSlide.heading}
-                  </h4>
-               </div>
-
-               {#if activeSlide.kind === "about"}
-                  <ul class="content-list">
-                     {#each activeSlide.items as item, i (item)}
-                        <li
-                           class="item-card"
-                           style={`--in-delay:${180 + i * 85}ms;`}
-                        >
-                           <p>{item}</p>
-                        </li>
-                     {/each}
-                  </ul>
-               {:else if activeSlide.kind === "socials"}
-                  <ul class="social-icons">
-                     {#each activeSlide.links as socialLink, i (socialLink.url)}
-                        <li
-                           class="item-card"
-                           style={`--in-delay:${180 + i * 85}ms;`}
-                        >
-                           <a
-                              href={socialLink.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              aria-label={socialLink.label}
-                              on:mouseenter={(event) =>
-                                 showSocialTooltip(
-                                    event,
-                                    socialLink.label,
-                                    socialLink.tooltip || ""
-                                 )}
-                              on:mouseleave={hideSocialTooltip}
-                              on:focus={(event) =>
-                                 showSocialTooltip(
-                                    event,
-                                    socialLink.label,
-                                    socialLink.tooltip || ""
-                                 )}
-                              on:blur={hideSocialTooltip}
-                           >
-                              <svg aria-hidden="true">
-                                 <use href={socialLink.icon}></use>
-                              </svg>
-
-                              <span class="label">
-                                 {socialLink.label}
-                              </span>
-                           </a>
-                        </li>
-                     {/each}
-                  </ul>
-
-                  <div class="note-card">
-                     <p class="social-note">
-                        {activeSlide.note}
-                     </p>
+               <div
+                  class="slide-content"
+                  class:centered-content={activeSlide.kind !== "socials"}
+               >
+                  <div class="heading-card">
+                     <h4
+                        class:centered-heading={activeSlide.kind === "socials"}
+                     >
+                        {activeSlide.heading}
+                     </h4>
                   </div>
-               {:else}
-                  <ul class="content-list">
-                     {#each activeSlide.credits as credit, i (credit.url)}
-                        <li
-                           class="item-card"
-                           style={`--in-delay:${180 + i * 85}ms;`}
-                        >
-                           <p>
+
+                  {#if activeSlide.kind === "about"}
+                     <ul class="content-list">
+                        {#each activeSlide.items as item, i (item)}
+                           <li
+                              class="item-card"
+                              style={`--in-delay:${180 + i * 85}ms;`}
+                           >
+                              <p>{item}</p>
+                           </li>
+                        {/each}
+                     </ul>
+                  {:else if activeSlide.kind === "socials"}
+                     <ul class="social-icons">
+                        {#each activeSlide.links as socialLink, i (socialLink.url)}
+                           <li
+                              class="item-card"
+                              style={`--in-delay:${180 + i * 85}ms;`}
+                           >
                               <a
-                                 href={credit.url}
+                                 href={socialLink.url}
                                  target="_blank"
                                  rel="noreferrer"
+                                 aria-label={socialLink.label}
+                                 on:mouseenter={(event) =>
+                                    showSocialTooltip(
+                                       event,
+                                       socialLink.label,
+                                       socialLink.tooltip || ""
+                                    )}
+                                 on:mouseleave={hideSocialTooltip}
+                                 on:focus={(event) =>
+                                    showSocialTooltip(
+                                       event,
+                                       socialLink.label,
+                                       socialLink.tooltip || ""
+                                    )}
+                                 on:blur={hideSocialTooltip}
                               >
-                                 {credit.at}
+                                 <svg aria-hidden="true">
+                                    <use href={socialLink.icon}></use>
+                                 </svg>
+
+                                 <span class="label">
+                                    {socialLink.label}
+                                 </span>
                               </a>
-                              - {credit.name}
-                           </p>
-                        </li>
-                     {/each}
-                  </ul>
-               {/if}
+                           </li>
+                        {/each}
+                     </ul>
+
+                     <div class="note-card">
+                        <p class="social-note">
+                           {activeSlide.note}
+                        </p>
+                     </div>
+                  {:else}
+                     <ul class="content-list">
+                        {#each activeSlide.credits as credit, i (credit.url)}
+                           <li
+                              class="item-card"
+                              style={`--in-delay:${180 + i * 85}ms;`}
+                           >
+                              <p>
+                                 <a
+                                    href={credit.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                 >
+                                    {credit.at}
+                                 </a>
+                                 - {credit.name}
+                              </p>
+                           </li>
+                        {/each}
+                     </ul>
+                  {/if}
+               </div>
             </div>
-         </div>
-      {/key}
+         {/key}
+      </div>
    </div>
 
    {#if socialTooltip}
