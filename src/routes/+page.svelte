@@ -214,7 +214,7 @@
       height: auto;
       max-height: calc(85dvh - var(--theme-space));
       min-height: 0;
-      overflow: hidden;
+      overflow: visible;
       border-radius: inherit;
       z-index: 999;
    }
