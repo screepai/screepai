@@ -188,6 +188,7 @@
       transform-origin: center center;
       max-width: 100vw;
       will-change: transform;
+      font-weight: 700;
    }
 
    .profile::after {

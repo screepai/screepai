@@ -654,7 +654,7 @@
       width: auto;
       height: auto;
       padding: 0.35em 0.75em;
-      border: 1.5px solid var(--bullet-color);
+      border: 0.145em solid var(--bullet-color);
       border-radius: 0.7em;
       background: var(--bullet-background-color);
       color: var(--bullet-color);
@@ -662,6 +662,11 @@
       font-size: 0.88em;
       line-height: 1.25;
       cursor: pointer;
+      transition:
+         background 300ms ease,
+         transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+         box-shadow 300ms ease;
+      font-weight: 600;
    }
 
    .pagination-button:hover,
@@ -678,37 +683,77 @@
    .pagination-button::after {
       position: absolute;
       opacity: 0;
-      color: var(--bullet-color);
       pointer-events: none;
+      color: var(--fill);
+      text-shadow:
+         0 0 0.3em var(--fill),
+         0 0 0.7em var(--bullet-active-color);
+      transform:
+         scale(0.2)
+         rotate(calc(var(--star-r) - 30deg));
       transition:
-         opacity 0.3s ease,
-         transform 0.3s ease;
+         opacity 180ms ease,
+         transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
    }
 
    .pagination-button::before {
-      content: "★";
-      top: -0.75em;
-      right: -0.7em;
+      content: "✦";
+      --star-r: var(--r1);
+      top: -0.8em;
+      right: -0.65em;
       font-size: 1.1em;
    }
 
    .pagination-button::after {
-      content: "✦";
+      content: "✧";
+      --star-r: var(--r2);
       bottom: -0.75em;
-      left: -0.65em;
-      font-size: 1em;
+      left: -0.6em;
+      font-size: 0.9em;
+   }
+
+   .pagination-button.active::before,
+   .pagination-button.active::after {
+      opacity: 1;
+      transform:
+         scale(1)
+         rotate(var(--star-r));
    }
 
    .pagination-button:hover::before,
-   .pagination-button.active::before {
-      opacity: 1;
-      transform: scale(1) rotate(var(--r1));
+   .pagination-button:hover::after {
+      animation: sparkle-pop 420ms
+         cubic-bezier(0.34, 1.56, 0.64, 1)
+         forwards;
    }
 
-   .pagination-button:hover::after,
-   .pagination-button.active::after {
-      opacity: 1;
-      transform: scale(1) rotate(var(--r2));
+   @keyframes sparkle-pop {
+      0% {
+         opacity: 0;
+         transform:
+            scale(0.15)
+            rotate(calc(var(--star-r) - 35deg));
+      }
+
+      55% {
+         opacity: 1;
+         transform:
+            scale(1.35)
+            rotate(calc(var(--star-r) + 8deg));
+      }
+
+      75% {
+         transform:
+            scale(0.9)
+            rotate(calc(var(--star-r) - 3deg));
+      }
+
+      100% {
+         opacity: 1;
+         transform:
+            scale(1)
+            rotate(var(--star-r));
+      }
    }
 </style>
 
