@@ -151,6 +151,34 @@
       }
    }
 
+   function animateOnScroll(node: HTMLElement) {
+      const root = node.closest(".slide-scroll");
+
+      node.style.animationPlayState = "paused";
+
+      const observer = new IntersectionObserver(
+         ([entry]) => {
+            if (!entry.isIntersecting) return;
+
+            node.style.animationPlayState = "running";
+            observer.unobserve(node);
+         },
+         {
+            root,
+            threshold: 0.15,
+            rootMargin: "0px 0px -4% 0px",
+         }
+      );
+
+      observer.observe(node);
+
+      return {
+         destroy() {
+            observer.disconnect();
+         },
+      };
+   }
+
    function nextFrame() {
       return new Promise<void>((resolve) => {
          requestAnimationFrame(() => resolve());
@@ -601,6 +629,7 @@
       animation-timing-function: linear;
       animation-delay: var(--in-delay, 0ms);
       animation-fill-mode: both;
+      animation-play-state: paused;
       will-change: transform, opacity;
    }
 
@@ -850,6 +879,7 @@
                         {#each activeSlide.items as item, i (item)}
                            <li
                               class="item-card"
+                              use:animateOnScroll
                               style={`--in-delay:${180 + i * 85}ms;`}
                            >
                               <p>{item}</p>
@@ -861,6 +891,7 @@
                         {#each activeSlide.links as socialLink, i (socialLink.url)}
                            <li
                               class="item-card"
+                              use:animateOnScroll
                               style={`--in-delay:${180 + i * 85}ms;`}
                            >
                               <a
@@ -905,6 +936,7 @@
                         {#each activeSlide.credits as credit, i (credit.url)}
                            <li
                               class="item-card"
+                              use:animateOnScroll
                               style={`--in-delay:${180 + i * 85}ms;`}
                            >
                               <p>
