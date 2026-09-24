@@ -3,7 +3,7 @@
    import { star } from "../config/shapes";
 
    const magicStars = Array.from(
-      { length: 6 },
+      { length: 8 },
       (_, index) => index
    );
 
@@ -32,6 +32,44 @@
             (max - min + 1)
       ) + min;
 
+   const randFloat = (
+      min: number,
+      max: number
+   ) =>
+      Math.random() *
+         (max - min) +
+      min;
+
+   function randomEdgePosition() {
+      const edge = rand(0, 3);
+
+      if (edge === 0) {
+         return {
+            left: rand(-18, 8),
+            top: rand(5, 95),
+         };
+      }
+
+      if (edge === 1) {
+         return {
+            left: rand(92, 118),
+            top: rand(5, 95),
+         };
+      }
+
+      if (edge === 2) {
+         return {
+            left: rand(4, 96),
+            top: rand(-14, 8),
+         };
+      }
+
+      return {
+         left: rand(4, 96),
+         top: rand(92, 112),
+      };
+   }
+
    function animate(
       starElement: HTMLElement,
       index: number
@@ -44,23 +82,41 @@
             )
          ];
 
-      const scale =
-         rand(70, 100) / 100;
+      const position =
+         randomEdgePosition();
 
-      const scaleDuration =
-         rand(800, 1600);
+      const magical =
+         Math.random() < 0.18;
+
+      const scale = magical
+         ? randFloat(1.0, 1.35)
+         : randFloat(0.5, 1.0);
+
+      const duration = magical
+         ? rand(1900, 2800)
+         : rand(1400, 2200);
 
       const spinDuration =
-         rand(1000, 3000);
+         rand(2800, 5200);
+
+      const driftX =
+         rand(-8, 8);
+
+      const driftY =
+         rand(-8, 8);
+
+      const glow = magical
+         ? randFloat(0.75, 1.05)
+         : randFloat(0.45, 0.8);
 
       starElement.style.setProperty(
          "--star-left",
-         `${rand(-30, 130)}%`
+         `${position.left}%`
       );
 
       starElement.style.setProperty(
          "--star-top",
-         `${rand(-30, 130)}%`
+         `${position.top}%`
       );
 
       starElement.style.setProperty(
@@ -73,72 +129,132 @@
          `${spinDuration}ms`
       );
 
+      starElement.style.setProperty(
+         "--star-glow",
+         `${glow}`
+      );
+
       activeAnimations[index]?.cancel();
 
       const animation =
          starElement.animate(
             [
                {
-                  transform: "scale(0)",
-               },
-               {
+                  opacity: 0,
                   transform:
-                     `scale(${scale})`,
-                  offset: 0.5,
+                     "translate3d(0, 4px, 0) scale(0.15)",
                },
                {
-                  transform: "scale(0)",
+                  opacity: 1,
+                  transform:
+                     `translate3d(
+                        ${driftX * 0.25}px,
+                        ${driftY * 0.25}px,
+                        0
+                     )
+                     scale(${scale * 1.16})`,
+                  offset: 0.25,
+               },
+               {
+                  opacity: 0.8,
+                  transform:
+                     `translate3d(
+                        ${driftX * 0.55}px,
+                        ${driftY * 0.55}px,
+                        0
+                     )
+                     scale(${scale})`,
+                  offset: 0.55,
+               },
+               {
+                  opacity: 0.35,
+                  transform:
+                     `translate3d(
+                        ${driftX * 0.8}px,
+                        ${driftY * 0.8}px,
+                        0
+                     )
+                     scale(${scale * 0.82})`,
+                  offset: 0.82,
+               },
+               {
+                  opacity: 0,
+                  transform:
+                     `translate3d(
+                        ${driftX}px,
+                        ${driftY}px,
+                        0
+                     )
+                     scale(${scale * 0.55})`,
                },
             ],
             {
-               duration: scaleDuration,
-               easing: "ease",
+               duration,
+               easing:
+                  "cubic-bezier(0.16, 1, 0.3, 1)",
                fill: "forwards",
             }
          );
 
-      activeAnimations[index] = animation;
+      activeAnimations[index] =
+         animation;
 
       animation.onfinish = () => {
          if (
-            activeAnimations[index] ===
+            activeAnimations[index] !==
             animation
          ) {
-            activeAnimations[index] =
-               undefined;
+            return;
          }
+
+         activeAnimations[index] =
+            undefined;
+
+         scheduleNext(
+            starElement,
+            index
+         );
       };
    }
 
-   onMount(() => {
-      const interval = 1500;
+   function scheduleNext(
+      starElement: HTMLElement,
+      index: number
+   ) {
+      const delay =
+         rand(500, 2200);
 
+      const timeoutId =
+         window.setTimeout(() => {
+            animate(
+               starElement,
+               index
+            );
+         }, delay);
+
+      cleanupFunctions.push(
+         () =>
+            clearTimeout(
+               timeoutId
+            )
+      );
+   }
+
+   onMount(() => {
       starElements.forEach(
          (starElement, index) => {
             const initialDelay =
-               setTimeout(() => {
-                  animate(starElement, index);
-
-                  const intervalId =
-                     setInterval(
-                        () =>
-                           animate(
-                              starElement,
-                              index
-                           ),
-                        interval
+               window.setTimeout(
+                  () => {
+                     animate(
+                        starElement,
+                        index
                      );
-
-                  cleanupFunctions.push(
-                     () =>
-                        clearInterval(
-                           intervalId
-                        )
-                  );
-               },
-               index *
-                  (interval /
-                     starElements.length)
+                  },
+                  rand(
+                     100,
+                     1800
+                  )
                );
 
             cleanupFunctions.push(
@@ -166,7 +282,7 @@
 <style>
    .magic-star {
       --size:
-         clamp(20px, 1.5vw, 69px);
+         clamp(12px, 1.15vw, 28px);
 
       position: absolute;
 
@@ -178,39 +294,71 @@
       left: var(--star-left);
       top: var(--star-top);
 
-      transform: scale(0);
+      opacity: 0;
 
       z-index: 99999;
 
       pointer-events: none;
+
+      will-change:
+         transform,
+         opacity;
    }
 
    .magic-star > svg {
       display: block;
-
       width: 100%;
       height: 100%;
 
-      opacity: 0.7;
+      opacity: 0.95;
 
       filter:
          drop-shadow(
-            0 0 0.625rem
+            0 0
+            calc(
+               0.35rem *
+               var(--star-glow, 0.6)
+            )
+            white
+         )
+         drop-shadow(
+            0 0
+            calc(
+               0.7rem *
+               var(--star-glow, 0.6)
+            )
             var(--star-color)
+         )
+         drop-shadow(
+            0 0
+            calc(
+               1.15rem *
+               var(--star-glow, 0.6)
+            )
+            color-mix(
+               in srgb,
+               var(--star-color) 45%,
+               transparent
+            )
          );
 
       animation:
          rotate
          var(
             --star-spin-duration,
-            1000ms
+            4000ms
          )
          linear
          infinite;
    }
 
    .magic-star > svg > path {
-      fill: var(--star-color);
+      fill:
+         color-mix(
+            in srgb,
+            var(--star-color) 72%,
+            white 28%
+         );
    }
 
    @keyframes rotate {
