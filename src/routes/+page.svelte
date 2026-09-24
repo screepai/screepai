@@ -163,6 +163,7 @@
       position: relative !important;
       left: var(--profile-left) !important;
       top: 50% !important;
+      width: clamp(15rem, 68vw, 25.625rem);
       max-width: 25.625rem;
       background: #FBFBFB;
       box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);

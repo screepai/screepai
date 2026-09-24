@@ -317,6 +317,7 @@
       position: relative;
       width: 100%;
       overflow: visible;
+      container-type: inline-size;
    }
 
    .slide-viewport {
@@ -351,6 +352,12 @@
       font-family: "Inter Tight", sans-serif;
       font-style: normal;
       font-weight: 400;
+      font-size: clamp(
+         10px,
+         calc(5.5px + 1.35vw),
+         15px
+      );
+      line-height: 1.3;
    }
 
    .centered-content {
@@ -368,6 +375,9 @@
    h4 {
       color: var(--fill);
       margin-top: 0;
+      margin-bottom: 1.2em;
+      font-size: 1.1em;
+      line-height: 1.2;
    }
 
    .centered-heading {
@@ -628,7 +638,12 @@
    .pagination {
       display: flex;
       justify-content: center;
-      gap: 0.45rem;
+      font-size: clamp(
+         10px,
+         calc(5.5px + 1.35vw),
+         16px
+      );
+      gap: 0.45em;
       padding: 0 20px 18px;
       position: relative;
       z-index: 5;
@@ -637,20 +652,16 @@
    .pagination-button {
       position: relative;
       width: auto;
-      height: 34px;
-      padding: 5px 10px;
-      border: solid var(--bullet-color) 2px;
-      border-radius: 10px;
+      height: auto;
+      padding: 0.35em 0.75em;
+      border: 1.5px solid var(--bullet-color);
+      border-radius: 0.7em;
       background: var(--bullet-background-color);
       color: var(--bullet-color);
       font-family: "Inter Tight", sans-serif;
-      font-size: 12px;
-      line-height: 20px;
+      font-size: 0.88em;
+      line-height: 1.25;
       cursor: pointer;
-      transition:
-         background 300ms ease,
-         transform 300ms ease,
-         box-shadow 300ms ease;
    }
 
    .pagination-button:hover,
@@ -676,18 +687,16 @@
 
    .pagination-button::before {
       content: "★";
-      top: -14px;
-      right: -10px;
-      font-size: 16px;
-      transform: scale(0) rotate(-45deg);
+      top: -0.75em;
+      right: -0.7em;
+      font-size: 1.1em;
    }
 
    .pagination-button::after {
       content: "✦";
-      bottom: -14px;
-      left: -8px;
-      font-size: 14px;
-      transform: scale(0) rotate(45deg);
+      bottom: -0.75em;
+      left: -0.65em;
+      font-size: 1em;
    }
 
    .pagination-button:hover::before,

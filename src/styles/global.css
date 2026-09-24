@@ -1,6 +1,11 @@
 @import "@fontsource/inter-tight/200.css";
 @import "@fontsource/inter-tight/400.css";
 
+html {
+   -webkit-text-size-adjust: 100%;
+   text-size-adjust: 100%;
+}
+
 :root {
    --bg: #f7f8f3;
 }
