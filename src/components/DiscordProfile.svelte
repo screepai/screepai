@@ -6,6 +6,23 @@
 
    const lightUrl = getDiscordUrl("light");
    const darkUrl = getDiscordUrl("dark");
+
+   let cardRatio = "410 / 190";
+
+   function updateCardRatio(
+      event: Event
+   ) {
+      const image =
+         event.currentTarget as HTMLImageElement;
+
+      if (
+         image.naturalWidth > 0 &&
+         image.naturalHeight > 0
+      ) {
+         cardRatio =
+            `${image.naturalWidth} / ${image.naturalHeight}`;
+      }
+   }
 </script>
 
 <style>
@@ -23,6 +40,7 @@
    .card-stack {
       position: relative;
       width: 100%;
+      aspect-ratio: var(--card-ratio);
 
       -webkit-mask-image: linear-gradient(
          to bottom,
@@ -73,12 +91,13 @@
    >
       <div
          class="card-stack"
-         style="--theme-duration: {ANIMATION.TRANSITION.THEME_DURATION}ms"
+         style={`--theme-duration: ${ANIMATION.TRANSITION.THEME_DURATION}ms; --card-ratio: ${cardRatio}`}
       >
          <img
             class="card"
             class:visible={!darkMode}
             class:hidden={darkMode}
+            on:load={updateCardRatio}
             src={lightUrl}
             alt="screepy"
          />
@@ -87,6 +106,7 @@
             class="card card-overlay"
             class:visible={darkMode}
             class:hidden={!darkMode}
+            on:load={updateCardRatio}
             src={darkUrl}
             alt="screepy"
          />

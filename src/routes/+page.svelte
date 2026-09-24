@@ -78,12 +78,14 @@
    async function preloadIntroAssets() {
       const currentTheme = themeFromDarkMode(darkMode);
 
-      const currentThemeUrls = [
+      const introUrls = [
          getThemeDefinition(currentTheme).backgroundImage,
-         getDiscordUrl(currentTheme),
+         getDiscordUrl("light"),
+         getDiscordUrl("dark"),
       ];
 
-      await preloadImages(currentThemeUrls);
+      await preloadImages(introUrls);
+
       preloadOtherThemeAssets(currentTheme);
    }
 
@@ -342,28 +344,33 @@
       height: 1.45rem;
       color: var(--fill);
       pointer-events: none;
+
       offset-path: path(
-         "M 0 0 C 13 -42, 40 -45, 52 -12"
+         "M 0 0 C 13 -42, 40 -45, 52 15"
       );
+
       offset-distance: 0%;
       offset-rotate: 0deg;
-      transform-origin: center center;
+
       backface-visibility: hidden;
+
       will-change:
-         transform,
          opacity,
          offset-distance;
+
       animation:
-         wink-star-curve
+         wink-star-travel
          590ms
-         cubic-bezier(0.16, 1, 0.3, 1)
+         cubic-bezier(0.25, 0.1, 0.25, 1)
          60ms
          forwards,
+
          wink-star-fade
          590ms
          ease-out
          60ms
          forwards;
+
       z-index: 1;
    }
 
@@ -371,48 +378,64 @@
       display: block;
       width: 100%;
       height: 100%;
+
       transform-origin: center center;
       transform-box: fill-box;
+
       backface-visibility: hidden;
+      will-change: transform;
+
       animation:
-         wink-star-spin
+         wink-star-transform
          590ms
          linear
          60ms
          forwards;
-      will-change: transform;
    }
 
    .wink-shooting-star path {
       fill: currentColor;
    }
 
-   @keyframes wink-star-curve {
-      0% {
+   @keyframes wink-star-travel {
+      from {
          offset-distance: 0%;
-         transform: scale(0.4);
       }
-      22% {
-         transform: scale(1.1);
-      }
-      48% {
-         transform: scale(0.98);
-      }
-      72% {
-         transform: scale(0.85);
-      }
-      100% {
+
+      to {
          offset-distance: 100%;
-         transform: scale(0.65);
       }
    }
 
-   @keyframes wink-star-spin {
-      from {
-         transform: rotate(-15deg);
+   @keyframes wink-star-transform {
+      0% {
+         transform:
+            rotate(-15deg)
+            scale(0.4);
       }
-      to {
-         transform: rotate(90deg);
+
+      22% {
+         transform:
+            rotate(20deg)
+            scale(1.1);
+      }
+
+      48% {
+         transform:
+            rotate(55deg)
+            scale(0.98);
+      }
+
+      72% {
+         transform:
+            rotate(87deg)
+            scale(0.85);
+      }
+
+      100% {
+         transform:
+            rotate(125deg)
+            scale(0.65);
       }
    }
 
@@ -420,15 +443,23 @@
       0% {
          opacity: 0;
       }
+
       10% {
          opacity: 1;
       }
+
       55% {
          opacity: 0.9;
       }
-      78% {
-         opacity: 0.45;
+
+      75% {
+         opacity: 0.55;
       }
+
+      90% {
+         opacity: 0.2;
+      }
+
       100% {
          opacity: 0;
       }

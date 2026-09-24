@@ -1,45 +1,56 @@
 export function preloadImage(
    src: string,
-   timeoutMs = 5000
+   timeoutMs = 10000
 ) {
-   if (
-      typeof Image === "undefined"
-   ) {
+   if (typeof Image === "undefined") {
       return Promise.resolve();
    }
 
-   return new Promise<void>(
-      (resolve) => {
-         const image =
-            new Image();
+   return new Promise<void>((resolve) => {
+      const image = new Image();
 
-         let settled = false;
+      let settled = false;
 
-         const done = () => {
-            if (settled) return;
+      const done = () => {
+         if (settled) return;
 
-            settled = true;
+         settled = true;
 
-            clearTimeout(timeout);
+         clearTimeout(timeout);
 
-            image.onload = null;
-            image.onerror = null;
+         image.onload = null;
+         image.onerror = null;
 
-            resolve();
-         };
+         resolve();
+      };
 
-         const timeout =
-            setTimeout(
-               done,
-               timeoutMs
-            );
+      const loaded = async () => {
+         try {
+            await image.decode();
+         } catch {
+            // the image may already be usable even if decode() rejects
+         }
 
-         image.onload = done;
-         image.onerror = done;
+         done();
+      };
 
-         image.src = src;
+      const timeout = setTimeout(
+         done,
+         timeoutMs
+      );
+
+      image.onload = () => {
+         void loaded();
+      };
+
+      image.onerror = done;
+
+      image.src = src;
+
+      if (image.complete) {
+         void loaded();
       }
-   );
+   });
 }
 
 export async function preloadImages(
