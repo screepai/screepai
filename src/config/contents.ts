@@ -58,10 +58,22 @@ type SystemSlide = {
    groups: readonly SystemGroup[];
 };
 
+export type MemoryWipePick = {
+   title: string;
+   note: string;
+   url?: string;
+};
+
 type InterestsSlide = {
    kind: "interests";
    label: string;
    heading: string;
+
+   memoryPicks: {
+      anime: readonly MemoryWipePick[];
+      manga: readonly MemoryWipePick[];
+      visualNovels: readonly MemoryWipePick[];
+   };
 };
 
 type SocialsSlide = {
@@ -307,6 +319,35 @@ const findMeLinks: readonly SocialExtraLink[] = [
    },
 ];
 
+const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
+   anime: [
+      {
+         title: "Saenai Heroine no Sodatekata",
+         note: "oh my god i absolutely love the romance in this anime, say what you want but megumi best girl and i love the movie so much",
+      },
+      {
+         title: "Plastic Memories",
+         note: "first anime that made me cry when i started watching anime, that sense of impending doom and the bittersweet romance is just so good",
+      }
+   ],
+
+   manga: [
+      {
+         title: "put manga here",
+         note:
+            "ramble about why reading this blind again would be peak",
+      },
+   ],
+
+   visualNovels: [
+      {
+         title: "put vn here",
+         note:
+            "ramble about the irreversible damage this visual novel caused",
+      },
+   ],
+};
+
 export const contentSlides = [
    {
       kind: "about",
@@ -324,7 +365,10 @@ export const contentSlides = [
       kind: "interests",
       label: "Interests",
       heading: "Interests",
-   },
+
+      memoryPicks:
+         interestMemoryPicks,
+      },
    {
       kind: "socials",
       label: "Socials",

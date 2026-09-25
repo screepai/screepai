@@ -3,6 +3,11 @@
    import type { TransitionConfig } from "svelte/transition";
    import { contentSlides } from "../config/contents";
 
+   import type {
+      InterestsResponse,
+      RankedInterest,
+   } from "$lib/interests/types";
+
    type SwipeParams = {
       direction: number;
    };
@@ -21,6 +26,11 @@
    let changingSlide = false;
    let socialTooltip: SocialTooltip | null = null;
    let scrollRegion: HTMLDivElement | null = null;
+   let interestsData:
+      InterestsResponse | null = null;
+
+   let interestsLoading = false;
+   let interestsError = "";
 
    $: activeSlide = contentSlides[activeIndex];
 
@@ -414,6 +424,77 @@
       socialTooltip = null;
    }
 
+   async function loadInterests() {
+      if (
+         interestsData ||
+         interestsLoading
+      ) {
+         return;
+      }
+
+      interestsLoading = true;
+      interestsError = "";
+
+      try {
+         const response =
+            await fetch(
+               "/api/interests"
+            );
+
+         if (!response.ok) {
+            throw new Error(
+               `HTTP ${response.status}`
+            );
+         }
+
+         interestsData =
+            await response.json() as
+               InterestsResponse;
+      } catch (error) {
+         console.error(
+            "Failed to load interests:",
+            error
+         );
+
+         interestsError =
+            "couldn't load my brainrot :(";
+      } finally {
+         interestsLoading = false;
+
+         if (
+            activeSlide.kind ===
+            "interests"
+         ) {
+            await tick();
+
+            syncActiveSlideLayout();
+         }
+      }
+   }
+
+   function interestTooltip(
+      interest: RankedInterest
+   ) {
+      const examples =
+         interest.examples
+            .map(
+               (example) =>
+                  example.title
+            )
+            .join(" · ");
+
+      if (!examples) {
+         return (
+            `${interest.titleCount} titles`
+         );
+      }
+
+      return (
+         `${interest.titleCount} titles · ` +
+         `e.g. ${examples}`
+      );
+   }
+
    function syncActiveSlideLayout() {
       if (
          !slideViewport ||
@@ -777,6 +858,7 @@
          };
 
       void init();
+      void loadInterests();
 
       window.addEventListener("resize", syncCurrentHeight);
       document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -1558,6 +1640,455 @@
       color: var(--fill);
    }
 
+   .interest-board {
+      display: grid;
+      gap: 0.9em;
+
+      padding:
+         0.15em
+         0.2em
+         0.35em;
+
+      text-align: left;
+      margin-bottom: 3em;
+   }
+
+   .interest-pair {
+      display: grid;
+
+      grid-template-columns:
+         repeat(
+            auto-fit,
+            minmax(12.5em, 1fr)
+         );
+
+      gap: 0.8em;
+   }
+
+   .interest-piece-wrap {
+      min-width: 0;
+   }
+
+   .interest-piece {
+      --paper:
+         color-mix(
+            in srgb,
+            var(--fill) 5%,
+            white
+         );
+
+      --tilt: 0deg;
+      --tape-tilt: 0deg;
+
+      position: relative;
+
+      min-height: 100%;
+
+      padding:
+         1em
+         0.9em
+         0.85em;
+
+      border:
+         1px solid
+         color-mix(
+            in srgb,
+            var(--fill) 18%,
+            transparent
+         );
+
+      border-radius: 0.8em;
+
+      background: var(--paper);
+
+      box-shadow:
+         0 5px 14px
+         rgb(0 0 0 / 0.045);
+
+      transform:
+         rotate(
+            var(--tilt)
+         );
+
+      transform-origin: center;
+
+      transition:
+         transform 220ms ease,
+         box-shadow 220ms ease,
+         border-color 220ms ease;
+   }
+
+   .interest-piece:hover {
+      transform:
+         rotate(0deg)
+         translateY(-1px);
+
+      border-color:
+         color-mix(
+            in srgb,
+            var(--fill) 32%,
+            transparent
+         );
+
+      box-shadow:
+         0 7px 18px
+         rgb(0 0 0 / 0.065);
+   }
+
+
+   .interest-piece[data-kind="anime"] {
+      --paper:
+         color-mix(
+            in srgb,
+            var(--color1) 7%,
+            white
+         );
+
+      --tilt: -0.75deg;
+      --tape-tilt: 5deg;
+   }
+
+   .interest-piece[data-kind="manga"] {
+      --paper:
+         color-mix(
+            in srgb,
+            var(--color2) 7%,
+            white
+         );
+
+      --tilt: 0.65deg;
+      --tape-tilt: -4deg;
+   }
+
+   .interest-piece[data-kind="vn"] {
+      --paper:
+         color-mix(
+            in srgb,
+            var(--color3) 6%,
+            white
+         );
+
+      --tilt: -0.25deg;
+      --tape-tilt: 2deg;
+   }
+
+
+   .interest-piece-wide {
+      padding:
+         1em
+         1em
+         0.9em;
+   }
+
+
+   .interest-tape {
+      position: absolute;
+
+      top: -0.38em;
+      left: 50%;
+
+      width: 3.1em;
+      height: 0.8em;
+
+      border-radius: 0.12em;
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 13%,
+            white
+         );
+
+      opacity: 0.85;
+
+      transform:
+         translateX(-50%)
+         rotate(
+            var(--tape-tilt)
+         );
+
+      pointer-events: none;
+   }
+
+
+   .interest-header {
+      display: flex;
+
+      justify-content: space-between;
+      align-items: flex-start;
+
+      gap: 0.8em;
+
+      margin-bottom: 0.75em;
+   }
+
+   .interest-header h5 {
+      margin: 0.05em 0 0;
+
+      color: var(--fill);
+
+      font-size: 1em;
+      font-weight: 750;
+
+      letter-spacing: 0.025em;
+   }
+
+   .interest-kicker {
+      display: block;
+
+      opacity: 0.48;
+
+      font-size: 0.68em;
+      font-weight: 600;
+
+      letter-spacing: 0.025em;
+   }
+
+   .interest-count {
+      flex: 0 0 auto;
+
+      opacity: 0.42;
+
+      font-size: 0.72em;
+      font-weight: 700;
+   }
+
+
+   .interest-tags {
+      display: flex;
+      flex-wrap: wrap;
+
+      gap:
+         0.42em
+         0.38em;
+   }
+
+   .interest-tag {
+      padding:
+         0.3em
+         0.58em;
+
+      border:
+         1px dashed
+         color-mix(
+            in srgb,
+            var(--fill) 22%,
+            transparent
+         );
+
+      border-radius:
+         0.55em
+         0.68em
+         0.52em
+         0.7em;
+
+      background:
+         color-mix(
+            in srgb,
+            white 68%,
+            transparent
+         );
+
+      color: #777777;
+
+      font-size: 0.77em;
+      font-weight: 600;
+
+      line-height: 1.2;
+
+      transform:
+         rotate(-0.4deg);
+
+      transition:
+         transform 180ms ease,
+         color 180ms ease,
+         background 180ms ease;
+   }
+
+   .interest-tag:nth-child(even) {
+      transform:
+         rotate(0.55deg);
+   }
+
+   .interest-tag:nth-child(3n) {
+      transform:
+         rotate(-0.7deg);
+   }
+
+   .interest-tag-main {
+      color: var(--fill);
+
+      font-size: 0.88em;
+      font-weight: 750;
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 8%,
+            white
+         );
+   }
+
+   .interest-tag:hover {
+      color: var(--fill);
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 8%,
+            white
+         );
+
+      transform:
+         rotate(0deg)
+         translateY(-1px);
+   }
+
+
+   .interest-tags-vn {
+      gap: 0.48em;
+   }
+
+
+   .interest-source {
+      display: block;
+
+      width: fit-content;
+
+      margin-top: 0.8em;
+      margin-left: auto;
+
+      color: #999999;
+
+      font-size: 0.68em;
+      font-weight: 550;
+
+      text-decoration: none;
+
+      transition:
+         color 180ms ease;
+   }
+
+   .interest-source:hover {
+      color: var(--fill);
+   }
+
+
+   .interest-doodle {
+      position: absolute;
+
+      right: 0.75em;
+      bottom: 0.65em;
+
+      color: var(--fill);
+
+      opacity: 0.2;
+
+      font-size: 1.4em;
+
+      transform:
+         rotate(18deg);
+
+      pointer-events: none;
+   }
+
+
+   .interest-loading {
+      padding: 2em 1em;
+
+      opacity: 0.6;
+
+      font-size: 0.85em;
+      text-align: center;
+   }
+
+   .interest-warning {
+      margin: 0;
+
+      opacity: 0.5;
+
+      font-size: 0.7em;
+      text-align: center;
+   }
+
+   .memory-wipe {
+      margin-top: 0.65em;
+      padding:
+         0.5em
+         0.6em
+         0.55em;
+
+      border-left:
+         2px solid
+         color-mix(
+            in srgb,
+            var(--fill) 24%,
+            transparent
+         );
+
+      background:
+         color-mix(
+            in srgb,
+            white 42%,
+            transparent
+         );
+   }
+
+   .memory-wipe-label {
+      display: block;
+
+      margin-bottom: 0.28em;
+
+      color: var(--fill);
+
+      opacity: 0.72;
+
+      font-size: 0.64em;
+      font-weight: 700;
+
+      letter-spacing: 0.03em;
+   }
+
+   .memory-wipe-entry {
+      display: grid;
+      gap: 0.12em;
+   }
+
+   .memory-wipe-entry + .memory-wipe-entry {
+      margin-top: 0.45em;
+   }
+
+   .memory-wipe-title {
+      width: fit-content;
+
+      color: #777777;
+
+      font-size: 0.78em;
+      font-weight: 700;
+
+      text-decoration: none;
+
+      transition: color 180ms ease;
+   }
+
+   a.memory-wipe-title:hover {
+      color: var(--fill);
+   }
+
+   .memory-wipe-entry p {
+      margin: 0;
+
+      color: #8b8b8b;
+
+      font-size: 0.7em;
+      line-height: 1.32;
+
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+   }
    .pagination {
       display: flex;
       justify-content: center;
@@ -1887,6 +2418,269 @@
                         <p class="social-note">
                            {activeSlide.note}
                         </p>
+                     </div>
+                  {:else if activeSlide.kind === "interests"}
+                     <div class="interest-board">
+                        {#if interestsLoading}
+                           <div class="interest-loading">
+                              digging through my questionable taste...
+                           </div>
+
+                        {:else if interestsError}
+                           <div class="interest-loading">
+                              {interestsError}
+                           </div>
+
+                        {:else if interestsData}
+                           <div class="interest-pair">
+                              <div
+                                 class="item-card interest-piece-wrap"
+                                 use:animateOnScroll
+                                 style="--in-delay:180ms;"
+                              >
+                                 <article
+                                    class="interest-piece"
+                                    data-kind="anime"
+                                 >
+                                    <span class="interest-tape"></span>
+
+                                    <div class="interest-header">
+                                       <div>
+                                          <span class="interest-kicker">
+                                             mostly watching
+                                          </span>
+
+                                          <h5>
+                                             anime
+                                          </h5>
+                                       </div>
+
+                                       <span class="interest-count">
+                                          {interestsData.anime.analyzedEntries}
+                                       </span>
+                                    </div>
+
+                                    <div class="interest-tags">
+                                       {#each interestsData.anime.top.slice(0, 5) as interest, i (interest.id)}
+                                          <span
+                                             class="interest-tag"
+                                             class:interest-tag-main={i === 0}
+                                             title={interestTooltip(interest)}
+                                          >
+                                             {interest.name}
+                                          </span>
+                                       {/each}
+                                    </div>
+                                    <div class="memory-wipe">
+                                       <span class="memory-wipe-label">
+                                          id wipe my memory of these anime if i could
+                                       </span>
+
+                                       {#each activeSlide.memoryPicks.anime as pick (pick.title)}
+                                          <div class="memory-wipe-entry">
+                                             {#if pick.url}
+                                                <a
+                                                   class="memory-wipe-title"
+                                                   href={pick.url}
+                                                   target="_blank"
+                                                   rel="noreferrer"
+                                                >
+                                                   {pick.title}
+                                                </a>
+                                             {:else}
+                                                <span class="memory-wipe-title">
+                                                   {pick.title}
+                                                </span>
+                                             {/if}
+
+                                             <p>
+                                                {pick.note}
+                                             </p>
+                                          </div>
+                                       {/each}
+                                    </div>
+                                    <a
+                                       class="interest-source"
+                                       href={interestsData.anime.profileUrl}
+                                       target="_blank"
+                                       rel="noreferrer"
+                                    >
+                                       from MyAnimeList ↗
+                                    </a>
+                                 </article>
+                              </div>
+
+
+                              <div
+                                 class="item-card interest-piece-wrap"
+                                 use:animateOnScroll
+                                 style="--in-delay:265ms;"
+                              >
+                                 <article
+                                    class="interest-piece"
+                                    data-kind="manga"
+                                 >
+                                    <span class="interest-tape"></span>
+
+                                    <div class="interest-header">
+                                       <div>
+                                          <span class="interest-kicker">
+                                             apparently reading
+                                          </span>
+
+                                          <h5>
+                                             manga
+                                          </h5>
+                                       </div>
+
+                                       <span class="interest-count">
+                                          {interestsData.manga.analyzedEntries}
+                                       </span>
+                                    </div>
+
+                                    <div class="interest-tags">
+                                       {#each interestsData.manga.top.slice(0, 5) as interest, i (interest.id)}
+                                          <span
+                                             class="interest-tag"
+                                             class:interest-tag-main={i === 0}
+                                             title={interestTooltip(interest)}
+                                          >
+                                             {interest.name}
+                                          </span>
+                                       {/each}
+                                    </div>
+                                    <div class="memory-wipe">
+                                       <span class="memory-wipe-label">
+                                          i can read these again and again and still enjoy them
+                                       </span>
+
+                                       {#each activeSlide.memoryPicks.manga as pick (pick.title)}
+                                          <div class="memory-wipe-entry">
+                                             {#if pick.url}
+                                                <a
+                                                   class="memory-wipe-title"
+                                                   href={pick.url}
+                                                   target="_blank"
+                                                   rel="noreferrer"
+                                                >
+                                                   {pick.title}
+                                                </a>
+                                             {:else}
+                                                <span class="memory-wipe-title">
+                                                   {pick.title}
+                                                </span>
+                                             {/if}
+
+                                             <p>
+                                                {pick.note}
+                                             </p>
+                                          </div>
+                                       {/each}
+                                    </div>
+                                    <a
+                                       class="interest-source"
+                                       href={interestsData.manga.profileUrl}
+                                       target="_blank"
+                                       rel="noreferrer"
+                                    >
+                                       from MyAnimeList ↗
+                                    </a>
+                                 </article>
+                              </div>
+                           </div>
+
+
+                           <div
+                              class="item-card interest-piece-wrap"
+                              use:animateOnScroll
+                              style="--in-delay:350ms;"
+                           >
+                              <article
+                                 class="interest-piece interest-piece-wide"
+                                 data-kind="vn"
+                              >
+                                 <span class="interest-tape"></span>
+
+                                 <span
+                                    class="interest-doodle"
+                                    aria-hidden="true"
+                                 >
+                                    ✦
+                                 </span>
+
+                                 <div class="interest-header">
+                                    <div>
+                                       <span class="interest-kicker">
+                                          my antidepressant
+                                       </span>
+
+                                       <h5>
+                                          visual novels
+                                       </h5>
+                                    </div>
+
+                                    <span class="interest-count">
+                                       {interestsData.visualNovels.analyzedEntries}
+                                    </span>
+                                 </div>
+
+                                 <div class="interest-tags interest-tags-vn">
+                                    {#each interestsData.visualNovels.top.slice(0, 5) as interest, i (interest.id)}
+                                       <span
+                                          class="interest-tag"
+                                          class:interest-tag-main={i === 0}
+                                          title={interestTooltip(interest)}
+                                       >
+                                          {interest.name}
+                                       </span>
+                                    {/each}
+                                 </div>
+                                 <div class="memory-wipe">
+                                       <span class="memory-wipe-label">
+                                          oh how i wish i could forget these VNs to experience them anew
+                                       </span>
+
+                                       {#each activeSlide.memoryPicks.visualNovels as pick (pick.title)}
+                                          <div class="memory-wipe-entry">
+                                             {#if pick.url}
+                                                <a
+                                                   class="memory-wipe-title"
+                                                   href={pick.url}
+                                                   target="_blank"
+                                                   rel="noreferrer"
+                                                >
+                                                   {pick.title}
+                                                </a>
+                                             {:else}
+                                                <span class="memory-wipe-title">
+                                                   {pick.title}
+                                                </span>
+                                             {/if}
+
+                                             <p>
+                                                {pick.note}
+                                             </p>
+                                          </div>
+                                       {/each}
+                                    </div>
+                                 <a
+                                    class="interest-source"
+                                    href={interestsData.visualNovels.profileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                 >
+                                    pulled from VNDB ↗
+                                 </a>
+                              </article>
+                           </div>
+
+
+                           {#if interestsData.warnings.length > 0}
+                              <p class="interest-warning">
+                                 some sources are currently unavailable
+                              </p>
+                           {/if}
+                        {/if}
                      </div>
                   {:else}
                      <ul class="content-list">
