@@ -96,6 +96,9 @@
       }
 
       items.forEach((item, index) => {
+         if (item.dataset.scrollHidden === "true") {
+            return;
+         }
          item.getAnimations().forEach((animation) => animation.cancel());
 
          item.animate(
@@ -150,31 +153,234 @@
          );
       }
    }
+   
+   function getScrollStaggerDelay(
+      root: HTMLElement,
+      node: HTMLElement
+   ) {
+      const rootRect =
+         root.getBoundingClientRect();
+
+      const visibleItems =
+         Array.from(
+            root.querySelectorAll<HTMLElement>(
+               [
+                  '[data-scroll-hidden="true"]',
+                  '[data-scroll-revealing="true"]',
+               ].join(",")
+            )
+         )
+            .filter((item) => {
+               const rect =
+                  item.getBoundingClientRect();
+
+               return (
+                  rect.bottom >
+                     rootRect.top &&
+                  rect.top <
+                     rootRect.bottom
+               );
+            })
+            .sort((a, b) => {
+               const aRect =
+                  a.getBoundingClientRect();
+
+               const bRect =
+                  b.getBoundingClientRect();
+
+               return (
+                  aRect.top -
+                  bRect.top
+               );
+            });
+
+      const index =
+         visibleItems.indexOf(node);
+
+      if (index === -1) {
+         return 0;
+      }
+
+      return index * 85;
+   }
 
    function animateOnScroll(node: HTMLElement) {
-      const root = node.closest(".slide-scroll");
+      const root =
+         node.closest<HTMLElement>(".slide-scroll");
 
-      node.style.animationPlayState = "paused";
+      if (!root) return;
 
-      const observer = new IntersectionObserver(
-         ([entry]) => {
-            if (!entry.isIntersecting) return;
+      let initialCheck = true;
+      let revealed = false;
+      let revealAnimation:
+         Animation | null = null;
 
-            node.style.animationPlayState = "running";
-            observer.unobserve(node);
-         },
-         {
-            root,
-            threshold: 0.15,
-            rootMargin: "0px 0px -4% 0px",
-         }
-      );
+      const observer =
+         new IntersectionObserver(
+            ([entry]) => {
+               if (initialCheck) {
+                  initialCheck = false;
+
+                  if (entry.isIntersecting) {
+                     observer.disconnect();
+                     return;
+                  }
+
+                  node.style.animation = "none";
+
+                  node.style.opacity = "0";
+
+                  const startX =
+                     getComputedStyle(node)
+                        .getPropertyValue(
+                           "--item-start-x"
+                        );
+
+                  node.style.transform =
+                     `translate3d(${startX}, 0, 0) scale(0.95)`;
+
+                  node.dataset.scrollHidden =
+                     "true";
+
+                  return;
+               }
+
+               if (
+                  !entry.isIntersecting ||
+                  revealed
+               ) {
+                  return;
+               }
+
+               revealed = true;
+
+               const scrollDelay =
+                  getScrollStaggerDelay(
+                     root,
+                     node
+                  );
+
+               node.dataset.scrollRevealing =
+                  "true";
+
+               delete node.dataset.scrollHidden;
+
+                              const styles =
+                  getComputedStyle(node);
+
+               const startX =
+                  styles.getPropertyValue(
+                     "--item-start-x"
+                  );
+
+               const bounce1 =
+                  styles.getPropertyValue(
+                     "--item-bounce-1"
+                  );
+
+               const bounce2 =
+                  styles.getPropertyValue(
+                     "--item-bounce-2"
+                  );
+
+               const bounce3 =
+                  styles.getPropertyValue(
+                     "--item-bounce-3"
+                  );
+
+               const bounce4 =
+                  styles.getPropertyValue(
+                     "--item-bounce-4"
+                  );
+
+                              revealAnimation =
+                  node.animate(
+                     [
+                        {
+                           opacity: 0,
+                           transform:
+                              `translate3d(${startX}, 0, 0) scale(0.95)`,
+                           easing:
+                              "cubic-bezier(0.16, 1, 0.3, 1)",
+                        },
+                        {
+                           opacity: 1,
+                           transform:
+                              `translate3d(${bounce1}, 0, 0) scale(1)`,
+                           offset: 0.52,
+                           easing:
+                              "cubic-bezier(0.25, 0.7, 0.35, 1)",
+                        },
+                        {
+                           opacity: 1,
+                           transform:
+                              `translate3d(${bounce2}, 0, 0) scale(1)`,
+                           offset: 0.68,
+                           easing:
+                              "cubic-bezier(0.25, 0.7, 0.35, 1)",
+                        },
+                        {
+                           opacity: 1,
+                           transform:
+                              `translate3d(${bounce3}, 0, 0) scale(1)`,
+                           offset: 0.81,
+                           easing:
+                              "cubic-bezier(0.25, 0.7, 0.35, 1)",
+                        },
+                        {
+                           opacity: 1,
+                           transform:
+                              `translate3d(${bounce4}, 0, 0) scale(1)`,
+                           offset: 0.91,
+                           easing:
+                              "ease-out",
+                        },
+                        {
+                           opacity: 1,
+                           transform:
+                              "translate3d(0, 0, 0) scale(1)",
+                        },
+                     ],
+                     {
+                        duration: 820,
+                        delay:
+                           60 +
+                           scrollDelay,
+                        fill: "forwards",
+                     }
+                  );
+
+               revealAnimation.onfinish =
+                  () => {
+                     delete node.dataset
+                        .scrollRevealing;
+
+                     node.style.opacity = "1";
+
+                     node.style.transform =
+                        "translate3d(0, 0, 0) scale(1)";
+
+                     revealAnimation?.cancel();
+                     revealAnimation = null;
+                  };
+
+               observer.disconnect();
+            },
+            {
+               root,
+               threshold: 0.15,
+               rootMargin:
+                  "0px 0px -4% 0px",
+            }
+         );
 
       observer.observe(node);
 
       return {
          destroy() {
             observer.disconnect();
+
+            revealAnimation?.cancel();
          },
       };
    }
@@ -208,6 +414,178 @@
       socialTooltip = null;
    }
 
+   function syncActiveSlideLayout() {
+      if (
+         !slideViewport ||
+         !scrollRegion
+      ) {
+         return;
+      }
+
+      const viewport =
+         slideViewport;
+
+      const activeScrollRegion =
+         scrollRegion;
+
+      const panels =
+         viewport.querySelectorAll<HTMLElement>(
+            ".slide-panel"
+         );
+
+      const activePanel =
+         panels[panels.length - 1];
+
+      if (!activePanel) return;
+
+      const activeContent =
+         activePanel.querySelector<HTMLElement>(
+            ".slide-content"
+         );
+
+      if (!activeContent) return;
+
+      viewport.style.minHeight = "";
+
+      const targetHeight =
+         activeContent.scrollHeight;
+
+      const targetVisibleHeight =
+         measureVisibleTargetHeight(
+            viewport,
+            activeContent,
+            activeScrollRegion
+         );
+
+      const previousViewportTransition =
+         viewport.style.transition;
+
+      const previousScrollTransition =
+         activeScrollRegion.style.transition;
+
+      viewport.style.transition = "none";
+
+      activeScrollRegion.style.transition =
+         "none";
+
+      viewport.style.height =
+         `${targetHeight}px`;
+
+      activeScrollRegion.style.height =
+         `${targetVisibleHeight}px`;
+
+      void viewport.offsetHeight;
+
+      viewport.style.transition =
+         previousViewportTransition;
+
+      activeScrollRegion.style.transition =
+         previousScrollTransition;
+
+      changingSlide = false;
+   }
+
+   function measureVisibleTargetHeight(
+      viewport: HTMLElement,
+      incomingContent: HTMLElement,
+      scrollRegion: HTMLElement
+   ) {
+      const previousViewportHeight =
+         viewport.style.height;
+
+      const previousViewportMinHeight =
+         viewport.style.minHeight;
+
+      const previousViewportTransition =
+         viewport.style.transition;
+
+      const previousScrollHeight =
+         scrollRegion.style.height;
+
+      const previousScrollTransition =
+         scrollRegion.style.transition;
+
+      viewport.style.transition = "none";
+      scrollRegion.style.transition = "none";
+
+      viewport.style.minHeight = "";
+      scrollRegion.style.height = "";
+
+      viewport.style.height =
+         `${incomingContent.scrollHeight}px`;
+
+      void scrollRegion.offsetHeight;
+
+      const targetVisibleHeight =
+         scrollRegion
+            .getBoundingClientRect()
+            .height;
+
+      viewport.style.height =
+         previousViewportHeight;
+
+      viewport.style.minHeight =
+         previousViewportMinHeight;
+
+      scrollRegion.style.height =
+         previousScrollHeight;
+
+      void scrollRegion.offsetHeight;
+
+      viewport.style.transition =
+         previousViewportTransition;
+
+      scrollRegion.style.transition =
+         previousScrollTransition;
+
+      return targetVisibleHeight;
+   }
+
+   function resetScrollSmoothly(
+      element: HTMLElement,
+      duration = 220
+   ) {
+      const start =
+         element.scrollTop;
+
+      if (start <= 0) return;
+
+      const startTime =
+         performance.now();
+
+      function animate(time: number) {
+         const progress =
+            Math.min(
+               (time - startTime) /
+                  duration,
+               1
+            );
+
+         const eased =
+            1 -
+            Math.pow(
+               1 - progress,
+               3
+            );
+
+         element.scrollTop =
+            start *
+            (1 - eased);
+
+         if (progress < 1) {
+            requestAnimationFrame(
+               animate
+            );
+         } else {
+            element.scrollTop = 0;
+         }
+      }
+
+      requestAnimationFrame(
+         animate
+      );
+   }
+
    async function changeSlide(nextIndex: number) {
       if (
          nextIndex === activeIndex ||
@@ -222,6 +600,23 @@
 
       const viewport = slideViewport;
       const currentHeight = viewport.getBoundingClientRect().height;
+
+      const currentScrollRegion =
+         scrollRegion;
+
+      const previousScrollTop =
+         currentScrollRegion?.scrollTop ?? 0;
+
+      const previousMinHeight =
+         viewport.style.minHeight;
+
+      if (
+         currentScrollRegion &&
+         previousScrollTop > 0
+      ) {
+         viewport.style.minHeight =
+            `${viewport.scrollHeight}px`;
+      }
 
       viewport.style.height = `${currentHeight}px`;
       direction = nextIndex > activeIndex ? 1 : -1;
@@ -242,8 +637,15 @@
 
       await tick();
 
-      if (scrollRegion) {
-         scrollRegion.scrollTop = 0;
+      const activeScrollRegion = scrollRegion;
+
+      if (!activeScrollRegion) {
+         changingSlide = false;
+         return;
+      }
+
+      if (previousScrollTop > 0) {
+         activeScrollRegion.scrollTop = previousScrollTop;
       }
 
       const panels =
@@ -267,11 +669,34 @@
 
       const targetHeight = incomingContent.scrollHeight;
 
+      const currentVisibleHeight =
+         activeScrollRegion.getBoundingClientRect()
+            .height;
+
+      const targetVisibleHeight =
+         measureVisibleTargetHeight(
+            viewport,
+            incomingContent,
+            activeScrollRegion
+         );
+
+      activeScrollRegion.style.height = `${currentVisibleHeight}px`;
+
+      resetScrollSmoothly(
+         activeScrollRegion
+      );
+
       await nextFrame();
 
-      viewport.style.height = `${targetHeight}px`;
+      requestAnimationFrame(() => {
+         viewport.style.height = `${targetHeight}px`;
+
+         activeScrollRegion.style.height = `${targetVisibleHeight}px`;
+      });
 
       window.setTimeout(() => {
+         viewport.style.minHeight =
+            previousMinHeight;
          changingSlide = false;
       }, 440);
    }
@@ -334,13 +759,32 @@
          });
       }
 
+      const handleVisibilityChange =
+         () => {
+            socialTooltip = null;
+
+            if (document.hidden || !mounted) {
+               return;
+            }
+
+            requestAnimationFrame(() => {
+               requestAnimationFrame(() => {
+                  if (!mounted) return;
+
+                  syncActiveSlideLayout();
+               });
+            });
+         };
+
       void init();
 
       window.addEventListener("resize", syncCurrentHeight);
+      document.addEventListener("visibilitychange", handleVisibilityChange);
 
       return () => {
          mounted = false;
          window.removeEventListener("resize", syncCurrentHeight);
+         document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
    });
 </script>
@@ -365,15 +809,11 @@
    .slide-scroll {
       flex: 1 1 auto;
       min-height: 0;
-
       overflow-y: auto;
       overflow-x: hidden;
-
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
-
       scrollbar-width: thin;
-
       scrollbar-color:
          color-mix(
             in srgb,
@@ -381,6 +821,10 @@
             transparent
          )
          transparent;
+      transition:
+         height
+         520ms
+         cubic-bezier(0.22, 1, 0.36, 1);
    }
 
    .slide-scroll::-webkit-scrollbar {
@@ -468,8 +912,14 @@
    }
 
    .social-note {
-      font-size: 12px;
+      margin-top: 35px;
+      margin-bottom: 8px;
+      min-height: 1.25em;
+      opacity: 0.65;
+      font-size: 0.82em;
+      line-height: 1.25;
       text-align: center;
+      flex-shrink: 0;
    }
 
    .social-icons {
@@ -629,7 +1079,6 @@
       animation-timing-function: linear;
       animation-delay: var(--in-delay, 0ms);
       animation-fill-mode: both;
-      animation-play-state: paused;
       will-change: transform, opacity;
    }
 
@@ -667,34 +1116,79 @@
    @keyframes item-enter {
       0% {
          opacity: 0;
-         transform: translate3d(-52px, 0, 0) scale(0.95);
-         animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+
+         transform:
+            translate3d(
+               var(--item-start-x),
+               0,
+               0
+            )
+            scale(0.95);
+
+         animation-timing-function:
+            cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       52% {
          opacity: 1;
-         transform: translate3d(5px, 0, 0) scale(1);
-         animation-timing-function: cubic-bezier(0.25, 0.7, 0.35, 1);
+
+         transform:
+            translate3d(
+               var(--item-bounce-1),
+               0,
+               0
+            )
+            scale(1);
+
+         animation-timing-function:
+            cubic-bezier(0.25, 0.7, 0.35, 1);
       }
 
       68% {
-         transform: translate3d(-2.2px, 0, 0) scale(1);
-         animation-timing-function: cubic-bezier(0.25, 0.7, 0.35, 1);
+         transform:
+            translate3d(
+               var(--item-bounce-2),
+               0,
+               0
+            )
+            scale(1);
+
+         animation-timing-function:
+            cubic-bezier(0.25, 0.7, 0.35, 1);
       }
 
       81% {
-         transform: translate3d(0.8px, 0, 0) scale(1);
-         animation-timing-function: cubic-bezier(0.25, 0.7, 0.35, 1);
+         transform:
+            translate3d(
+               var(--item-bounce-3),
+               0,
+               0
+            )
+            scale(1);
+
+         animation-timing-function:
+            cubic-bezier(0.25, 0.7, 0.35, 1);
       }
 
       91% {
-         transform: translate3d(-0.25px, 0, 0) scale(1);
-         animation-timing-function: ease-out;
+         transform:
+            translate3d(
+               var(--item-bounce-4),
+               0,
+               0
+            )
+            scale(1);
+
+         animation-timing-function:
+            ease-out;
       }
 
       100% {
          opacity: 1;
-         transform: translate3d(0, 0, 0) scale(1);
+
+         transform:
+            translate3d(0, 0, 0)
+            scale(1);
       }
    }
 
@@ -719,6 +1213,351 @@
       }
    }
 
+   .system-groups {
+      display: grid;
+      gap: 0.75em;
+      text-align: left;
+   }
+
+   .system-group {
+      padding: 0.8em 0.9em;
+
+      border:
+         1px solid
+         color-mix(
+            in srgb,
+            var(--fill) 22%,
+            transparent
+         );
+
+      border-radius: 0.85em;
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 4%,
+            transparent
+         );
+
+      box-shadow:
+         0 4px 14px
+         rgb(0 0 0 / 0.035);
+
+      transition:
+         border-color 250ms ease,
+         background 250ms ease,
+         box-shadow 250ms ease;
+   }
+
+   .system-group:hover {
+      border-color:
+         color-mix(
+            in srgb,
+            var(--fill) 40%,
+            transparent
+         );
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 7%,
+            transparent
+         );
+
+      box-shadow:
+         0 5px 16px
+         rgb(0 0 0 / 0.055);
+   }
+
+   .system-group h5 {
+      margin:
+         0
+         0
+         0.65em;
+
+      color: var(--fill);
+
+      font-size: 0.88em;
+      font-weight: 700;
+
+      letter-spacing: 0.04em;
+   }
+
+   .system-items {
+      display: grid;
+      gap: 0.4em;
+   }
+
+   .system-item {
+      display: grid;
+
+      grid-template-columns:
+         minmax(4.5em, 0.6fr)
+         1fr;
+
+      gap: 0.8em;
+
+      align-items: baseline;
+   }
+
+   .system-label {
+      opacity: 0.62;
+
+      font-size: 0.9em;
+      font-weight: 600;
+   }
+
+   .system-value {
+      min-width: 0;
+
+      color: #777777;
+
+      font-size: 0.9em;
+
+      overflow-wrap: anywhere;
+   }
+
+   .stack-levels {
+      display: grid;
+      gap: 0.8em;
+   }
+
+   .stack-section {
+      display: grid;
+      gap: 0.45em;
+   }
+
+   .stack-label {
+      opacity: 0.58;
+
+      font-size: 0.82em;
+      font-weight: 600;
+
+      letter-spacing: 0.025em;
+   }
+
+   .stack-pills {
+      display: flex;
+      flex-wrap: wrap;
+
+      gap: 0.4em;
+   }
+
+   .stack-pill {
+      padding:
+         0.28em
+         0.58em;
+      border:
+         1px solid
+         color-mix(
+            in srgb,
+            var(--fill) 20%,
+            transparent
+         );
+      border-radius: 0.55em;
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 5%,
+            transparent
+         );
+      color: #777777;
+      font-size: 0.82em;
+      font-weight: 550;
+      line-height: 1.2;
+      cursor: default;
+      transition:
+         background 180ms ease,
+         border-color 180ms ease,
+         transform 180ms ease;
+   }
+
+   .stack-pill:hover {
+      border-color:
+         color-mix(
+            in srgb,
+            var(--fill) 38%,
+            transparent
+         );
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 9%,
+            transparent
+         );
+
+      transform:
+         translateY(-1px);
+   }
+
+   .stack-section[data-level="creative"]
+   .stack-pill {
+      background:
+         color-mix(
+            in srgb,
+            var(--color2) 9%,
+            transparent
+         );
+
+      border-color:
+         color-mix(
+            in srgb,
+            var(--color2) 28%,
+            transparent
+         );
+   }
+
+   .system-link {
+      width: fit-content;
+
+      text-decoration: none;
+
+      transition:
+         color 180ms ease,
+         opacity 180ms ease;
+   }
+
+   .system-link:hover {
+      color: var(--fill);
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+   }
+
+   .social-find-card {
+      margin-top: 0.9em;
+      padding: 0.8em 0.9em;
+
+      border:
+         1px solid
+         color-mix(
+            in srgb,
+            var(--fill) 22%,
+            transparent
+         );
+
+      border-radius: 0.85em;
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 4%,
+            transparent
+         );
+
+      box-shadow:
+         0 4px 14px
+         rgb(0 0 0 / 0.035);
+
+      text-align: left;
+
+      transition:
+         border-color 250ms ease,
+         background 250ms ease,
+         box-shadow 250ms ease;
+   }
+
+   .social-find-card:hover {
+      border-color:
+         color-mix(
+            in srgb,
+            var(--fill) 40%,
+            transparent
+         );
+
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 7%,
+            transparent
+         );
+
+      box-shadow:
+         0 5px 16px
+         rgb(0 0 0 / 0.055);
+   }
+
+   .social-find-card h5 {
+      margin:
+         0
+         0
+         0.65em;
+
+      color: var(--fill);
+
+      font-size: 0.88em;
+      font-weight: 700;
+
+      letter-spacing: 0.04em;
+   }
+
+   .social-find-items {
+      display: grid;
+      gap: 0.18em;
+   }
+
+   .social-find-item {
+      display: grid;
+
+      grid-template-columns:
+         minmax(5.5em, 0.65fr)
+         1fr;
+
+      gap: 0.8em;
+
+      align-items: baseline;
+
+      padding:
+         0.3em
+         0.35em;
+
+      border-radius: 0.5em;
+
+      color: inherit;
+      text-decoration: none;
+
+      transition:
+         background 180ms ease,
+         transform 180ms ease;
+   }
+
+   .social-find-item:hover {
+      background:
+         color-mix(
+            in srgb,
+            var(--fill) 7%,
+            transparent
+         );
+
+      transform:
+         translateX(2px);
+   }
+
+   .social-find-label {
+      opacity: 0.62;
+
+      font-size: 0.9em;
+      font-weight: 600;
+   }
+
+   .social-find-value {
+      min-width: 0;
+
+      color: #777777;
+
+      font-size: 0.9em;
+
+      overflow-wrap: anywhere;
+
+      transition:
+         color 180ms ease;
+   }
+
+   .social-find-item:hover
+   .social-find-value {
+      color: var(--fill);
+   }
+
    .pagination {
       display: flex;
       justify-content: center;
@@ -733,6 +1572,24 @@
       position: relative;
       z-index: 5;
       background: #FBFBFB;
+   }
+
+   .pagination::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -2em;
+      height: 2em;
+      background:
+         linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgb(251 251 251 / 0.35) 30%,
+            rgb(251 251 251 / 0.75) 65%,
+            #FBFBFB 100%
+         );
+      pointer-events: none;
    }
 
    .pagination-button {
@@ -864,6 +1721,13 @@
             >
                <div
                   class="slide-content"
+                  style={`
+                     --item-start-x:${52 * direction}px;
+                     --item-bounce-1:${-5 * direction}px;
+                     --item-bounce-2:${2.2 * direction}px;
+                     --item-bounce-3:${-0.8 * direction}px;
+                     --item-bounce-4:${0.25 * direction}px;
+                  `}
                   class:centered-content={activeSlide.kind !== "socials"}
                >
                   <div class="heading-card">
@@ -886,6 +1750,65 @@
                            </li>
                         {/each}
                      </ul>
+                  {:else if activeSlide.kind === "system"}
+                     <div class="system-groups">
+                        {#each activeSlide.groups as group, i (group.title)}
+                           <section
+                              class="system-group item-card"
+                              use:animateOnScroll
+                              style={`--in-delay:${180 + i * 85}ms;`}
+                           >
+                              <h5>{group.title}</h5>
+
+                              {#if group.kind === "rows"}
+                                 <div class="system-items">
+                                    {#each group.items as item (item.label)}
+                                       <div class="system-item">
+                                          <span class="system-label">
+                                             {item.label}
+                                          </span>
+                                          {#if item.url}
+                                             <a
+                                                class="system-value system-link"
+                                                href={item.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                             >
+                                                {item.value}
+                                             </a>
+                                          {:else}
+                                             <span class="system-value">
+                                                {item.value}
+                                             </span>
+                                          {/if}
+                                       </div>
+                                    {/each}
+                                 </div>
+                              {:else if group.kind === "stack"}
+                                 <div class="stack-levels">
+                                    {#each group.levels as level (level.label)}
+                                       <div
+                                          class="stack-section"
+                                          data-level={level.label}
+                                       >
+                                          <span class="stack-label">
+                                             {level.label}
+                                          </span>
+
+                                          <div class="stack-pills">
+                                             {#each level.items as tech (tech)}
+                                                <span class="stack-pill">
+                                                   {tech}
+                                                </span>
+                                             {/each}
+                                          </div>
+                                       </div>
+                                    {/each}
+                                 </div>
+                              {/if}
+                           </section>
+                        {/each}
+                     </div>
                   {:else if activeSlide.kind === "socials"}
                      <ul class="social-icons">
                         {#each activeSlide.links as socialLink, i (socialLink.url)}
@@ -913,6 +1836,13 @@
                                        socialLink.tooltip || ""
                                     )}
                                  on:blur={hideSocialTooltip}
+                                 on:pointerup={(event) => {
+                                    (
+                                       event.currentTarget as HTMLElement
+                                    ).blur();
+
+                                    hideSocialTooltip();
+                                 }}
                               >
                                  <svg aria-hidden="true">
                                     <use href={socialLink.icon}></use>
@@ -925,7 +1855,34 @@
                            </li>
                         {/each}
                      </ul>
+                     {#if activeSlide.findMe.length}
+                        <section
+                           class="social-find-card item-card"
+                           use:animateOnScroll
+                           style="--in-delay:435ms;"
+                        >
+                           <h5>find me here</h5>
 
+                           <div class="social-find-items">
+                              {#each activeSlide.findMe as item (item.label)}
+                                 <a
+                                    class="social-find-item"
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                 >
+                                    <span class="social-find-label">
+                                       {item.label}
+                                    </span>
+
+                                    <span class="social-find-value">
+                                       {item.value}
+                                    </span>
+                                 </a>
+                              {/each}
+                           </div>
+                        </section>
+                     {/if}
                      <div class="note-card">
                         <p class="social-note">
                            {activeSlide.note}
