@@ -324,26 +324,65 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
       {
          title: "Saenai Heroine no Sodatekata",
          note: "oh my god i absolutely love the romance in this anime, say what you want but megumi best girl and i love the movie so much",
+         url: "https://myanimelist.net/anime/23277/Saenai_Heroine_no_Sodatekata",
       },
       {
          title: "Plastic Memories",
          note: "first anime that made me cry when i started watching anime, that sense of impending doom and the bittersweet romance is just so good",
-      }
+         url: "https://myanimelist.net/anime/27775/Plastic_Memories",
+      },
+      {
+         title: "Acchi Kocchi",
+         note: "my comfort anime, the romance is so cute and wholesome and the comedy is just so good, i put it on whenever i work on something and the ost is really relaxing too",
+         url: "https://myanimelist.net/anime/12291/Acchi_Kocchi",
+      },
+      {
+         title: "Shuumatsu Nani Shitemasu ka? Isogashii desu ka? Sukutte Moratte Ii desu ka?",
+         note: "gang, what word do i need for this?",
+         url: "https://myanimelist.net/anime/33502/Shuumatsu_Nani_Shitemasu_ka_Isogashii_desu_ka_Sukutte_Moratte_Ii_desu_ka",
+      },
+      {
+         title: "anything by Makoto Shinkai",
+         note: "wonderful animation, beautiful romance, amazing music, and the stories are just so good for first time watching, i love the bittersweet romance in his works",
+         url: "https://myanimelist.net/people/1117/Makoto_Shinkai",
+      },
    ],
 
    manga: [
       {
-         title: "put manga here",
-         note:
-            "ramble about why reading this blind again would be peak",
+         title: "anything in my list",
+         note: "honestly i am very selective with manga, i only read romance manga and some shounen manga, i dont update the list as often as i should, but i do have a lot of manga in my list that i would love to read again if i could",
+         url: "https://myanimelist.net/mangalist/screepy",
       },
    ],
 
    visualNovels: [
       {
-         title: "put vn here",
+         title: "Summer Pockets: Reflection Blue",
+         note: "Key strikes again with a wonderful romance story, the music is amazing and the art is beautiful, i love the bittersweet romance in this visual novel. the anime butchered the story but the visual novel is just so good, i would love to play it again if i could",
+         url: "https://vndb.org/v20424",
+      },
+      {
+         title: "Amakano series and anything by Azarashi Soft",
+         note: "best romance visual novel series i have ever played, literally nothing is happening but lovey dovey couples",
+         url: "https://vndb.org/p4542",
+      },
+      {
+         title: "Atri: My Dear Moments",
          note:
-            "ramble about the irreversible damage this visual novel caused",
+            "Asta Konno's writing and Yusano's art made up a very cute high performance robot, i love the bittersweet romance in this visual novel, the music is amazing and the art is beautiful, i would love to play it again if i could",
+         url: "https://vndb.org/v27448",
+      },
+      {
+         title: "anything by Yuzusoft",
+         note:
+            "no words, i played most of their visual novels and how i wish they can pump out more",
+         url: "https://vndb.org/p98",
+      },
+      {
+         title: "everything else in my list",
+         note: "im not very selective with visual novels, i just read whatever is romance and has a good story",
+         url: "https://vndb.org/u326697/ulist?q=&ch=&f=&l=1&l=2&l=3&l=4&l=5&l=6&l=7&mul=1&s=3q02",
       },
    ],
 };
