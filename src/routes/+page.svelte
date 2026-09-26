@@ -23,6 +23,9 @@
       type ThemeName,
    } from "../config/theme";
    import { preloadImages } from "../utils/preload";
+   import {
+      preloadInterests,
+   } from "$lib/interests/client";
 
    import "../styles/global.css";
 
@@ -113,6 +116,15 @@
    async function runIntroSequence() {
       const runId = ++introRunId;
       const isCurrentRun = () => runId === introRunId;
+
+      void preloadInterests()
+         .catch((error) => {
+            console.warn(
+               "Interests preload failed:",
+               error
+            );
+         });
+
       const assetsReady = preloadIntroAssets();
       const textReady = wait(getInitialAnimationDelay());
 

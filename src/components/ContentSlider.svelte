@@ -8,6 +8,10 @@
       RankedInterest,
    } from "$lib/interests/types";
 
+   import {
+      preloadInterests,
+   } from "$lib/interests/client";
+
    type SwipeParams = {
       direction: number;
    };
@@ -31,6 +35,13 @@
 
    let interestsLoading = false;
    let interestsError = "";
+
+   let copiedGame:
+      string | null = null;
+
+   let copyGameTimeout:
+      ReturnType<typeof setTimeout> | null =
+         null;
 
    $: activeSlide = contentSlides[activeIndex];
 
@@ -401,6 +412,15 @@
       });
    }
 
+   function getSlidePanel(
+      viewport: HTMLElement,
+      index: number
+   ) {
+      return viewport.querySelector<HTMLElement>(
+         `.slide-panel[data-slide-index="${index}"]`
+      );
+   }
+
    function showSocialTooltip(
       event: MouseEvent | FocusEvent,
       name: string,
@@ -436,20 +456,8 @@
       interestsError = "";
 
       try {
-         const response =
-            await fetch(
-               "/api/interests"
-            );
-
-         if (!response.ok) {
-            throw new Error(
-               `HTTP ${response.status}`
-            );
-         }
-
          interestsData =
-            await response.json() as
-               InterestsResponse;
+            await preloadInterests();
       } catch (error) {
          console.error(
             "Failed to load interests:",
@@ -457,7 +465,7 @@
          );
 
          interestsError =
-            "couldn't load my brainrot :(";
+            "couldn't load my antidepressant :(";
       } finally {
          interestsLoading = false;
 
@@ -509,6 +517,68 @@
       const activeScrollRegion =
          scrollRegion;
 
+      const activePanel =
+         getSlidePanel(
+            viewport,
+            activeIndex
+         );
+
+      if (!activePanel) return;
+
+      const activeContent =
+         activePanel.querySelector<HTMLElement>(
+            ".slide-content"
+         );
+
+      if (!activeContent) return;
+
+      viewport.style.minHeight = "";
+
+      const targetHeight =
+         activeContent.offsetHeight;
+
+      const previousViewportTransition =
+         viewport.style.transition;
+
+      const previousScrollTransition =
+         activeScrollRegion.style.transition;
+
+      viewport.style.transition = "none";
+
+      activeScrollRegion.style.transition =
+         "none";
+
+      viewport.style.height =
+         `${targetHeight}px`;
+
+      activeScrollRegion.style.height = "";
+
+      void viewport.offsetHeight;
+      void activeScrollRegion.offsetHeight;
+
+      viewport.style.transition =
+         previousViewportTransition;
+
+      activeScrollRegion.style.transition =
+         previousScrollTransition;
+
+      changingSlide = false;
+   }
+
+   function normalizeCurrentSlideLayout() {
+      if (
+         !slideViewport ||
+         !scrollRegion
+      ) {
+         return;
+      }
+
+      const viewport =
+         slideViewport;
+
+      const activeScrollRegion =
+         scrollRegion;
+
       const panels =
          viewport.querySelectorAll<HTMLElement>(
             ".slide-panel"
@@ -526,34 +596,24 @@
 
       if (!activeContent) return;
 
-      viewport.style.minHeight = "";
-
-      const targetHeight =
-         activeContent.scrollHeight;
-
-      const targetVisibleHeight =
-         measureVisibleTargetHeight(
-            viewport,
-            activeContent,
-            activeScrollRegion
-         );
-
       const previousViewportTransition =
          viewport.style.transition;
 
       const previousScrollTransition =
          activeScrollRegion.style.transition;
 
-      viewport.style.transition = "none";
+      viewport.style.transition =
+         "none";
 
       activeScrollRegion.style.transition =
          "none";
 
       viewport.style.height =
-         `${targetHeight}px`;
+         `${activeContent.offsetHeight}px`;
 
-      activeScrollRegion.style.height =
-         `${targetVisibleHeight}px`;
+      activeScrollRegion.style.height = "";
+
+      viewport.style.minHeight = "";
 
       void viewport.offsetHeight;
 
@@ -562,64 +622,73 @@
 
       activeScrollRegion.style.transition =
          previousScrollTransition;
-
-      changingSlide = false;
    }
 
    function measureVisibleTargetHeight(
-      viewport: HTMLElement,
       incomingContent: HTMLElement,
       scrollRegion: HTMLElement
    ) {
-      const previousViewportHeight =
-         viewport.style.height;
+      const naturalHeight =
+         incomingContent.offsetHeight;
 
-      const previousViewportMinHeight =
-         viewport.style.minHeight;
+      const magic =
+         scrollRegion.closest<HTMLElement>(
+            ".magic"
+         );
 
-      const previousViewportTransition =
-         viewport.style.transition;
+      if (!magic) {
+         return naturalHeight;
+      }
 
-      const previousScrollHeight =
-         scrollRegion.style.height;
+      const profileHeader =
+         magic.querySelector<HTMLElement>(
+            ":scope > .profile-header"
+         );
 
-      const previousScrollTransition =
-         scrollRegion.style.transition;
+      const pagination =
+         scrollRegion.parentElement
+            ?.querySelector<HTMLElement>(
+               ":scope > .pagination"
+            );
 
-      viewport.style.transition = "none";
-      scrollRegion.style.transition = "none";
+      const computedMagic =
+         getComputedStyle(magic);
 
-      viewport.style.minHeight = "";
-      scrollRegion.style.height = "";
+      const maxMagicHeight =
+         parseFloat(
+            computedMagic.maxHeight
+         );
 
-      viewport.style.height =
-         `${incomingContent.scrollHeight}px`;
+      if (
+         !Number.isFinite(
+            maxMagicHeight
+         )
+      ) {
+         return naturalHeight;
+      }
 
-      void scrollRegion.offsetHeight;
+      const headerHeight =
+         profileHeader
+            ?.getBoundingClientRect()
+            .height ?? 0;
 
-      const targetVisibleHeight =
-         scrollRegion
-            .getBoundingClientRect()
-            .height;
+      const paginationHeight =
+         pagination
+            ?.getBoundingClientRect()
+            .height ?? 0;
 
-      viewport.style.height =
-         previousViewportHeight;
+      const maxVisibleHeight =
+         Math.max(
+            0,
+            maxMagicHeight -
+               headerHeight -
+               paginationHeight
+         );
 
-      viewport.style.minHeight =
-         previousViewportMinHeight;
-
-      scrollRegion.style.height =
-         previousScrollHeight;
-
-      void scrollRegion.offsetHeight;
-
-      viewport.style.transition =
-         previousViewportTransition;
-
-      scrollRegion.style.transition =
-         previousScrollTransition;
-
-      return targetVisibleHeight;
+      return Math.min(
+         naturalHeight,
+         maxVisibleHeight
+      );
    }
 
    function resetScrollSmoothly(
@@ -702,11 +771,11 @@
       viewport.style.height = `${currentHeight}px`;
       direction = nextIndex > activeIndex ? 1 : -1;
 
-      const currentPanels =
-         viewport.querySelectorAll<HTMLElement>(".slide-panel");
-
       const outgoingPanel =
-         currentPanels[currentPanels.length - 1];
+         getSlidePanel(
+            viewport,
+            activeIndex
+         );
 
       if (outgoingPanel) {
          playOutAnimations(outgoingPanel, direction);
@@ -729,11 +798,11 @@
          activeScrollRegion.scrollTop = previousScrollTop;
       }
 
-      const panels =
-         viewport.querySelectorAll<HTMLElement>(".slide-panel");
-
       const incomingPanel =
-         panels[panels.length - 1];
+         getSlidePanel(
+            viewport,
+            nextIndex
+         );
 
       if (!incomingPanel) {
          changingSlide = false;
@@ -748,7 +817,8 @@
          return;
       }
 
-      const targetHeight = incomingContent.scrollHeight;
+      const targetHeight =
+         incomingContent.offsetHeight;
 
       const currentVisibleHeight =
          activeScrollRegion.getBoundingClientRect()
@@ -756,7 +826,6 @@
 
       const targetVisibleHeight =
          measureVisibleTargetHeight(
-            viewport,
             incomingContent,
             activeScrollRegion
          );
@@ -778,6 +847,8 @@
       window.setTimeout(() => {
          viewport.style.minHeight =
             previousMinHeight;
+         activeScrollRegion.style.height = "";
+         normalizeCurrentSlideLayout();
          changingSlide = false;
       }, 440);
    }
@@ -785,21 +856,42 @@
    function syncCurrentHeight() {
       socialTooltip = null;
 
-      if (!slideViewport) return;
+      if (changingSlide) {
+         return;
+      }
 
-      const panels =
-         slideViewport.querySelectorAll<HTMLElement>(".slide-panel");
+      syncActiveSlideLayout();
+   }
 
-      const currentPanel = panels[panels.length - 1];
+   async function copyGameUid(
+      gameName: string,
+      uid: string
+   ) {
+      try {
+         await navigator.clipboard.writeText(
+            uid
+         );
 
-      if (!currentPanel) return;
+         copiedGame =
+            gameName;
 
-      const content =
-         currentPanel.querySelector<HTMLElement>(".slide-content");
+         if (copyGameTimeout) {
+            clearTimeout(
+               copyGameTimeout
+            );
+         }
 
-      if (!content) return;
-
-      slideViewport.style.height = `${content.scrollHeight}px`;
+         copyGameTimeout =
+            setTimeout(() => {
+               copiedGame = null;
+               copyGameTimeout = null;
+            }, 1400);
+      } catch (error) {
+         console.error(
+            "Failed to copy UID:",
+            error
+         );
+      }
    }
 
    function rotationOne(index: number) {
@@ -830,7 +922,8 @@
          if (!content) return;
 
          viewport.style.transition = "none";
-         viewport.style.height = `${content.scrollHeight}px`;
+         viewport.style.height =
+            `${content.offsetHeight}px`;
 
          requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -889,7 +982,7 @@
    }
 
    .slide-scroll {
-      flex: 1 1 auto;
+      flex: 0 1 auto;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
@@ -994,14 +1087,12 @@
    }
 
    .social-note {
-      margin-top: 35px;
-      margin-bottom: 8px;
+      margin: 0;
       min-height: 1.25em;
       opacity: 0.65;
       font-size: 0.82em;
       line-height: 1.25;
       text-align: center;
-      flex-shrink: 0;
    }
 
    .social-icons {
@@ -1165,6 +1256,8 @@
    }
 
    .note-card {
+      padding-top: 15px;
+      padding-bottom: 0;
       opacity: 1;
       animation:
          note-enter
@@ -2084,11 +2177,463 @@
       line-height: 1.32;
 
       display: -webkit-box;
-      -webkit-line-clamp: 3;
-      line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
    }
+
+   .interest-small-pair {
+      grid-template-columns:
+         repeat(
+            2,
+            minmax(0, 1fr)
+         );
+
+      align-items: stretch;
+   }
+
+
+   .interest-piece[data-kind="games"] {
+      --paper:
+         color-mix(
+            in srgb,
+            var(--color2) 6%,
+            white
+         );
+
+      --tilt: -0.45deg;
+      --tape-tilt: 3deg;
+   }
+
+
+   .interest-piece[data-kind="music"] {
+      --paper:
+         color-mix(
+            in srgb,
+            var(--color1) 6%,
+            white
+         );
+
+      --tilt: 0.45deg;
+      --tape-tilt: -3deg;
+   }
+
+
+   .game-list {
+      display: grid;
+      gap: 0.45em;
+   }
+
+
+   .game-entry {
+      display: grid;
+      gap: 0.12em;
+      padding:
+         0.38em
+         0.45em;
+      border-radius: 0.55em;
+      background:
+         color-mix(
+            in srgb,
+            white 48%,
+            transparent
+         );
+   }
+
+
+   .game-name {
+      color: #777777;
+      font-size: 0.76em;
+      font-weight: 700;
+      line-height: 1.2;
+   }
+
+
+   .game-account {
+      display: flex;
+      align-items: center;
+      gap: 0.35em;
+      min-width: 0;
+   }
+
+
+   .game-server {
+      flex: 0 0 auto;
+      color: var(--fill);
+      opacity: 0.62;
+      font-size: 0.62em;
+      font-weight: 700;
+   }
+
+
+   .game-uid {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.25em;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #949494;
+      font: inherit;
+      font-size: 0.65em;
+      cursor: pointer;
+      transition:
+         color 180ms ease,
+         transform 180ms ease,
+         text-shadow 180ms ease;
+   }
+
+
+   .game-uid:hover {
+      color: var(--fill);
+      transform:
+         translateY(-1px);
+   }
+
+
+   .game-uid.copied {
+      color: var(--fill);
+      text-shadow:
+         0 0 0.55em
+         color-mix(
+            in srgb,
+            var(--fill) 28%,
+            transparent
+         );
+
+      animation:
+         game-uid-copy
+         420ms
+         cubic-bezier(
+            0.16,
+            1,
+            0.3,
+            1
+         );
+   }
+
+   .game-uid-number {
+      min-width: 0;
+   }
+
+
+   .game-copy-icon {
+      display: inline-grid;
+      place-items: center;
+
+      width: 1em;
+
+      transition:
+         transform 180ms ease;
+   }
+
+
+   .game-uid.copied
+   .game-copy-icon {
+      animation:
+         game-copy-check
+         420ms
+         cubic-bezier(
+            0.16,
+            1,
+            0.3,
+            1
+         );
+   }
+
+   .game-copy-feedback {
+      position: absolute;
+      right: -0.35em;
+      bottom: calc(100% + 0.55em);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+      padding:
+         0.32em
+         0.5em;
+      border:
+         1px solid
+         color-mix(
+            in srgb,
+            var(--fill) 18%,
+            transparent
+         );
+      border-radius: 0.6em;
+      background:
+         color-mix(
+            in srgb,
+            white 88%,
+            transparent
+         );
+      box-shadow:
+         0 4px 12px
+         rgb(0 0 0 / 0.06);
+      color: var(--fill);
+      font-size: 0.86em;
+      font-weight: 700;
+      white-space: nowrap;
+      pointer-events: none;
+      animation:
+         game-copy-feedback
+         1400ms
+         cubic-bezier(
+            0.16,
+            1,
+            0.3,
+            1
+         )
+         both;
+   }
+
+
+   .game-copy-sparkle {
+      font-size: 0.8em;
+      animation:
+         game-copy-sparkle
+         700ms
+         ease-out
+         both;
+   }
+
+      @keyframes game-uid-copy {
+      0% {
+         transform:
+            translateY(0)
+            scale(1);
+      }
+
+      38% {
+         transform:
+            translateY(-2px)
+            scale(1.06);
+      }
+
+      100% {
+         transform:
+            translateY(0)
+            scale(1);
+      }
+   }
+
+
+   @keyframes game-copy-check {
+      0% {
+         opacity: 0;
+
+         transform:
+            rotate(-35deg)
+            scale(0.4);
+      }
+
+      55% {
+         opacity: 1;
+
+         transform:
+            rotate(8deg)
+            scale(1.18);
+      }
+
+      100% {
+         opacity: 1;
+
+         transform:
+            rotate(0)
+            scale(1);
+      }
+   }
+
+   @keyframes game-copy-feedback {
+      0% {
+         opacity: 0;
+
+         transform:
+            translateY(5px)
+            scale(0.88);
+      }
+
+      14% {
+         opacity: 1;
+
+         transform:
+            translateY(-2px)
+            scale(1.04);
+      }
+
+      23% {
+         transform:
+            translateY(0)
+            scale(1);
+      }
+
+      76% {
+         opacity: 1;
+
+         transform:
+            translateY(0)
+            scale(1);
+      }
+
+      100% {
+         opacity: 0;
+
+         transform:
+            translateY(-5px)
+            scale(0.96);
+      }
+   }
+
+
+   @keyframes game-copy-sparkle {
+      0% {
+         opacity: 0;
+
+         transform:
+            rotate(-45deg)
+            scale(0.25);
+      }
+
+      45% {
+         opacity: 1;
+
+         transform:
+            rotate(25deg)
+            scale(1.35);
+      }
+
+      100% {
+         opacity: 0.8;
+
+         transform:
+            rotate(0)
+            scale(1);
+      }
+   }
+
+   .music-list {
+      display: grid;
+      gap: 0.25em;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+   }
+
+
+   .music-entry {
+      display: grid;
+      grid-template-columns:
+         auto
+         minmax(0, 1fr)
+         auto;
+      gap: 0.4em;
+      align-items: center;
+      padding:
+         0.38em
+         0.35em;
+      border-radius: 0.5em;
+      transition:
+         background 180ms ease;
+   }
+
+   .music-entry +
+   .music-entry {
+      border-top:
+         1px solid
+         color-mix(
+            in srgb,
+            var(--fill) 9%,
+            transparent
+         );
+   }
+
+
+   .music-entry:hover {
+      background:
+         color-mix(
+            in srgb,
+            white 48%,
+            transparent
+         );
+   }
+
+
+   .music-rank {
+      color: var(--fill);
+      opacity: 0.42;
+      font-size: 0.6em;
+      font-weight: 750;
+   }
+
+
+   .music-track {
+      display: grid;
+      min-width: 0;
+      color: inherit;
+      text-decoration: none;
+   }
+
+
+   .music-name {
+      overflow: hidden;
+      color: #777777;
+      font-size: 0.72em;
+      font-weight: 700;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+   }
+
+
+   .music-artist {
+      overflow: hidden;
+      margin-top: 0.08em;
+      color: #999999;
+      font-size: 0.62em;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+   }
+
+
+   .music-plays {
+      opacity: 0.45;
+      font-size: 0.58em;
+      font-weight: 650;
+   }
+
+
+   .music-empty {
+      margin:
+         0.7em
+         0;
+      color: #999999;
+      font-size: 0.68em;
+      line-height: 1.35;
+   }
+
+   .interest-piece[data-kind="music"] {
+      display: flex;
+      flex-direction: column;
+   }
+
+
+   .interest-piece[data-kind="music"]
+   .interest-source {
+      position: static;
+      margin-top: auto;
+      padding-top: 0.85em;
+      opacity: 0.58;
+      transition:
+         opacity 180ms ease,
+         color 180ms ease;
+   }
+
+   .interest-piece[data-kind="music"]
+   .interest-source:hover {
+      opacity: 1;
+   }
+   
    .pagination {
       display: flex;
       justify-content: center;
@@ -2103,6 +2648,7 @@
       position: relative;
       z-index: 5;
       background: #FBFBFB;
+      border-radius: 0 0 12px 12px;
    }
 
    .pagination::before {
@@ -2247,6 +2793,7 @@
          {#key activeIndex}
             <div
                class="slide-panel"
+               data-slide-index={activeIndex}
                in:swipeIn={{ direction }}
                out:swipeOut
             >
@@ -2432,81 +2979,98 @@
                            </div>
 
                         {:else if interestsData}
-                           <div class="interest-pair">
+                           <div class="interest-pair interest-small-pair">
                               <div
                                  class="item-card interest-piece-wrap"
                                  use:animateOnScroll
-                                 style="--in-delay:180ms;"
+                                 style="--in-delay:435ms;"
                               >
                                  <article
                                     class="interest-piece"
-                                    data-kind="anime"
+                                    data-kind="games"
                                  >
                                     <span class="interest-tape"></span>
 
                                     <div class="interest-header">
                                        <div>
                                           <span class="interest-kicker">
-                                             mostly watching
+                                             currently trapped in
                                           </span>
 
                                           <h5>
-                                             anime
+                                             games
                                           </h5>
                                        </div>
 
                                        <span class="interest-count">
-                                          {interestsData.anime.analyzedEntries}
+                                          {activeSlide.games.length}
                                        </span>
                                     </div>
 
-                                    <div class="interest-tags">
-                                       {#each interestsData.anime.top.slice(0, 5) as interest, i (interest.id)}
-                                          <span
-                                             class="interest-tag"
-                                             class:interest-tag-main={i === 0}
-                                             title={interestTooltip(interest)}
-                                          >
-                                             {interest.name}
-                                          </span>
-                                       {/each}
-                                    </div>
-                                    <div class="memory-wipe">
-                                       <span class="memory-wipe-label">
-                                          id wipe my memory of these anime if i could
-                                       </span>
 
-                                       {#each activeSlide.memoryPicks.anime as pick (pick.title)}
-                                          <div class="memory-wipe-entry">
-                                             {#if pick.url}
-                                                <a
-                                                   class="memory-wipe-title"
-                                                   href={pick.url}
-                                                   target="_blank"
-                                                   rel="noreferrer"
+                                    <div class="game-list">
+                                       {#each activeSlide.games as game (game.name)}
+                                          <div class="game-entry">
+                                             <span class="game-name">
+                                                {game.name}
+                                             </span>
+
+                                             <div class="game-account">
+                                                {#if game.server}
+                                                   <span class="game-server">
+                                                      {game.server}
+                                                   </span>
+                                                {/if}
+
+                                                <button
+                                                   type="button"
+                                                   class="game-uid"
+                                                   class:copied={
+                                                      copiedGame ===
+                                                      game.name
+                                                   }
+                                                   title={
+                                                      copiedGame === game.name
+                                                         ? "copied!"
+                                                         : "copy UID"
+                                                   }
+                                                   aria-label={`Copy ${game.name} UID`}
+                                                   on:click={() =>
+                                                      copyGameUid(
+                                                         game.name,
+                                                         game.uid
+                                                      )}
                                                 >
-                                                   {pick.title}
-                                                </a>
-                                             {:else}
-                                                <span class="memory-wipe-title">
-                                                   {pick.title}
-                                                </span>
-                                             {/if}
+                                                   <span class="game-uid-number">
+                                                      {game.uid}
+                                                   </span>
 
-                                             <p>
-                                                {pick.note}
-                                             </p>
+                                                   <span
+                                                      class="game-copy-icon"
+                                                      aria-hidden="true"
+                                                   >
+                                                      {copiedGame === game.name
+                                                         ? "✓"
+                                                         : "⧉"}
+                                                   </span>
+
+                                                   {#if copiedGame === game.name}
+                                                      <span
+                                                         class="game-copy-feedback"
+                                                         aria-hidden="true"
+                                                      >
+                                                         <span class="game-copy-sparkle">
+                                                            ✦
+                                                         </span>
+
+                                                         copied!
+                                                      </span>
+                                                   {/if}
+                                                </button>
+                                             </div>
                                           </div>
                                        {/each}
                                     </div>
-                                    <a
-                                       class="interest-source"
-                                       href={interestsData.anime.profileUrl}
-                                       target="_blank"
-                                       rel="noreferrer"
-                                    >
-                                       from MyAnimeList ↗
-                                    </a>
                                  </article>
                               </div>
 
@@ -2514,82 +3078,83 @@
                               <div
                                  class="item-card interest-piece-wrap"
                                  use:animateOnScroll
-                                 style="--in-delay:265ms;"
+                                 style="--in-delay:520ms;"
                               >
                                  <article
                                     class="interest-piece"
-                                    data-kind="manga"
+                                    data-kind="music"
                                  >
                                     <span class="interest-tape"></span>
 
                                     <div class="interest-header">
                                        <div>
                                           <span class="interest-kicker">
-                                             apparently reading
+                                             lately looping
                                           </span>
 
                                           <h5>
-                                             manga
+                                             music
                                           </h5>
                                        </div>
 
                                        <span class="interest-count">
-                                          {interestsData.manga.analyzedEntries}
+                                          top 5
                                        </span>
                                     </div>
 
-                                    <div class="interest-tags">
-                                       {#each interestsData.manga.top.slice(0, 5) as interest, i (interest.id)}
-                                          <span
-                                             class="interest-tag"
-                                             class:interest-tag-main={i === 0}
-                                             title={interestTooltip(interest)}
-                                          >
-                                             {interest.name}
-                                          </span>
-                                       {/each}
-                                    </div>
-                                    <div class="memory-wipe">
-                                       <span class="memory-wipe-label">
-                                          i can read these again and again and still enjoy them
-                                       </span>
 
-                                       {#each activeSlide.memoryPicks.manga as pick (pick.title)}
-                                          <div class="memory-wipe-entry">
-                                             {#if pick.url}
+                                    {#if interestsData.music.tracks.length}
+                                       <ol class="music-list">
+                                          {#each interestsData.music.tracks as track, i (track.url)}
+                                             <li class="music-entry">
+                                                <span class="music-rank">
+                                                   {String(i + 1).padStart(
+                                                      2,
+                                                      "0"
+                                                   )}
+                                                </span>
+
                                                 <a
-                                                   class="memory-wipe-title"
-                                                   href={pick.url}
+                                                   class="music-track"
+                                                   href={track.url}
                                                    target="_blank"
                                                    rel="noreferrer"
                                                 >
-                                                   {pick.title}
-                                                </a>
-                                             {:else}
-                                                <span class="memory-wipe-title">
-                                                   {pick.title}
-                                                </span>
-                                             {/if}
+                                                   <span class="music-name">
+                                                      {track.name}
+                                                   </span>
 
-                                             <p>
-                                                {pick.note}
-                                             </p>
-                                          </div>
-                                       {/each}
-                                    </div>
-                                    <a
-                                       class="interest-source"
-                                       href={interestsData.manga.profileUrl}
-                                       target="_blank"
-                                       rel="noreferrer"
-                                    >
-                                       from MyAnimeList ↗
-                                    </a>
+                                                   <span class="music-artist">
+                                                      {track.artist}
+                                                   </span>
+                                                </a>
+
+                                                <span
+                                                   class="music-plays"
+                                                   title={`${track.playcount} scrobbles`}
+                                                >
+                                                   {track.playcount}×
+                                                </span>
+                                             </li>
+                                          {/each}
+                                       </ol>
+
+                                       <a
+                                          class="interest-source"
+                                          href={interestsData.music.profileUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                       >
+                                          last 30 days · Last.fm ↗
+                                       </a>
+                                    {:else}
+                                       <p class="music-empty">
+                                          waiting for the peaks to accumulate...
+                                       </p>
+                                    {/if}
                                  </article>
                               </div>
                            </div>
-
-
                            <div
                               class="item-card interest-piece-wrap"
                               use:animateOnScroll
@@ -2673,7 +3238,160 @@
                                  </a>
                               </article>
                            </div>
+                           <div
+                              class="item-card interest-piece-wrap"
+                              use:animateOnScroll
+                              style="--in-delay:180ms;"
+                           >
+                              <article
+                                 class="interest-piece"
+                                 data-kind="anime"
+                              >
+                                 <span class="interest-tape"></span>
 
+                                 <div class="interest-header">
+                                    <div>
+                                       <span class="interest-kicker">
+                                          mostly watching
+                                       </span>
+
+                                       <h5>
+                                          anime
+                                       </h5>
+                                    </div>
+
+                                    <span class="interest-count">
+                                       {interestsData.anime.analyzedEntries}
+                                    </span>
+                                 </div>
+
+                                 <div class="interest-tags">
+                                    {#each interestsData.anime.top.slice(0, 5) as interest, i (interest.id)}
+                                       <span
+                                          class="interest-tag"
+                                          class:interest-tag-main={i === 0}
+                                          title={interestTooltip(interest)}
+                                       >
+                                          {interest.name}
+                                       </span>
+                                    {/each}
+                                 </div>
+                                 <div class="memory-wipe">
+                                    <span class="memory-wipe-label">
+                                       id wipe my memory of these anime if i could
+                                    </span>
+
+                                    {#each activeSlide.memoryPicks.anime as pick (pick.title)}
+                                       <div class="memory-wipe-entry">
+                                          {#if pick.url}
+                                             <a
+                                                class="memory-wipe-title"
+                                                href={pick.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                             >
+                                                {pick.title}
+                                             </a>
+                                          {:else}
+                                             <span class="memory-wipe-title">
+                                                {pick.title}
+                                             </span>
+                                          {/if}
+
+                                          <p>
+                                             {pick.note}
+                                          </p>
+                                       </div>
+                                    {/each}
+                                 </div>
+                                 <a
+                                    class="interest-source"
+                                    href={interestsData.anime.profileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                 >
+                                    from MyAnimeList ↗
+                                 </a>
+                              </article>
+                           </div>
+
+
+                           <div
+                              class="item-card interest-piece-wrap"
+                              use:animateOnScroll
+                              style="--in-delay:265ms;"
+                           >
+                              <article
+                                 class="interest-piece"
+                                 data-kind="manga"
+                              >
+                                 <span class="interest-tape"></span>
+
+                                 <div class="interest-header">
+                                    <div>
+                                       <span class="interest-kicker">
+                                          apparently reading
+                                       </span>
+
+                                       <h5>
+                                          manga
+                                       </h5>
+                                    </div>
+
+                                    <span class="interest-count">
+                                       {interestsData.manga.analyzedEntries}
+                                    </span>
+                                 </div>
+
+                                 <div class="interest-tags">
+                                    {#each interestsData.manga.top.slice(0, 5) as interest, i (interest.id)}
+                                       <span
+                                          class="interest-tag"
+                                          class:interest-tag-main={i === 0}
+                                          title={interestTooltip(interest)}
+                                       >
+                                          {interest.name}
+                                       </span>
+                                    {/each}
+                                 </div>
+                                 <div class="memory-wipe">
+                                    <span class="memory-wipe-label">
+                                       i can read these again and again and still enjoy them
+                                    </span>
+
+                                    {#each activeSlide.memoryPicks.manga as pick (pick.title)}
+                                       <div class="memory-wipe-entry">
+                                          {#if pick.url}
+                                             <a
+                                                class="memory-wipe-title"
+                                                href={pick.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                             >
+                                                {pick.title}
+                                             </a>
+                                          {:else}
+                                             <span class="memory-wipe-title">
+                                                {pick.title}
+                                             </span>
+                                          {/if}
+
+                                          <p>
+                                             {pick.note}
+                                          </p>
+                                       </div>
+                                    {/each}
+                                 </div>
+                                 <a
+                                    class="interest-source"
+                                    href={interestsData.manga.profileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                 >
+                                    from MyAnimeList ↗
+                                 </a>
+                              </article>
+                           </div>
 
                            {#if interestsData.warnings.length > 0}
                               <p class="interest-warning">

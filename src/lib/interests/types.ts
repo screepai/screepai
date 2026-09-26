@@ -63,12 +63,28 @@ export type InterestCollection = {
    top: readonly RankedInterest[];
 };
 
+export type MusicTrack = {
+   name: string;
+   artist: string;
+   url: string;
+   playcount: number;
+};
+
+
+export type MusicCollection = {
+   source: "lastfm";
+   sourceLabel: "Last.fm";
+   profileUrl: string;
+   period: "1month";
+   tracks: readonly MusicTrack[];
+};
 
 export type InterestsResponse = {
-   version: 1;
+   version: 2;
    generatedAt: string;
    anime: InterestCollection;
    manga: InterestCollection;
    visualNovels: InterestCollection;
+   music: MusicCollection;
    warnings: readonly string[];
 };

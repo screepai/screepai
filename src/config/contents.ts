@@ -64,6 +64,12 @@ export type MemoryWipePick = {
    url?: string;
 };
 
+export type GameAccount = {
+   name: string;
+   uid: string;
+   server?: string;
+};
+
 type InterestsSlide = {
    kind: "interests";
    label: string;
@@ -74,6 +80,8 @@ type InterestsSlide = {
       manga: readonly MemoryWipePick[];
       visualNovels: readonly MemoryWipePick[];
    };
+
+   games: readonly GameAccount[];
 };
 
 type SocialsSlide = {
@@ -387,6 +395,30 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
    ],
 };
 
+const gameAccounts:
+   readonly GameAccount[] = [
+      {
+         name: "Honkai: Star Rail",
+         uid: "801340359",
+         server: "Asia",
+      },
+      {
+         name: "Zenless Zone Zero",
+         uid: "1301456607",
+         server: "Asia",
+      },
+      {
+         name: "Arknights: Endfield",
+         uid: "4463391480",
+         server: "Asia",
+      },
+      {
+         name: "Wuthering Waves",
+         uid: "907809557",
+         server: "SEA",
+      },
+   ];
+
 export const contentSlides = [
    {
       kind: "about",
@@ -407,6 +439,9 @@ export const contentSlides = [
 
       memoryPicks:
          interestMemoryPicks,
+
+      games:
+         gameAccounts,
       },
    {
       kind: "socials",

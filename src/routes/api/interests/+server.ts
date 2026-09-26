@@ -26,6 +26,9 @@ import type {
    MediaEntry,
 } from "../../../lib/interests/types";
 
+import {
+   fetchLastfmTopTracks,
+} from "../../../lib/interests/sources/lastfm";
 
 export const prerender = false;
 
@@ -67,6 +70,12 @@ export const GET:
       const vndbToken =
          env.VNDB_TOKEN?.trim();
 
+
+      const lastfmUsername =
+         env.LASTFM_USERNAME?.trim();
+
+      const lastfmApiKey =
+         env.LASTFM_API_KEY?.trim();
 
       let animeEntries:
          MediaEntry[] = [];
@@ -201,10 +210,53 @@ export const GET:
               )}`
             : "";
 
+      let music:
+         InterestsResponse["music"] = {
+            source:
+               "lastfm",
+
+            sourceLabel:
+               "Last.fm",
+
+            profileUrl:
+               lastfmUsername
+                  ? `https://www.last.fm/user/${encodeURIComponent(
+                       lastfmUsername
+                    )}`
+                  : "",
+
+            period:
+               "1month",
+
+            tracks: [],
+         };
+
+
+      if (
+         lastfmUsername &&
+         lastfmApiKey
+      ) {
+         try {
+            music =
+               await fetchLastfmTopTracks(
+                  lastfmUsername,
+                  lastfmApiKey,
+                  fetch
+               );
+         } catch (error) {
+            console.error(
+               error
+            );
+
+            warnings.push(
+               "Last.fm data could not be loaded."
+            );
+         }
+      }
 
       const response:
          InterestsResponse = {
-         version: 1,
+         version: 2,
 
          generatedAt:
             new Date()
@@ -290,7 +342,7 @@ export const GET:
                     "VNDB",
                     ""
                  ),
-
+         music,
          warnings,
       };
 
