@@ -2191,6 +2191,19 @@
       align-items: stretch;
    }
 
+   .interest-small-pair
+   .interest-piece {
+      padding:
+         0.75em
+         0.8em
+         0.7em;
+   }
+
+
+   .interest-small-pair
+   .interest-header {
+      margin-bottom: 0.55em;
+   }
 
    .interest-piece[data-kind="games"] {
       --paper:
@@ -2513,7 +2526,7 @@
 
    .music-list {
       display: grid;
-      gap: 0.25em;
+      gap: 0.1em;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -2529,8 +2542,8 @@
       gap: 0.4em;
       align-items: center;
       padding:
-         0.38em
-         0.35em;
+         0.28em
+         0.3em;
       border-radius: 0.5em;
       transition:
          background 180ms ease;
