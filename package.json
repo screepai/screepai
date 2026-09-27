@@ -9,7 +9,9 @@
       "preview": "vite preview",
       "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
       "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-      "lint": "eslint ."
+      "lint": "eslint .",
+      "format": "prettier --write .",
+      "format:check": "prettier --check ."
    },
    "devDependencies": {
       "@sveltejs/adapter-vercel": "^6.3.3",
@@ -22,6 +24,8 @@
       "eslint": "^10.4.0",
       "eslint-plugin-svelte": "^3.17.1",
       "jiti": "^2.7.0",
+      "prettier": "^3.9.9",
+      "prettier-plugin-svelte": "^4.1.1",
       "svelte": "^5.55.7",
       "svelte-check": "^4.4.8",
       "svelte-eslint-parser": "^1.6.1",

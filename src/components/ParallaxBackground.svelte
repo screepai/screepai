@@ -11,6 +11,32 @@
    const lightBackground = getThemeDefinition("light");
 </script>
 
+<div
+   use:parallax
+   transition:fade={{
+      delay: ANIMATION.TRANSITION.FADE_DELAY,
+      duration: ANIMATION.TRANSITION.FADE_DURATION,
+   }}
+   class="background-parallax"
+>
+   <div
+      data-depth="0.02"
+      class="bg-layer"
+      style:opacity={darkMode ? 1 : 0}
+      style:z-index={!darkMode && transitionEnd ? 0 : 1}
+      style:background-image={`url(${darkBackground.backgroundImage})`}
+      style:background-position={darkBackground.backgroundPosition}
+   ></div>
+   <div
+      data-depth="0.02"
+      class="bg-layer"
+      style:opacity={darkMode ? 0 : 1}
+      style:z-index={darkMode && transitionEnd ? 0 : 2}
+      style:background-image={`url(${lightBackground.backgroundImage})`}
+      style:background-position={lightBackground.backgroundPosition}
+   ></div>
+</div>
+
 <style>
    .background-parallax {
       display: block;
@@ -45,22 +71,3 @@
       backface-visibility: hidden;
    }
 </style>
-
-<div use:parallax transition:fade={{ delay: ANIMATION.TRANSITION.FADE_DELAY, duration: ANIMATION.TRANSITION.FADE_DURATION }} class="background-parallax">
-   <div
-      data-depth="0.02"
-      class="bg-layer"
-      style:opacity={darkMode ? 1 : 0}
-      style:z-index={!darkMode && transitionEnd ? 0 : 1}
-      style:background-image={`url(${darkBackground.backgroundImage})`}
-      style:background-position={darkBackground.backgroundPosition}
-   ></div>
-   <div
-      data-depth="0.02"
-      class="bg-layer"
-      style:opacity={darkMode ? 0 : 1}
-      style:z-index={darkMode && transitionEnd ? 0 : 2}
-      style:background-image={`url(${lightBackground.backgroundImage})`}
-      style:background-position={lightBackground.backgroundPosition}
-   ></div>
-</div>

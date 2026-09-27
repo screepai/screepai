@@ -1,15 +1,9 @@
-import type {
-   InterestSignal,
-   MediaEntry,
-   MediaStatus,
-} from "../types";
-
+import type { InterestSignal, MediaEntry, MediaStatus } from "../types";
 
 type MalGenre = {
    id: number;
    name: string;
 };
-
 
 type MalAnimeNode = {
    id: number;
@@ -20,7 +14,6 @@ type MalAnimeNode = {
    genres?: readonly MalGenre[];
 };
 
-
 type MalAnimeStatus = {
    status: string;
 
@@ -28,7 +21,6 @@ type MalAnimeStatus = {
 
    num_episodes_watched?: number;
 };
-
 
 type MalMangaNode = {
    id: number;
@@ -39,7 +31,6 @@ type MalMangaNode = {
    genres?: readonly MalGenre[];
 };
 
-
 type MalMangaStatus = {
    status: string;
 
@@ -48,15 +39,10 @@ type MalMangaStatus = {
    num_chapters_read?: number;
 };
 
-
-type MalListItem<
-   Node,
-   Status
-> = {
+type MalListItem<Node, Status> = {
    node: Node;
    list_status: Status;
 };
-
 
 type MalPagedResponse<T> = {
    data: readonly T[];
@@ -66,72 +52,41 @@ type MalPagedResponse<T> = {
    };
 };
 
-
 export type MalConfig = {
    username: string;
    clientId: string;
    accessToken?: string;
 };
 
-
-function clamp01(
-   value: number
-) {
-   return Math.min(
-      1,
-      Math.max(
-         0,
-         value
-      )
-   );
+function clamp01(value: number) {
+   return Math.min(1, Math.max(0, value));
 }
-
 
 function normalizeProgress(
    completedAmount: number | undefined,
    totalAmount: number | undefined,
    status: MediaStatus
 ) {
-   if (
-      status === "completed"
-   ) {
+   if (status === "completed") {
       return 1;
    }
 
-   if (
-      !completedAmount ||
-      !totalAmount ||
-      totalAmount <= 0
-   ) {
+   if (!completedAmount || !totalAmount || totalAmount <= 0) {
       return null;
    }
 
-   return clamp01(
-      completedAmount /
-         totalAmount
-   );
+   return clamp01(completedAmount / totalAmount);
 }
 
-
-function normalizeScore(
-   score: number | undefined
-) {
-   if (
-      !score ||
-      score <= 0
-   ) {
+function normalizeScore(score: number | undefined) {
+   if (!score || score <= 0) {
       return null;
    }
 
-   return clamp01(
-      score / 10
-   );
+   return clamp01(score / 10);
 }
 
-
-function normalizeAnimeStatus(
-   status: string
-): MediaStatus {
+function normalizeAnimeStatus(status: string): MediaStatus {
    switch (status) {
       case "watching":
          return "current";
@@ -153,10 +108,7 @@ function normalizeAnimeStatus(
    }
 }
 
-
-function normalizeMangaStatus(
-   status: string
-): MediaStatus {
+function normalizeMangaStatus(status: string): MediaStatus {
    switch (status) {
       case "reading":
          return "current";
@@ -178,280 +130,146 @@ function normalizeMangaStatus(
    }
 }
 
-const ignoredMalGenres =
-   new Set([
-      84,
-   ]);
+const ignoredMalGenres = new Set([84]);
 
+function genresToSignals(genres: readonly MalGenre[] | undefined): InterestSignal[] {
+   return (genres ?? [])
+      .filter((genre) => !ignoredMalGenres.has(genre.id))
+      .map((genre) => ({
+         id: `mal-genre-${genre.id}`,
 
-function genresToSignals(
-   genres:
-      readonly MalGenre[] |
-      undefined
-): InterestSignal[] {
-   return (
-      genres ?? []
-   )
-      .filter(
-         (genre) =>
-            !ignoredMalGenres.has(
-               genre.id
-            )
-      )
-      .map(
-         (genre) => ({
-            id:
-               `mal-genre-${genre.id}`,
+         name: genre.name,
 
-            name:
-               genre.name,
-
-            strength: 1,
-         })
-      );
+         strength: 1,
+      }));
 }
 
-
-async function fetchAllPages<T>(
-   firstUrl: string,
-   headers: HeadersInit,
-   fetcher: typeof fetch
-) {
+async function fetchAllPages<T>(firstUrl: string, headers: HeadersInit, fetcher: typeof fetch) {
    const result: T[] = [];
 
-   let nextUrl:
-      string | undefined =
-      firstUrl;
+   let nextUrl: string | undefined = firstUrl;
 
    while (nextUrl) {
-      const response =
-         await fetcher(
-            nextUrl,
-            {
-               headers,
-            }
-         );
+      const response = await fetcher(nextUrl, {
+         headers,
+      });
 
       if (!response.ok) {
-         const message =
-            await response.text();
+         const message = await response.text();
 
-         throw new Error(
-            `MAL returned ${response.status}: ${message}`
-         );
+         throw new Error(`MAL returned ${response.status}: ${message}`);
       }
 
-      const body =
-         await response.json() as
-            MalPagedResponse<T>;
+      const body = (await response.json()) as MalPagedResponse<T>;
 
-      result.push(
-         ...body.data
-      );
+      result.push(...body.data);
 
-      nextUrl =
-         body.paging?.next;
+      nextUrl = body.paging?.next;
    }
 
    return result;
 }
 
+function createHeaders(config: MalConfig) {
+   const headers = new Headers();
 
-function createHeaders(
-   config: MalConfig
-) {
-   const headers =
-      new Headers();
+   headers.set("X-MAL-CLIENT-ID", config.clientId);
 
-   headers.set(
-      "X-MAL-CLIENT-ID",
-      config.clientId
-   );
-
-   if (
-      config.accessToken
-   ) {
-      headers.set(
-         "Authorization",
-         `Bearer ${config.accessToken}`
-      );
+   if (config.accessToken) {
+      headers.set("Authorization", `Bearer ${config.accessToken}`);
    }
 
    return headers;
 }
 
-
 export async function fetchMalAnime(
    config: MalConfig,
    fetcher: typeof fetch
 ): Promise<MediaEntry[]> {
-   const fields = [
-      "num_episodes",
-      "genres",
-      "list_status{status,score,num_episodes_watched}",
-   ].join(",");
-
-   const url =
-      new URL(
-         `https://api.myanimelist.net/v2/users/${encodeURIComponent(
-            config.username
-         )}/animelist`
-      );
-
-   url.searchParams.set(
-      "limit",
-      "1000"
+   const fields = ["num_episodes", "genres", "list_status{status,score,num_episodes_watched}"].join(
+      ","
    );
 
-   url.searchParams.set(
-      "fields",
-      fields
+   const url = new URL(
+      `https://api.myanimelist.net/v2/users/${encodeURIComponent(config.username)}/animelist`
    );
 
-   const items =
-      await fetchAllPages<
-         MalListItem<
-            MalAnimeNode,
-            MalAnimeStatus
-         >
-      >(
-         url.toString(),
-         createHeaders(config),
-         fetcher
-      );
+   url.searchParams.set("limit", "1000");
 
-   return items.map(
-      ({
-         node,
-         list_status,
-      }) => {
-         const status =
-            normalizeAnimeStatus(
-               list_status.status
-            );
+   url.searchParams.set("fields", fields);
 
-         return {
-            source: "mal",
-            kind: "anime",
-
-            id: String(
-               node.id
-            ),
-
-            title:
-               node.title,
-
-            url:
-               `https://myanimelist.net/anime/${node.id}`,
-
-            status,
-
-            progress:
-               normalizeProgress(
-                  list_status
-                     .num_episodes_watched,
-                  node.num_episodes,
-                  status
-               ),
-
-            userScore:
-               normalizeScore(
-                  list_status.score
-               ),
-
-            signals:
-               genresToSignals(
-                  node.genres
-               ),
-         };
-      }
+   const items = await fetchAllPages<MalListItem<MalAnimeNode, MalAnimeStatus>>(
+      url.toString(),
+      createHeaders(config),
+      fetcher
    );
+
+   return items.map(({ node, list_status }) => {
+      const status = normalizeAnimeStatus(list_status.status);
+
+      return {
+         source: "mal",
+         kind: "anime",
+
+         id: String(node.id),
+
+         title: node.title,
+
+         url: `https://myanimelist.net/anime/${node.id}`,
+
+         status,
+
+         progress: normalizeProgress(list_status.num_episodes_watched, node.num_episodes, status),
+
+         userScore: normalizeScore(list_status.score),
+
+         signals: genresToSignals(node.genres),
+      };
+   });
 }
-
 
 export async function fetchMalManga(
    config: MalConfig,
    fetcher: typeof fetch
 ): Promise<MediaEntry[]> {
-   const fields = [
-      "num_chapters",
-      "genres",
-      "list_status{status,score,num_chapters_read}",
-   ].join(",");
-
-   const url =
-      new URL(
-         `https://api.myanimelist.net/v2/users/${encodeURIComponent(
-            config.username
-         )}/mangalist`
-      );
-
-   url.searchParams.set(
-      "limit",
-      "1000"
+   const fields = ["num_chapters", "genres", "list_status{status,score,num_chapters_read}"].join(
+      ","
    );
 
-   url.searchParams.set(
-      "fields",
-      fields
+   const url = new URL(
+      `https://api.myanimelist.net/v2/users/${encodeURIComponent(config.username)}/mangalist`
    );
 
-   const items =
-      await fetchAllPages<
-         MalListItem<
-            MalMangaNode,
-            MalMangaStatus
-         >
-      >(
-         url.toString(),
-         createHeaders(config),
-         fetcher
-      );
+   url.searchParams.set("limit", "1000");
 
-   return items.map(
-      ({
-         node,
-         list_status,
-      }) => {
-         const status =
-            normalizeMangaStatus(
-               list_status.status
-            );
+   url.searchParams.set("fields", fields);
 
-         return {
-            source: "mal",
-            kind: "manga",
-
-            id: String(
-               node.id
-            ),
-
-            title:
-               node.title,
-
-            url:
-               `https://myanimelist.net/manga/${node.id}`,
-
-            status,
-
-            progress:
-               normalizeProgress(
-                  list_status
-                     .num_chapters_read,
-                  node.num_chapters,
-                  status
-               ),
-
-            userScore:
-               normalizeScore(
-                  list_status.score
-               ),
-
-            signals:
-               genresToSignals(
-                  node.genres
-               ),
-         };
-      }
+   const items = await fetchAllPages<MalListItem<MalMangaNode, MalMangaStatus>>(
+      url.toString(),
+      createHeaders(config),
+      fetcher
    );
+
+   return items.map(({ node, list_status }) => {
+      const status = normalizeMangaStatus(list_status.status);
+
+      return {
+         source: "mal",
+         kind: "manga",
+
+         id: String(node.id),
+
+         title: node.title,
+
+         url: `https://myanimelist.net/manga/${node.id}`,
+
+         status,
+
+         progress: normalizeProgress(list_status.num_chapters_read, node.num_chapters, status),
+
+         userScore: normalizeScore(list_status.score),
+
+         signals: genresToSignals(node.genres),
+      };
+   });
 }

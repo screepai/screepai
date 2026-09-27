@@ -15,7 +15,7 @@ export type SocialExtraLink = {
    label: string;
    value: string;
    url: string;
-}
+};
 
 type AboutSlide = {
    kind: "about";
@@ -47,9 +47,7 @@ export type SystemStackGroup = {
    levels: readonly StackLevel[];
 };
 
-export type SystemGroup =
-   | SystemRowGroup
-   | SystemStackGroup;
+export type SystemGroup = SystemRowGroup | SystemStackGroup;
 
 type SystemSlide = {
    kind: "system";
@@ -100,12 +98,7 @@ type CreditsSlide = {
    credits: readonly Credit[];
 };
 
-export type ContentSlide =
-   | AboutSlide
-   | SystemSlide
-   | InterestsSlide
-   | SocialsSlide
-   | CreditsSlide;
+export type ContentSlide = AboutSlide | SystemSlide | InterestsSlide | SocialsSlide | CreditsSlide;
 
 const aboutItems = [
    "AI researcher / AI & software engineer",
@@ -157,7 +150,7 @@ const systemGroups: readonly SystemGroup[] = [
          {
             label: "Desktop",
             value: "end4-pC",
-            url: "https://github.com/pctrade/end4-pC"
+            url: "https://github.com/pctrade/end4-pC",
          },
          {
             label: "Cursor",
@@ -233,13 +226,7 @@ const systemGroups: readonly SystemGroup[] = [
          },
          {
             label: "creative",
-            items: [
-               "Photoshop",
-               "Live2D",
-               "After Effects",
-               "Premiere Pro",
-               "Alight Motion",
-            ],
+            items: ["Photoshop", "Live2D", "After Effects", "Premiere Pro", "Alight Motion"],
          },
          {
             label: "learning",
@@ -259,12 +246,7 @@ const systemGroups: readonly SystemGroup[] = [
          },
          {
             label: "touched",
-            items: [
-               "C",
-               "C#",
-               "Go",
-               "PHP",
-            ],
+            items: ["C", "C#", "Go", "PHP"],
          },
       ],
    },
@@ -274,18 +256,18 @@ const credits: readonly Credit[] = [
    {
       name: "background art (light)",
       url: "https://x.com/tubarururu",
-      at: "@tubarururu"
+      at: "@tubarururu",
    },
    {
       name: "background art (dark)",
       url: "https://x.com/HcpWa",
-      at: "@HcpWa"
+      at: "@HcpWa",
    },
    {
       name: "og image",
       url: "https://x.com/MikaPikaZo",
-      at: "@MikaPikaZo"
-   }
+      at: "@MikaPikaZo",
+   },
 ];
 
 const socialLinks: readonly SocialLink[] = [
@@ -293,20 +275,22 @@ const socialLinks: readonly SocialLink[] = [
       url: "https://github.com/screepai",
       icon: "#icon-github",
       label: "GitHub",
-      tooltip: "i write code to make money now so less active on here, but i do have 3 (three) public repos including this website's source code"
+      tooltip:
+         "i write code to make money now so less active on here, but i do have 3 (three) public repos including this website's source code",
    },
    {
       url: "https://myanimelist.net/animelist/screepy",
       icon: "#icon-mal",
       label: "MyAnimeList",
-      tooltip: "i barely watch anime nowadays, manga list is also here if youre interested. i also dont update this list as often as i should"
+      tooltip:
+         "i barely watch anime nowadays, manga list is also here if youre interested. i also dont update this list as often as i should",
    },
    {
       url: "https://vndb.org/u326697/ulist?q=&ch=&f=&l=1&l=2&l=3&l=4&l=5&l=6&l=7&mul=1&s=3q02",
       icon: "#icon-vndb",
       label: "VNDB",
-      tooltip: "oh my god i love reading romance slop"
-   }
+      tooltip: "oh my god i love reading romance slop",
+   },
 ];
 
 const findMeLinks: readonly SocialExtraLink[] = [
@@ -377,14 +361,12 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
       },
       {
          title: "Atri: My Dear Moments",
-         note:
-            "Asta Konno's writing and Yusano's art made up a very cute high performance robot, i love the bittersweet romance in this visual novel, the music is amazing and the art is beautiful, i would love to play it again if i could",
+         note: "Asta Konno's writing and Yusano's art made up a very cute high performance robot, i love the bittersweet romance in this visual novel, the music is amazing and the art is beautiful, i would love to play it again if i could",
          url: "https://vndb.org/v27448",
       },
       {
          title: "anything by Yuzusoft",
-         note:
-            "no words, i played most of their visual novels and how i wish they can pump out more",
+         note: "no words, i played most of their visual novels and how i wish they can pump out more",
          url: "https://vndb.org/p98",
       },
       {
@@ -395,29 +377,28 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
    ],
 };
 
-const gameAccounts:
-   readonly GameAccount[] = [
-      {
-         name: "Honkai: Star Rail",
-         uid: "801340359",
-         server: "Asia",
-      },
-      {
-         name: "Zenless Zone Zero",
-         uid: "1301456607",
-         server: "Asia",
-      },
-      {
-         name: "Arknights: Endfield",
-         uid: "4463391480",
-         server: "Asia",
-      },
-      {
-         name: "Wuthering Waves",
-         uid: "907809557",
-         server: "SEA",
-      },
-   ];
+const gameAccounts: readonly GameAccount[] = [
+   {
+      name: "Honkai: Star Rail",
+      uid: "801340359",
+      server: "Asia",
+   },
+   {
+      name: "Zenless Zone Zero",
+      uid: "1301456607",
+      server: "Asia",
+   },
+   {
+      name: "Arknights: Endfield",
+      uid: "4463391480",
+      server: "Asia",
+   },
+   {
+      name: "Wuthering Waves",
+      uid: "907809557",
+      server: "SEA",
+   },
+];
 
 export const contentSlides = [
    {
@@ -437,12 +418,10 @@ export const contentSlides = [
       label: "Interests",
       heading: "Interests",
 
-      memoryPicks:
-         interestMemoryPicks,
+      memoryPicks: interestMemoryPicks,
 
-      games:
-         gameAccounts,
-      },
+      games: gameAccounts,
+   },
    {
       kind: "socials",
       label: "Socials",

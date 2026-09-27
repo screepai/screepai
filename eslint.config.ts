@@ -34,13 +34,7 @@ const nodeGlobals = {
 
 export default [
    {
-      ignores: [
-         ".svelte-kit/**",
-         ".vercel/**",
-         "build/**",
-         "node_modules/**",
-         "package/**",
-      ],
+      ignores: [".svelte-kit/**", ".vercel/**", "build/**", "node_modules/**", "package/**"],
    },
    js.configs.recommended,
    ...tsRecommendedConfigs,

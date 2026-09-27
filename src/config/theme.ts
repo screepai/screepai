@@ -143,5 +143,7 @@ export function getDiscordUrl(theme: ThemeName) {
    return `https://lanyard.kyrie25.dev/api/${DISCORD_USER_ID}?theme=${theme}&bg=${bg}&idleMessage=${encodeURIComponent(idleMessage)}&hideBadges=${hideBadges}&hideNameplate=${hideNameplate}&useDisplayName=${useDisplayName}&waveColor=${discord.waveColor}&waveSpotifyColor=${discord.waveColor}&gradient=${discord.gradient}&forceGradient=${forceGradient}&animatedDecoration=${animatedDecoration}`;
 }
 
-export const backgroundImageUrls = themeNames.map(theme => getThemeDefinition(theme).backgroundImage);
+export const backgroundImageUrls = themeNames.map(
+   (theme) => getThemeDefinition(theme).backgroundImage
+);
 export const discordImageUrls = themeNames.map(getDiscordUrl);

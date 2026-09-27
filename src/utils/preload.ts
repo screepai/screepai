@@ -1,7 +1,4 @@
-export function preloadImage(
-   src: string,
-   timeoutMs = 10000
-) {
+export function preloadImage(src: string, timeoutMs = 10000) {
    if (typeof Image === "undefined") {
       return Promise.resolve();
    }
@@ -34,10 +31,7 @@ export function preloadImage(
          done();
       };
 
-      const timeout = setTimeout(
-         done,
-         timeoutMs
-      );
+      const timeout = setTimeout(done, timeoutMs);
 
       image.onload = () => {
          void loaded();
@@ -53,12 +47,6 @@ export function preloadImage(
    });
 }
 
-export async function preloadImages(
-   srcs: readonly string[]
-) {
-   await Promise.all(
-      srcs.map((src) =>
-         preloadImage(src)
-      )
-   );
+export async function preloadImages(srcs: readonly string[]) {
+   await Promise.all(srcs.map((src) => preloadImage(src)));
 }

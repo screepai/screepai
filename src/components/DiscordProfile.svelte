@@ -15,95 +15,102 @@
    let lightRetries = 0;
    let darkRetries = 0;
 
-   $: discordFailed =
-      darkMode
-         ? darkFailed
-         : lightFailed;
+   $: discordFailed = darkMode ? darkFailed : lightFailed;
 
-   let lightSrc =
-      lightUrl;
+   let lightSrc = lightUrl;
 
-   let darkSrc =
-      darkUrl;
+   let darkSrc = darkUrl;
 
    const MAX_HEADER_RETRIES = 3;
 
-   function retryUrl(
-      url: string
-   ) {
-      const separator =
-         url.includes("?")
-            ? "&"
-            : "?";
+   function retryUrl(url: string) {
+      const separator = url.includes("?") ? "&" : "?";
 
-      return (
-         url +
-         separator +
-         "_retry=" +
-         Date.now()
-      );
+      return url + separator + "_retry=" + Date.now();
    }
 
-   function retryHeader(
-      theme: "light" | "dark"
-   ) {
+   function retryHeader(theme: "light" | "dark") {
       if (theme === "light") {
          lightFailed = true;
 
-         if (
-            lightRetries >=
-            MAX_HEADER_RETRIES
-         ) {
+         if (lightRetries >= MAX_HEADER_RETRIES) {
             return;
          }
 
          lightRetries += 1;
 
          setTimeout(() => {
-            lightSrc =
-               retryUrl(
-                  lightUrl
-               );
+            lightSrc = retryUrl(lightUrl);
          }, 2000);
 
          return;
       }
 
-
       darkFailed = true;
 
-      if (
-         darkRetries >=
-         MAX_HEADER_RETRIES
-      ) {
+      if (darkRetries >= MAX_HEADER_RETRIES) {
          return;
       }
 
       darkRetries += 1;
 
       setTimeout(() => {
-         darkSrc =
-            retryUrl(
-               darkUrl
-            );
+         darkSrc = retryUrl(darkUrl);
       }, 2000);
    }
 
-   function updateCardRatio(
-      event: Event
-   ) {
-      const image =
-         event.currentTarget as HTMLImageElement;
+   function updateCardRatio(event: Event) {
+      const image = event.currentTarget as HTMLImageElement;
 
-      if (
-         image.naturalWidth > 0 &&
-         image.naturalHeight > 0
-      ) {
-         cardRatio =
-            `${image.naturalWidth} / ${image.naturalHeight}`;
+      if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+         cardRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
       }
    }
 </script>
+
+<div class="discord">
+   <a href="https://discord.com/users/534375062099460097" target="_blank" rel="noreferrer">
+      <div
+         class="card-stack"
+         style="--theme-duration: {ANIMATION.TRANSITION
+            .THEME_DURATION}ms;  --card-ratio: ${cardRatio}"
+      >
+         <div class="discord-fallback" class:fallback-visible={discordFailed}>
+            oh nyo! you found me!!!<br />(˶˃ ᵕ ˂˶) .ᐟ.ᐟ
+         </div>
+
+         <img
+            class="card"
+            class:visible={!darkMode}
+            class:hidden={darkMode}
+            class:failed={lightFailed}
+            src={lightSrc}
+            alt=""
+            on:load={(event) => {
+               updateCardRatio(event);
+               lightFailed = false;
+               lightRetries = 0;
+            }}
+            on:error={() => retryHeader("light")}
+         />
+
+         <img
+            class="card"
+            class:visible={darkMode}
+            class:hidden={!darkMode}
+            class:failed={darkFailed}
+            src={darkSrc}
+            alt=""
+            on:load={(event) => {
+               updateCardRatio(event);
+               darkFailed = false;
+               darkRetries = 0;
+            }}
+            on:error={() => retryHeader("dark")}
+         />
+      </div>
+   </a>
+</div>
 
 <style>
    .discord {
@@ -143,9 +150,7 @@
 
    .card,
    .discord-fallback {
-      grid-area:
-         1 /
-         1;
+      grid-area: 1 / 1;
    }
 
    .discord-fallback {
@@ -164,10 +169,7 @@
       text-decoration: none;
       box-sizing: border-box;
       pointer-events: none;
-      transition:
-         opacity
-         300ms
-         ease;
+      transition: opacity 300ms ease;
    }
 
    .discord-fallback.fallback-visible {
@@ -179,10 +181,7 @@
       display: block;
       width: 100%;
       max-width: 100%;
-      transition:
-         opacity
-         var(--theme-duration)
-         ease;
+      transition: opacity var(--theme-duration) ease;
       backface-visibility: hidden;
    }
 
@@ -198,59 +197,3 @@
       opacity: 0;
    }
 </style>
-
-<div class="discord">
-   <a
-      href="https://discord.com/users/534375062099460097"
-      target="_blank"
-      rel="noreferrer"
-   >
-            <div
-         class="card-stack"
-         style="--theme-duration: {ANIMATION.TRANSITION.THEME_DURATION}ms;  --card-ratio: ${cardRatio}"
-      >
-         <div
-            class="discord-fallback"
-            class:fallback-visible={discordFailed}
-         >
-            oh nyo! you found me!!!<br />(˶˃ ᵕ ˂˶) .ᐟ.ᐟ
-         </div>
-
-         <img
-            class="card"
-            class:visible={!darkMode}
-            class:hidden={darkMode}
-            class:failed={lightFailed}
-            src={lightSrc}
-            alt=""
-            on:load={(event) => {
-               updateCardRatio(event);
-               lightFailed = false;
-               lightRetries = 0;
-            }}
-
-            on:error={() =>
-               retryHeader("light")
-            }
-         />
-
-         <img
-            class="card"
-            class:visible={darkMode}
-            class:hidden={!darkMode}
-            class:failed={darkFailed}
-            src={darkSrc}
-            alt=""
-            on:load={(event) => {
-               updateCardRatio(event);
-               darkFailed = false;
-               darkRetries = 0;
-            }}
-
-            on:error={() =>
-               retryHeader("dark")
-            }
-         />
-      </div>
-   </a>
-</div>

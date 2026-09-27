@@ -23,9 +23,7 @@
       type ThemeName,
    } from "../config/theme";
    import { preloadImages } from "../utils/preload";
-   import {
-      preloadInterests,
-   } from "$lib/interests/client";
+   import { preloadInterests } from "$lib/interests/client";
 
    import "../styles/global.css";
 
@@ -93,7 +91,11 @@
    }
 
    function getInitialAnimationDelay() {
-      return 200 + OWO_TEXT.length * ANIMATION.CENTERED_TEXT.CHAR_DELAY + ANIMATION.CENTERED_TEXT.DURATION * 1.2;
+      return (
+         200 +
+         OWO_TEXT.length * ANIMATION.CENTERED_TEXT.CHAR_DELAY +
+         ANIMATION.CENTERED_TEXT.DURATION * 1.2
+      );
    }
 
    function wait(ms: number) {
@@ -101,7 +103,7 @@
 
       return new Promise<void>((resolve) => {
          const timeout = setTimeout(() => {
-            introTimeouts = introTimeouts.filter(introTimeout => introTimeout !== timeout);
+            introTimeouts = introTimeouts.filter((introTimeout) => introTimeout !== timeout);
             resolve();
          }, ms);
          introTimeouts = [...introTimeouts, timeout];
@@ -109,7 +111,7 @@
    }
 
    function clearIntroTimeouts() {
-      introTimeouts.forEach(timeout => clearTimeout(timeout));
+      introTimeouts.forEach((timeout) => clearTimeout(timeout));
       introTimeouts = [];
    }
 
@@ -117,13 +119,9 @@
       const runId = ++introRunId;
       const isCurrentRun = () => runId === introRunId;
 
-      void preloadInterests()
-         .catch((error) => {
-            console.warn(
-               "Interests preload failed:",
-               error
-            );
-         });
+      void preloadInterests().catch((error) => {
+         console.warn("Interests preload failed:", error);
+      });
 
       const assetsReady = preloadIntroAssets();
       const textReady = wait(getInitialAnimationDelay());
@@ -164,6 +162,99 @@
    });
 </script>
 
+<svelte:head>
+   <title>⸜( ´ ꒳ ` )⸝</title>
+   <meta property="og:title" content="⸜( ´ ꒳ ` )⸝" />
+   <meta name="description" content="about me" />
+   <meta property="og:description" content="about me" />
+   <meta property="og:url" content="https://screepy.vercel.app/" />
+   <meta property="og:type" content="website" />
+   <meta property="og:site_name" content="seepie" />
+   <meta property="twitter:card" content="summary_large_image" />
+   <meta property="og:image" content="/og.png" />
+</svelte:head>
+
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   aria-hidden="true"
+   width="0"
+   height="0"
+   style="position: absolute; overflow: hidden;"
+>
+   <symbol id="icon-mal" viewBox="0 0 24 24">
+      <path d={mal} fill="currentColor" />
+   </symbol>
+
+   <symbol id="icon-vndb" viewBox="0 0 64 24">
+      <text
+         x="32"
+         y="19"
+         text-anchor="middle"
+         fill="currentColor"
+         font-family="Futura, 'Century New Gothic', Arial, serif"
+         font-size="24"
+         font-weight="bold"
+         font-style="italic"
+         letter-spacing="-1.5"
+      >
+         vndb
+      </text>
+   </symbol>
+
+   <symbol id="icon-github" viewBox="0 0 496 512">
+      <path d={github} fill="currentColor" />
+   </symbol>
+</svg>
+
+{#if visible}
+   <div class="centered-shell">
+      <div
+         class="centered-motion"
+         out:fly={{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}
+      >
+         <div class="centered" class:winking={isWinking}>
+            {#each displayOwo as char, i (i)}
+               <span
+                  class="centered-char"
+                  style:animation-delay={`${i * ANIMATION.CENTERED_TEXT.CHAR_DELAY}ms`}
+                  style:animation-duration={`${ANIMATION.CENTERED_TEXT.DURATION * 1.2}ms`}
+                  >{char}</span
+               >
+            {/each}
+         </div>
+         {#if winkStarVisible}
+            <span class="wink-shooting-star" aria-hidden="true">
+               <svg viewBox="0 0 512 512">
+                  <path d={star} />
+               </svg>
+            </span>
+         {/if}
+      </div>
+   </div>
+{/if}
+{#if ready}
+   <ParallaxBackground {darkMode} {transitionEnd} />
+   <div
+      use:parallax
+      transition:fade={{
+         delay: ANIMATION.TRANSITION.FADE_DELAY,
+         duration: ANIMATION.TRANSITION.FADE_DURATION,
+      }}
+      class="scene-parallax"
+   >
+      <div data-depth="0.15" class="profile">
+         <ThemeToggle {darkMode} onToggle={handleThemeToggle} />
+         <StarAnimation />
+         <div class="magic">
+            <div class="profile-header">
+               <DiscordProfile {darkMode} />
+            </div>
+            <ContentSlider />
+         </div>
+      </div>
+   </div>
+{/if}
+
 <style>
    .scene-parallax {
       display: block;
@@ -181,12 +272,11 @@
       width: clamp(15rem, 72vw, 25.625rem);
       max-width: 25.625rem;
       max-height: calc(85dvh - var(--theme-space));
-      background: #FBFBFB;
+      background: #fbfbfb;
       box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);
       border-radius: 10px;
       pointer-events: auto !important;
-      transition:
-         left 0.5s cubic-bezier(.26, 1.5, .46, 1);
+      transition: left 0.5s cubic-bezier(0.26, 1.5, 0.46, 1);
    }
 
    .profile::before {
@@ -242,23 +332,13 @@
    }
 
    .profile > .magic::-webkit-scrollbar-thumb {
-      background:
-         color-mix(
-            in srgb,
-            var(--fill) 45%,
-            transparent
-         );
+      background: color-mix(in srgb, var(--fill) 45%, transparent);
 
       border-radius: 999px;
    }
 
    .profile > .magic::-webkit-scrollbar-thumb:hover {
-      background:
-         color-mix(
-            in srgb,
-            var(--fill) 70%,
-            transparent
-         );
+      background: color-mix(in srgb, var(--fill) 70%, transparent);
    }
 
    .profile-header {
@@ -300,51 +380,28 @@
       opacity: 0;
       animation-name: centered-char-fade-in;
       animation-fill-mode: forwards;
-      animation-timing-function: cubic-bezier(
-         0.68,
-         -0.55,
-         0.265,
-         1.55
-      );
+      animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
    }
 
    .centered.winking {
-      animation:
-         wink-pop 650ms
-         cubic-bezier(0.22, 1, 0.36, 1)
-         forwards;
+      animation: wink-pop 650ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
    }
 
    @keyframes wink-pop {
       0% {
-         transform:
-            translateY(0)
-            scale(1, 1)
-            rotate(0deg);
+         transform: translateY(0) scale(1, 1) rotate(0deg);
       }
       18% {
-         transform:
-            translateY(2px)
-            scale(1.08, 0.91)
-            rotate(-1.5deg);
+         transform: translateY(2px) scale(1.08, 0.91) rotate(-1.5deg);
       }
       42% {
-         transform:
-            translateY(-3px)
-            scale(0.96, 1.08)
-            rotate(1.3deg);
+         transform: translateY(-3px) scale(0.96, 1.08) rotate(1.3deg);
       }
       68% {
-         transform:
-            translateY(1px)
-            scale(1.025, 0.98)
-            rotate(-0.5deg);
+         transform: translateY(1px) scale(1.025, 0.98) rotate(-0.5deg);
       }
       100% {
-         transform:
-            translateY(0)
-            scale(1, 1)
-            rotate(0deg);
+         transform: translateY(0) scale(1, 1) rotate(0deg);
       }
    }
 
@@ -357,31 +414,18 @@
       color: var(--fill);
       pointer-events: none;
 
-      offset-path: path(
-         "M 0 0 C 13 -42, 40 -45, 52 15"
-      );
+      offset-path: path("M 0 0 C 13 -42, 40 -45, 52 15");
 
       offset-distance: 0%;
       offset-rotate: 0deg;
 
       backface-visibility: hidden;
 
-      will-change:
-         opacity,
-         offset-distance;
+      will-change: opacity, offset-distance;
 
       animation:
-         wink-star-travel
-         590ms
-         cubic-bezier(0.25, 0.1, 0.25, 1)
-         60ms
-         forwards,
-
-         wink-star-fade
-         590ms
-         ease-out
-         60ms
-         forwards;
+         wink-star-travel 590ms cubic-bezier(0.25, 0.1, 0.25, 1) 60ms forwards,
+         wink-star-fade 590ms ease-out 60ms forwards;
 
       z-index: 1;
    }
@@ -397,12 +441,7 @@
       backface-visibility: hidden;
       will-change: transform;
 
-      animation:
-         wink-star-transform
-         590ms
-         linear
-         60ms
-         forwards;
+      animation: wink-star-transform 590ms linear 60ms forwards;
    }
 
    .wink-shooting-star path {
@@ -421,33 +460,23 @@
 
    @keyframes wink-star-transform {
       0% {
-         transform:
-            rotate(-15deg)
-            scale(0.4);
+         transform: rotate(-15deg) scale(0.4);
       }
 
       22% {
-         transform:
-            rotate(20deg)
-            scale(1.1);
+         transform: rotate(20deg) scale(1.1);
       }
 
       48% {
-         transform:
-            rotate(55deg)
-            scale(0.98);
+         transform: rotate(55deg) scale(0.98);
       }
 
       72% {
-         transform:
-            rotate(87deg)
-            scale(0.85);
+         transform: rotate(87deg) scale(0.85);
       }
 
       100% {
-         transform:
-            rotate(125deg)
-            scale(0.65);
+         transform: rotate(125deg) scale(0.65);
       }
    }
 
@@ -502,85 +531,3 @@
       }
    }
 </style>
-
-<svelte:head>
-   <title>⸜( ´ ꒳ ` )⸝</title>
-   <meta property="og:title" content="⸜( ´ ꒳ ` )⸝" />
-   <meta name="description" content="about me" />
-   <meta property="og:description" content="about me" />
-   <meta property="og:url" content="https://screepy.vercel.app/" />
-   <meta property="og:type" content="website" />
-   <meta property="og:site_name" content="seepie" />
-   <meta property="twitter:card" content="summary_large_image" />
-   <meta property="og:image" content="/og.png" />
-</svelte:head>
-
-<svg
-   xmlns="http://www.w3.org/2000/svg"
-   aria-hidden="true"
-   width="0"
-   height="0"
-   style="position: absolute; overflow: hidden;"
->
-   <symbol id="icon-mal" viewBox="0 0 24 24">
-      <path d={mal} fill="currentColor" />
-   </symbol>
-
-   <symbol id="icon-vndb" viewBox="0 0 64 24">
-      <text
-         x="32"
-         y="19"
-         text-anchor="middle"
-         fill="currentColor"
-         font-family="Futura, 'Century New Gothic', Arial, serif"
-         font-size="24"
-         font-weight="bold"
-         font-style="italic"
-         letter-spacing="-1.5"
-      >
-         vndb
-      </text>
-   </symbol>
-
-   <symbol id="icon-github" viewBox="0 0 496 512">
-      <path d={github} fill="currentColor" />
-   </symbol>
-</svg>
-
-{#if visible}
-   <div class="centered-shell">
-      <div class="centered-motion" out:fly={{ y: -50, duration: ANIMATION.CENTERED_TEXT.DURATION, easing: backInOut }}>
-         <div class="centered" class:winking={isWinking}>
-            {#each displayOwo as char, i (i)}
-               <span
-                  class="centered-char"
-                  style:animation-delay={`${i * ANIMATION.CENTERED_TEXT.CHAR_DELAY}ms`}
-                  style:animation-duration={`${ANIMATION.CENTERED_TEXT.DURATION * 1.2}ms`}
-               >{char}</span>
-            {/each}
-         </div>
-         {#if winkStarVisible}
-            <span class="wink-shooting-star" aria-hidden="true">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
-         {/if}
-      </div>
-   </div>
-{/if}
-{#if ready}
-   <ParallaxBackground {darkMode} {transitionEnd} />
-   <div use:parallax transition:fade={{ delay: ANIMATION.TRANSITION.FADE_DELAY, duration: ANIMATION.TRANSITION.FADE_DURATION }} class="scene-parallax">
-      <div data-depth="0.15" class="profile">
-         <ThemeToggle {darkMode} onToggle={handleThemeToggle} />
-         <StarAnimation />
-         <div class="magic">
-            <div class="profile-header">
-               <DiscordProfile {darkMode} />
-            </div>
-            <ContentSlider />
-         </div>
-      </div>
-   </div>
-{/if}

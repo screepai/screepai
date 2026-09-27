@@ -1,27 +1,14 @@
-export type InterestSource =
-   | "mal"
-   | "vndb";
+export type InterestSource = "mal" | "vndb";
 
-export type MediaKind =
-   | "anime"
-   | "manga"
-   | "visual-novel";
+export type MediaKind = "anime" | "manga" | "visual-novel";
 
-export type MediaStatus =
-   | "current"
-   | "completed"
-   | "on-hold"
-   | "dropped"
-   | "planned"
-   | "unknown";
-
+export type MediaStatus = "current" | "completed" | "on-hold" | "dropped" | "planned" | "unknown";
 
 export type InterestSignal = {
    id: string;
    name: string;
    strength: number;
 };
-
 
 export type MediaEntry = {
    source: InterestSource;
@@ -35,13 +22,11 @@ export type MediaEntry = {
    signals: readonly InterestSignal[];
 };
 
-
 export type InterestExample = {
    id: string;
    title: string;
    url: string;
 };
-
 
 export type RankedInterest = {
    id: string;
@@ -51,7 +36,6 @@ export type RankedInterest = {
    share: number;
    examples: readonly InterestExample[];
 };
-
 
 export type InterestCollection = {
    kind: MediaKind;
@@ -69,7 +53,6 @@ export type MusicTrack = {
    url: string;
    playcount: number;
 };
-
 
 export type MusicCollection = {
    source: "lastfm";
