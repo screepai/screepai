@@ -5,8 +5,13 @@
    export let y: number;
 </script>
 
-<div class="profile-tip" style={`--tooltip-x:${x}px;--tooltip-y:${y}px;`} aria-hidden="true">
-   <span class="tooltip-name">
+<div
+   id="profile-tooltip"
+   class="profile-tip"
+   style={`--tooltip-x:${x}px;--tooltip-y:${y}px;`}
+   role="tooltip"
+>
+   <span class="tooltip-name" aria-hidden="true">
       {name}
    </span>
 

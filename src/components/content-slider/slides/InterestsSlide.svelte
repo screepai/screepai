@@ -9,6 +9,8 @@
    export let interestsData: InterestsResponse | null;
    export let interestsLoading: boolean;
    export let interestsError: string;
+   export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+   export let hideTooltip: () => void;
 </script>
 
 <div class="interest-board">
@@ -30,6 +32,8 @@
          picks={slide.memoryPicks.visualNovels}
          memoryLabel="oh how i wish i could forget these VNs to experience them anew"
          sourceLabel="pulled from VNDB ↗"
+         {showTooltip}
+         {hideTooltip}
       />
       <MediaInterestCard
          kind="anime"
@@ -40,6 +44,8 @@
          picks={slide.memoryPicks.anime}
          memoryLabel="id wipe my memory of these anime if i could"
          sourceLabel="from MyAnimeList ↗"
+         {showTooltip}
+         {hideTooltip}
       />
       <MediaInterestCard
          kind="manga"
@@ -50,6 +56,8 @@
          picks={slide.memoryPicks.manga}
          memoryLabel="i can read these again and again and still enjoy them"
          sourceLabel="from MyAnimeList ↗"
+         {showTooltip}
+         {hideTooltip}
       />
       {#if interestsData.warnings.length > 0}
          <p class="interest-warning">some sources are currently unavailable</p>

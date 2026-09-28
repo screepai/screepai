@@ -13,13 +13,13 @@
    import InterestsSlide from "./content-slider/slides/InterestsSlide.svelte";
    import CreditsSlide from "./content-slider/slides/CreditsSlide.svelte";
    import SlideContent from "./content-slider/SlideContent.svelte";
-   import SocialTooltip from "./content-slider/SocialTooltip.svelte";
+   import ProfileTooltip from "./content-slider/ProfileTooltip.svelte";
    import SliderPagination from "./content-slider/SliderPagination.svelte";
    import { onMount, tick } from "svelte";
    import { contentSlides } from "../config/contents";
    import { preloadInterests } from "$lib/interests/client";
 
-   type SocialTooltipState = {
+   type TooltipState = {
       name: string;
       text: string;
       x: number;
@@ -31,7 +31,7 @@
    let slideViewport: HTMLDivElement | null = null;
    let sliderRoot: HTMLDivElement | null = null;
    let changingSlide = false;
-   let socialTooltip: SocialTooltipState | null = null;
+   let tooltip: TooltipState | null = null;
    let scrollRegion: HTMLDivElement | null = null;
    let interestsData: InterestsResponse | null = null;
    let interestsLoading = false;
@@ -39,12 +39,12 @@
 
    $: activeSlide = contentSlides[activeIndex];
 
-   function showSocialTooltip(event: MouseEvent | FocusEvent, name: string, text: string) {
+   function showTooltip(event: MouseEvent | FocusEvent, name: string, text: string) {
       if (!sliderRoot) return;
       const button = event.currentTarget as HTMLElement;
       const buttonRect = button.getBoundingClientRect();
       const rootRect = sliderRoot.getBoundingClientRect();
-      socialTooltip = {
+      tooltip = {
          name,
          text,
          x: buttonRect.left + buttonRect.width / 2 - rootRect.left,
@@ -52,8 +52,8 @@
       };
    }
 
-   function hideSocialTooltip() {
-      socialTooltip = null;
+   function hideTooltip() {
+      tooltip = null;
    }
 
    async function loadInterests() {
@@ -129,7 +129,7 @@
          return;
       }
       changingSlide = true;
-      socialTooltip = null;
+      tooltip = null;
       const viewport = slideViewport;
       const currentHeight = viewport.getBoundingClientRect().height;
       const currentScrollRegion = scrollRegion;
@@ -184,7 +184,7 @@
    }
 
    function syncCurrentHeight() {
-      socialTooltip = null;
+      tooltip = null;
       if (changingSlide) {
          return;
       }
@@ -211,7 +211,7 @@
          });
       }
       const handleVisibilityChange = () => {
-         socialTooltip = null;
+         tooltip = null;
          if (document.hidden || !mounted) {
             return;
          }
@@ -235,7 +235,7 @@
 </script>
 
 <div class="content-slider" bind:this={sliderRoot}>
-   <div class="slide-scroll" bind:this={scrollRegion} on:scroll={hideSocialTooltip}>
+   <div class="slide-scroll" bind:this={scrollRegion} on:scroll={hideTooltip}>
       <div class="slide-viewport" bind:this={slideViewport}>
          {#key activeIndex}
             <div
@@ -254,13 +254,15 @@
                   {:else if activeSlide.kind === "system"}
                      <SystemSlide slide={activeSlide} />
                   {:else if activeSlide.kind === "socials"}
-                     <SocialsSlide slide={activeSlide} {showSocialTooltip} {hideSocialTooltip} />
+                     <SocialsSlide slide={activeSlide} {showTooltip} {hideTooltip} />
                   {:else if activeSlide.kind === "interests"}
                      <InterestsSlide
                         slide={activeSlide}
                         {interestsData}
                         {interestsLoading}
                         {interestsError}
+                        {showTooltip}
+                        {hideTooltip}
                      />
                   {:else}
                      <CreditsSlide slide={activeSlide} />
@@ -271,8 +273,8 @@
       </div>
    </div>
 
-   {#if socialTooltip}
-      <SocialTooltip {...socialTooltip} />
+   {#if tooltip}
+      <ProfileTooltip {...tooltip} />
    {/if}
 
    <SliderPagination slides={contentSlides} {activeIndex} {changeSlide} />

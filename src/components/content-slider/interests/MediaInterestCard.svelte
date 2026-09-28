@@ -11,6 +11,8 @@
    export let picks: readonly MemoryWipePick[];
    export let memoryLabel: string;
    export let sourceLabel: string;
+   export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+   export let hideTooltip: () => void;
 
    function interestTooltip(interest: RankedInterest) {
       const examples = interest.examples.map((example) => example.title).join(" · ");
@@ -31,13 +33,19 @@
 >
    <div class="interest-tags" class:interest-tags-vn={kind === "vn"}>
       {#each collection.top.slice(0, 5) as interest, i (interest.id)}
-         <span
+         <button
+            type="button"
             class="interest-tag"
             class:interest-tag-main={i === 0}
-            title={interestTooltip(interest)}
+            aria-describedby="profile-tooltip"
+            on:mouseenter={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
+            on:mouseleave={hideTooltip}
+            on:focus={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
+            on:blur={hideTooltip}
+            on:click={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
          >
             {interest.name}
-         </span>
+         </button>
       {/each}
    </div>
    <div class="memory-wipe">
@@ -65,14 +73,17 @@
    }
 
    .interest-tag {
+      appearance: none;
       padding: 0.3em 0.58em;
       border: 1px dashed color-mix(in srgb, var(--fill) 22%, transparent);
       border-radius: 0.55em 0.68em 0.52em 0.7em;
       background: color-mix(in srgb, white 68%, transparent);
       color: #777777;
       font-size: 0.77em;
+      font-family: inherit;
       font-weight: 600;
       line-height: 1.2;
+      cursor: help;
       transform: rotate(-0.4deg);
       transition:
          transform 180ms ease,
@@ -99,6 +110,11 @@
       color: var(--fill);
       background: color-mix(in srgb, var(--fill) 8%, white);
       transform: rotate(0deg) translateY(-1px);
+   }
+
+   .interest-tag:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--fill) 45%, transparent);
+      outline-offset: 2px;
    }
 
    .interest-tags-vn {

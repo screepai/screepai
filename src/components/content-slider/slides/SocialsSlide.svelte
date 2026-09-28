@@ -7,12 +7,8 @@
          kind: "socials";
       }
    >;
-   export let showSocialTooltip: (
-      event: MouseEvent | FocusEvent,
-      name: string,
-      text: string
-   ) => void;
-   export let hideSocialTooltip: () => void;
+   export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+   export let hideTooltip: () => void;
 </script>
 
 <ul class="social-icons">
@@ -23,16 +19,16 @@
             target="_blank"
             rel="noreferrer"
             aria-label={socialLink.label}
+            aria-describedby="profile-tooltip"
             on:mouseenter={(event) =>
-               showSocialTooltip(event, socialLink.label, socialLink.tooltip || "")}
-            on:mouseleave={hideSocialTooltip}
-            on:focus={(event) =>
-               showSocialTooltip(event, socialLink.label, socialLink.tooltip || "")}
-            on:blur={hideSocialTooltip}
+               showTooltip(event, socialLink.label, socialLink.tooltip || "")}
+            on:mouseleave={hideTooltip}
+            on:focus={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
+            on:blur={hideTooltip}
             on:pointerup={(event) => {
                (event.currentTarget as HTMLElement).blur();
 
-               hideSocialTooltip();
+               hideTooltip();
             }}
          >
             <svg aria-hidden="true">

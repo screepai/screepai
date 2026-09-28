@@ -347,6 +347,23 @@
       z-index: 2;
    }
 
+   .profile-header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% - 1px);
+      height: calc(2em + 1px);
+      background: linear-gradient(
+         to bottom,
+         #fbfbfb 0%,
+         rgb(251 251 251 / 0.75) 35%,
+         rgb(251 251 251 / 0.35) 70%,
+         transparent 100%
+      );
+      pointer-events: none;
+   }
+
    .centered-shell {
       position: absolute;
       left: 50%;
