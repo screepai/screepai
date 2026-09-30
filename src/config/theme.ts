@@ -136,7 +136,7 @@ export function getDiscordUrl(theme: ThemeName) {
    const idleMessage = "( ´ ω ` )ノﾞ";
    const hideBadges = "true";
    const hideNameplate = "false";
-   const useDisplayName = "true";
+   const useDisplayName = "false";
    const forceGradient = "true";
    const animatedDecoration = "true";
 

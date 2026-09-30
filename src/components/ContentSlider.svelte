@@ -13,6 +13,7 @@
    import InterestsSlide from "./content-slider/slides/InterestsSlide.svelte";
    import CreditsSlide from "./content-slider/slides/CreditsSlide.svelte";
    import SlideContent from "./content-slider/SlideContent.svelte";
+   import DiscordNote from "./content-slider/DiscordNote.svelte";
    import ProfileTooltip from "./content-slider/ProfileTooltip.svelte";
    import SliderPagination from "./content-slider/SliderPagination.svelte";
    import { onMount, tick } from "svelte";
@@ -235,6 +236,8 @@
 </script>
 
 <div class="content-slider" bind:this={sliderRoot}>
+   <DiscordNote visible={activeSlide.kind === "socials"} />
+
    <div class="slide-scroll" bind:this={scrollRegion} on:scroll={hideTooltip}>
       <div class="slide-viewport" bind:this={slideViewport}>
          {#key activeIndex}

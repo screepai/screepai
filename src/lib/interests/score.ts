@@ -6,6 +6,7 @@ import type {
    MediaStatus,
    RankedInterest,
 } from "./types";
+import { selectInterestExamples } from "./examples";
 
 function clamp(value: number, min = 0, max = 1) {
    return Math.min(max, Math.max(min, value));
@@ -139,16 +140,17 @@ export function aggregateInterests({
 
    const strongestScore = ranked[0]?.score ?? 0;
 
-   const topInterests: RankedInterest[] = ranked.slice(0, top).map((interest) => {
-      const examples = Array.from(interest.examples.values())
-         .sort((a, b) => b.contribution - a.contribution)
-         .slice(0, examplesPerInterest)
-         .map(({ id, title, url }) => ({
-            id,
-            title,
-            url,
-         }));
+   const topRanked = ranked.slice(0, top);
+   const examples = selectInterestExamples(
+      topRanked.map((interest) =>
+         Array.from(interest.examples.values())
+            .sort((a, b) => b.contribution - a.contribution)
+            .map(({ id, title, url }) => ({ id, title, url }))
+      ),
+      examplesPerInterest
+   );
 
+   const topInterests: RankedInterest[] = topRanked.map((interest, index) => {
       return {
          id: interest.id,
          name: interest.name,
@@ -160,7 +162,7 @@ export function aggregateInterests({
          share:
             strongestScore > 0 ? Math.round((interest.score / strongestScore) * 1000) / 1000 : 0,
 
-         examples,
+         examples: examples[index],
       };
    });
 
