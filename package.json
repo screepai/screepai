@@ -2,6 +2,9 @@
    "name": "skeptical",
    "version": "0.6.9",
    "type": "module",
+   "engines": {
+      "node": "24.x"
+   },
    "scripts": {
       "dev": "vite dev",
       "build": "vite build",
