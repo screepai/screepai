@@ -24,22 +24,35 @@ function getScrollStaggerDelay(root: HTMLElement, node: HTMLElement) {
 export function animateOnScroll(node: HTMLElement) {
    const root = node.closest<HTMLElement>(".slide-scroll");
    if (!root) return;
+   const panel = node.closest<HTMLElement>(".slide-panel");
    let initialCheck = true;
    let revealed = false;
    let revealAnimation: Animation | null = null;
+   node.style.animation = "none";
+   node.style.opacity = "0";
+   const startX = getComputedStyle(node).getPropertyValue("--item-start-x");
+   node.style.transform = `translate3d(${startX}, 0, 0) scale(0.95)`;
+   node.dataset.scrollHidden = "true";
+
+   function startEntryAnimation() {
+      node.style.removeProperty("animation");
+      node.style.removeProperty("opacity");
+      node.style.removeProperty("transform");
+      delete node.dataset.scrollHidden;
+      observer.disconnect();
+      layoutObserver.disconnect();
+   }
+
    const observer = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+         const entry = entries[entries.length - 1];
+         if (root.dataset.changingSlide === "true") return;
          if (initialCheck) {
             initialCheck = false;
             if (entry.isIntersecting) {
-               observer.disconnect();
+               startEntryAnimation();
                return;
             }
-            node.style.animation = "none";
-            node.style.opacity = "0";
-            const startX = getComputedStyle(node).getPropertyValue("--item-start-x");
-            node.style.transform = `translate3d(${startX}, 0, 0) scale(0.95)`;
-            node.dataset.scrollHidden = "true";
             return;
          }
          if (!entry.isIntersecting || revealed) {
@@ -105,17 +118,36 @@ export function animateOnScroll(node: HTMLElement) {
             revealAnimation = null;
          };
          observer.disconnect();
+         layoutObserver.disconnect();
       },
-      {
-         root,
-         threshold: 0.15,
-         rootMargin: "0px 0px -4% 0px",
-      }
+      { root }
    );
-   observer.observe(node);
+   function syncObservation() {
+      observer.disconnect();
+      if (initialCheck && root?.dataset.changingSlide === "true" && panel?.dataset.entryHeight) {
+         initialCheck = false;
+         const bounds = node.getBoundingClientRect();
+         const top = bounds.top - panel.getBoundingClientRect().top;
+         const visibleHeight = Number(panel.dataset.entryHeight);
+         if (top < visibleHeight && top + bounds.height > 0) {
+            startEntryAnimation();
+            return;
+         }
+      }
+      if (root?.dataset.changingSlide !== "true") {
+         observer.observe(node);
+      }
+   }
+   const layoutObserver = new MutationObserver(syncObservation);
+   layoutObserver.observe(root, { attributes: true, attributeFilter: ["data-changing-slide"] });
+   if (panel) {
+      layoutObserver.observe(panel, { attributes: true, attributeFilter: ["data-entry-height"] });
+   }
+   syncObservation();
    return {
       destroy() {
          observer.disconnect();
+         layoutObserver.disconnect();
          revealAnimation?.cancel();
       },
    };

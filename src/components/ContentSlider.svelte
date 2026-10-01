@@ -14,18 +14,11 @@
    import CreditsSlide from "./content-slider/slides/CreditsSlide.svelte";
    import SlideContent from "./content-slider/SlideContent.svelte";
    import DiscordNote from "./content-slider/DiscordNote.svelte";
-   import ProfileTooltip from "./content-slider/ProfileTooltip.svelte";
+   import ProfileTooltip, { type TooltipState } from "./content-slider/ProfileTooltip.svelte";
    import SliderPagination from "./content-slider/SliderPagination.svelte";
    import { onMount, tick } from "svelte";
    import { contentSlides } from "../config/contents";
    import { preloadInterests } from "$lib/interests/client";
-
-   type TooltipState = {
-      name: string;
-      text: string;
-      x: number;
-      y: number;
-   };
 
    let activeIndex = 0;
    let direction = 1;
@@ -33,6 +26,7 @@
    let sliderRoot: HTMLDivElement | null = null;
    let changingSlide = false;
    let tooltip: TooltipState | null = null;
+   let tooltipArrowOffset = 0;
    let scrollRegion: HTMLDivElement | null = null;
    let interestsData: InterestsResponse | null = null;
    let interestsLoading = false;
@@ -45,15 +39,31 @@
       const button = event.currentTarget as HTMLElement;
       const buttonRect = button.getBoundingClientRect();
       const rootRect = sliderRoot.getBoundingClientRect();
+      const x = buttonRect.left + buttonRect.width / 2 - rootRect.left;
+      const y = buttonRect.top - rootRect.top;
+      tooltipArrowOffset =
+         event instanceof MouseEvent
+            ? Math.min(buttonRect.right, Math.max(buttonRect.left, event.clientX)) -
+              (buttonRect.left + buttonRect.width / 2)
+            : 0;
+      if (tooltip?.name === name && tooltip.text === text && tooltip.x === x && tooltip.y === y) {
+         return;
+      }
       tooltip = {
          name,
          text,
-         x: buttonRect.left + buttonRect.width / 2 - rootRect.left,
-         y: buttonRect.top - rootRect.top,
+         x,
+         y,
       };
    }
 
-   function hideTooltip() {
+   function hideTooltip(event?: Event) {
+      if (tooltip && sliderRoot && event instanceof MouseEvent) {
+         const buttonRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+         tooltipArrowOffset =
+            Math.min(buttonRect.right, Math.max(buttonRect.left, event.clientX)) -
+            (buttonRect.left + buttonRect.width / 2);
+      }
       tooltip = null;
    }
 
@@ -99,7 +109,6 @@
       void activeScrollRegion.offsetHeight;
       viewport.style.transition = previousViewportTransition;
       activeScrollRegion.style.transition = previousScrollTransition;
-      changingSlide = false;
    }
 
    function normalizeCurrentSlideLayout() {
@@ -169,6 +178,7 @@
       const targetHeight = incomingContent.offsetHeight;
       const currentVisibleHeight = activeScrollRegion.getBoundingClientRect().height;
       const targetVisibleHeight = measureVisibleTargetHeight(incomingContent, activeScrollRegion);
+      incomingPanel.dataset.entryHeight = String(targetVisibleHeight);
       activeScrollRegion.style.height = `${currentVisibleHeight}px`;
       resetScrollSmoothly(activeScrollRegion);
       await nextFrame();
@@ -238,7 +248,12 @@
 <div class="content-slider" bind:this={sliderRoot}>
    <DiscordNote visible={activeSlide.kind === "socials"} />
 
-   <div class="slide-scroll" bind:this={scrollRegion} on:scroll={hideTooltip}>
+   <div
+      class="slide-scroll"
+      data-changing-slide={changingSlide}
+      bind:this={scrollRegion}
+      on:scroll={hideTooltip}
+   >
       <div class="slide-viewport" bind:this={slideViewport}>
          {#key activeIndex}
             <div
@@ -276,9 +291,7 @@
       </div>
    </div>
 
-   {#if tooltip}
-      <ProfileTooltip {...tooltip} />
-   {/if}
+   <ProfileTooltip {tooltip} arrowOffset={tooltipArrowOffset} />
 
    <SliderPagination slides={contentSlides} {activeIndex} {changeSlide} />
 </div>

@@ -8,7 +8,7 @@
       }
    >;
    export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
-   export let hideTooltip: () => void;
+   export let hideTooltip: (event?: Event) => void;
 </script>
 
 <ul class="social-icons">
@@ -22,6 +22,7 @@
             aria-describedby="profile-tooltip"
             on:mouseenter={(event) =>
                showTooltip(event, socialLink.label, socialLink.tooltip || "")}
+            on:mousemove={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
             on:mouseleave={hideTooltip}
             on:focus={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
             on:blur={hideTooltip}

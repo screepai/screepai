@@ -13,10 +13,16 @@
    {#each slide.groups as group, i (group.title)}
       <section
          class="system-group item-card"
+         data-kind={group.kind}
          use:animateOnScroll
          style={`--in-delay:${180 + i * 85}ms;`}
       >
-         <h5>{group.title}</h5>
+         <h5>
+            {group.title}
+            {#if group.kind === "creative"}
+               <span class="creative-spark" aria-hidden="true">✦</span>
+            {/if}
+         </h5>
 
          {#if group.kind === "rows"}
             <div class="system-items">
@@ -50,12 +56,24 @@
                         {level.label}
                      </span>
 
-                     <div class="stack-pills">
+                     <div class="system-pills">
                         {#each level.items as tech (tech)}
-                           <span class="stack-pill">
+                           <span class="system-pill">
                               {tech}
                            </span>
                         {/each}
+                     </div>
+                  </div>
+               {/each}
+            </div>
+         {:else if group.kind === "creative"}
+            <div class="creative-tools">
+               {#each group.items as tool (tool.name)}
+                  <div class="creative-tool">
+                     <span class="creative-mark" aria-hidden="true">{tool.mark}</span>
+                     <div class="creative-info">
+                        <span class="creative-name">{tool.name}</span>
+                        <span class="creative-focus">{tool.focus}</span>
                      </div>
                   </div>
                {/each}
@@ -140,13 +158,13 @@
       letter-spacing: 0.025em;
    }
 
-   .stack-pills {
+   .system-pills {
       display: flex;
       flex-wrap: wrap;
       gap: 0.4em;
    }
 
-   .stack-pill {
+   .system-pill {
       padding: 0.28em 0.58em;
       border: 1px solid color-mix(in srgb, var(--fill) 20%, transparent);
       border-radius: 0.55em;
@@ -162,15 +180,106 @@
          transform 180ms ease;
    }
 
-   .stack-pill:hover {
+   .system-pill:hover {
       border-color: color-mix(in srgb, var(--fill) 38%, transparent);
       background: color-mix(in srgb, var(--fill) 9%, transparent);
       transform: translateY(-1px);
    }
 
-   .stack-section[data-level="creative"] .stack-pill {
-      background: color-mix(in srgb, var(--color2) 9%, transparent);
-      border-color: color-mix(in srgb, var(--color2) 28%, transparent);
+   .system-group[data-kind="creative"] {
+      background:
+         radial-gradient(
+            at 100% 0%,
+            color-mix(in srgb, var(--color2) 13%, transparent),
+            transparent 70%
+         ),
+         color-mix(in srgb, var(--fill) 4%, transparent);
+   }
+
+   .system-group[data-kind="creative"] h5 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+   }
+
+   .creative-spark {
+      color: var(--color2);
+      font-size: 1.25em;
+      transform: rotate(12deg);
+   }
+
+   .creative-tools {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5em;
+      cursor: default;
+   }
+
+   .creative-tool {
+      --tool-color: #4785ad;
+      display: flex;
+      align-items: center;
+      gap: 0.65em;
+      min-width: 0;
+      padding: 0.6em;
+      border: 1px solid color-mix(in srgb, var(--tool-color) 18%, transparent);
+      border-radius: 0.6em;
+      background: color-mix(in srgb, var(--tool-color) 5%, transparent);
+      transition:
+         background 180ms ease,
+         transform 180ms ease;
+   }
+
+   .creative-tool:nth-child(2) {
+      --tool-color: #ba7c83;
+   }
+
+   .creative-tool:nth-child(3) {
+      --tool-color: #8872ba;
+   }
+
+   .creative-tool:nth-child(4) {
+      --tool-color: #a46caa;
+   }
+
+   .creative-tool:nth-child(5) {
+      --tool-color: #609d83;
+      grid-column: 1 / -1;
+   }
+
+   .creative-tool:hover {
+      background: color-mix(in srgb, var(--tool-color) 10%, transparent);
+      transform: translateY(-2px);
+   }
+
+   .creative-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 2.3em;
+      height: 2.3em;
+      border-radius: 0.5em;
+      background: color-mix(in srgb, var(--tool-color) 14%, transparent);
+      color: var(--tool-color);
+      font-size: 0.85em;
+      font-weight: 750;
+      letter-spacing: -0.03em;
+   }
+
+   .creative-info {
+      display: grid;
+      gap: 0.15em;
+      min-width: 0;
+   }
+
+   .creative-name {
+      color: #777777;
+      font-size: 0.8em;
+      font-weight: 650;
+   }
+
+   .creative-focus {
+      font-size: 0.68em;
+      opacity: 0.6;
    }
 
    .system-link {

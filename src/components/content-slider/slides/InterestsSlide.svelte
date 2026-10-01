@@ -10,7 +10,7 @@
    export let interestsLoading: boolean;
    export let interestsError: string;
    export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
-   export let hideTooltip: () => void;
+   export let hideTooltip: (event?: Event) => void;
 </script>
 
 <div class="interest-board">

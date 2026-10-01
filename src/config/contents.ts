@@ -47,7 +47,13 @@ export type SystemStackGroup = {
    levels: readonly StackLevel[];
 };
 
-export type SystemGroup = SystemRowGroup | SystemStackGroup;
+export type SystemCreativeGroup = {
+   kind: "creative";
+   title: string;
+   items: readonly { name: string; mark: string; focus: string }[];
+};
+
+export type SystemGroup = SystemRowGroup | SystemStackGroup | SystemCreativeGroup;
 
 type SystemSlide = {
    kind: "system";
@@ -109,6 +115,78 @@ const aboutItems = [
 ] as const;
 
 const systemGroups: readonly SystemGroup[] = [
+   {
+      kind: "creative",
+      title: "creative",
+      items: [
+         { name: "Photoshop", mark: "Ps", focus: "cutting & compositing" },
+         { name: "Live2D", mark: "L2D", focus: "character rigging" },
+         { name: "After Effects", mark: "Ae", focus: "motion graphics" },
+         { name: "Premiere Pro", mark: "Pr", focus: "video editing" },
+         { name: "Alight Motion", mark: "AM", focus: "mobile editing & motion graphics" },
+      ],
+   },
+   {
+      kind: "stack",
+      title: "stack",
+      levels: [
+         {
+            label: "comfortable",
+            items: [
+               "TypeScript",
+               "JavaScript",
+               "Python",
+               "Svelte",
+               "React",
+               "Next.js",
+               "MySQL",
+               "PostgreSQL",
+               "Redis",
+               "Docker",
+               "MongoDB",
+               "Firebase",
+               "Git",
+               "Codex 🤑",
+               "Claude Code 🤑",
+            ],
+         },
+         {
+            label: "familiar",
+            items: [
+               "C++",
+               "Java",
+               "Lua",
+               "Rust",
+               "Tailwind CSS",
+               "TensorFlow",
+               "Keras",
+               "NumPy",
+               "Jupyter",
+               "Kaggle",
+            ],
+         },
+         {
+            label: "learning",
+            items: [
+               "PyTorch",
+               "pandas",
+               "scikit-learn",
+               "Hugging Face",
+               "Transformers",
+               "llama.cpp",
+               "vLLM",
+               "FAISS",
+               "Qdrant",
+               "FastAPI",
+               "CUDA",
+            ],
+         },
+         {
+            label: "touched",
+            items: ["C", "C#", "Go", "PHP"],
+         },
+      ],
+   },
    {
       kind: "rows",
       title: "hardware",
@@ -182,71 +260,6 @@ const systemGroups: readonly SystemGroup[] = [
          {
             label: "TV",
             value: '72" Sony / 1080p / 60 Hz',
-         },
-      ],
-   },
-   {
-      kind: "stack",
-      title: "stack",
-      levels: [
-         {
-            label: "comfortable",
-            items: [
-               "TypeScript",
-               "JavaScript",
-               "Python",
-               "Svelte",
-               "React",
-               "Next.js",
-               "MySQL",
-               "PostgreSQL",
-               "Redis",
-               "Docker",
-               "MongoDB",
-               "Firebase",
-               "Git",
-               "Codex 🤑",
-               "Claude Code 🤑",
-            ],
-         },
-         {
-            label: "familiar",
-            items: [
-               "C++",
-               "Java",
-               "Lua",
-               "Rust",
-               "Tailwind CSS",
-               "TensorFlow",
-               "Keras",
-               "NumPy",
-               "Jupyter",
-               "Kaggle",
-            ],
-         },
-         {
-            label: "creative",
-            items: ["Photoshop", "Live2D", "After Effects", "Premiere Pro", "Alight Motion"],
-         },
-         {
-            label: "learning",
-            items: [
-               "PyTorch",
-               "pandas",
-               "scikit-learn",
-               "Hugging Face",
-               "Transformers",
-               "llama.cpp",
-               "vLLM",
-               "FAISS",
-               "Qdrant",
-               "FastAPI",
-               "CUDA",
-            ],
-         },
-         {
-            label: "touched",
-            items: ["C", "C#", "Go", "PHP"],
          },
       ],
    },
@@ -409,8 +422,8 @@ export const contentSlides = [
    },
    {
       kind: "system",
-      label: "System",
-      heading: "System",
+      label: "Setup",
+      heading: "Setup",
       groups: systemGroups,
    },
    {

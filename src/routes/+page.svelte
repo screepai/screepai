@@ -244,7 +244,7 @@
    >
       <div data-depth="0.15" class="profile">
          <ThemeToggle {darkMode} onToggle={handleThemeToggle} />
-         <StarAnimation />
+         <StarAnimation {darkMode} />
          <div class="magic">
             <div class="profile-header">
                <DiscordProfile {darkMode} />

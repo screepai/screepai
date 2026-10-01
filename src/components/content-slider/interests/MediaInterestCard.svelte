@@ -12,7 +12,7 @@
    export let memoryLabel: string;
    export let sourceLabel: string;
    export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
-   export let hideTooltip: () => void;
+   export let hideTooltip: (event?: Event) => void;
 
    function interestTooltip(interest: RankedInterest) {
       const examples = interest.examples.map((example) => example.title).join(" · ");
@@ -39,6 +39,7 @@
             class:interest-tag-main={i === 0}
             aria-describedby="profile-tooltip"
             on:mouseenter={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
+            on:mousemove={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
             on:mouseleave={hideTooltip}
             on:focus={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
             on:blur={hideTooltip}

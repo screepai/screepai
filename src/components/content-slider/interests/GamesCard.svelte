@@ -2,13 +2,17 @@
    import { onDestroy } from "svelte";
    import type { GameAccount } from "../../../config/contents";
    import InterestCard from "./InterestCard.svelte";
+   import { uidTooltipMotion } from "../../../actions/uidTooltipMotion";
 
    export let games: readonly GameAccount[];
    let copiedGame: string | null = null;
    let copyGameTimeout: ReturnType<typeof setTimeout> | null = null;
+   let copyRevision = 0;
    async function copyGameUid(gameName: string, uid: string) {
+      const revision = ++copyRevision;
       try {
          await navigator.clipboard.writeText(uid);
+         if (revision !== copyRevision) return;
          copiedGame = gameName;
          if (copyGameTimeout) {
             clearTimeout(copyGameTimeout);
@@ -23,6 +27,7 @@
    }
 
    onDestroy(() => {
+      copyRevision++;
       if (copyGameTimeout) clearTimeout(copyGameTimeout);
    });
 </script>
@@ -52,7 +57,7 @@
                   type="button"
                   class="game-uid"
                   class:copied={copiedGame === game.name}
-                  title={copiedGame === game.name ? "copied!" : "copy UID"}
+                  use:uidTooltipMotion={copiedGame === game.name}
                   aria-label={`Copy ${game.name} UID`}
                   on:click={() => copyGameUid(game.name, game.uid)}
                >
@@ -64,13 +69,15 @@
                      {copiedGame === game.name ? "✓" : "⧉"}
                   </span>
 
-                  {#if copiedGame === game.name}
-                     <span class="game-copy-feedback" aria-hidden="true">
-                        <span class="game-copy-sparkle"> ✦ </span>
-
-                        copied!
+                  <span class="game-copy-motion" aria-hidden="true">
+                     <span class="game-copy-feedback">
+                        <span class="game-copy-sparkle">✦</span>
+                        <span class="game-copy-labels">
+                           <span class="game-copy-prompt">copy?</span>
+                           <span class="game-copy-done">copied!</span>
+                        </span>
                      </span>
-                  {/if}
+                  </span>
                </button>
             </div>
          </div>
@@ -159,11 +166,16 @@
       animation: game-copy-check 420ms cubic-bezier(0.16, 1, 0.3, 1);
    }
 
-   .game-copy-feedback {
+   .game-copy-motion {
       position: absolute;
-      right: -0.35em;
+      left: 50%;
       bottom: calc(100% + 0.55em);
       z-index: 20;
+      pointer-events: none;
+      transform: translateX(-50%);
+   }
+
+   .game-copy-feedback {
       display: flex;
       align-items: center;
       gap: 0.3em;
@@ -177,11 +189,73 @@
       font-weight: 700;
       white-space: nowrap;
       pointer-events: none;
-      animation: game-copy-feedback 1400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      opacity: 0;
+      transform: translateY(5px) scale(0.88) rotate(-6deg);
+      transform-origin: bottom center;
+      transition:
+         opacity 160ms ease,
+         transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+         background 250ms ease,
+         border-color 250ms ease;
+   }
+
+   .game-uid:hover .game-copy-feedback,
+   .game-uid:focus-visible .game-copy-feedback {
+      opacity: 1;
+      transform: translateY(0) scale(1) rotate(-3deg);
+   }
+
+   .game-uid:focus-visible {
+      outline: 1px solid var(--fill);
+      outline-offset: 3px;
+      border-radius: 0.2em;
+   }
+
+   .game-uid.copied .game-copy-feedback {
+      opacity: 1;
+      transform: translateY(-2px) scale(1.04) rotate(2deg);
+      background: color-mix(in srgb, var(--color2) 12%, white);
+      border-color: color-mix(in srgb, var(--color2) 40%, transparent);
+   }
+
+   .game-copy-labels {
+      display: grid;
+      overflow: hidden;
+      padding: 0.12em 0.2em;
+   }
+
+   .game-copy-prompt,
+   .game-copy-done {
+      grid-area: 1 / 1;
+      text-align: center;
+      transition:
+         opacity 180ms ease,
+         transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+   }
+
+   .game-copy-done {
+      opacity: 0;
+      transform: translateY(110%) rotate(8deg) scale(0.85);
+   }
+
+   .game-uid.copied .game-copy-prompt {
+      opacity: 0;
+      transform: translateY(-110%) rotate(-8deg) scale(0.85);
+   }
+
+   .game-uid.copied .game-copy-done {
+      opacity: 1;
+      transform: translateY(0) rotate(0) scale(1);
    }
 
    .game-copy-sparkle {
       font-size: 0.8em;
+      opacity: 0.65;
+      transform: rotate(-15deg);
+      transition: transform 300ms ease;
+   }
+
+   .game-uid.copied .game-copy-sparkle {
       animation: game-copy-sparkle 700ms ease-out both;
    }
 
@@ -212,28 +286,6 @@
       }
    }
 
-   @keyframes game-copy-feedback {
-      0% {
-         opacity: 0;
-         transform: translateY(5px) scale(0.88);
-      }
-      14% {
-         opacity: 1;
-         transform: translateY(-2px) scale(1.04);
-      }
-      23% {
-         transform: translateY(0) scale(1);
-      }
-      76% {
-         opacity: 1;
-         transform: translateY(0) scale(1);
-      }
-      100% {
-         opacity: 0;
-         transform: translateY(-5px) scale(0.96);
-      }
-   }
-
    @keyframes game-copy-sparkle {
       0% {
          opacity: 0;
@@ -246,6 +298,22 @@
       100% {
          opacity: 0.8;
          transform: rotate(0) scale(1);
+      }
+   }
+
+   @media (prefers-reduced-motion: reduce) {
+      .game-uid,
+      .game-copy-feedback,
+      .game-copy-prompt,
+      .game-copy-done,
+      .game-copy-sparkle {
+         transition: none;
+      }
+
+      .game-uid.copied,
+      .game-uid.copied .game-copy-icon,
+      .game-uid.copied .game-copy-sparkle {
+         animation: none;
       }
    }
 </style>
