@@ -18,14 +18,14 @@
    const shootingAnimations: (Animation[] | undefined)[] = [];
    let burstTimeout: number | undefined;
    let mounted = false;
-   let shootingDirection = 1;
+   let shootingDirection = -1;
 
    const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
    const randFloat = (min: number, max: number) => Math.random() * (max - min) + min;
 
    function resetShootingStars(isDark: boolean) {
-      shootingDirection = isDark ? -1 : 1;
+      shootingDirection = isDark ? 1 : -1;
       clearTimeout(burstTimeout);
       shootingStars.forEach((index) => {
          clearTimeout(shootingTimeouts[index]);
