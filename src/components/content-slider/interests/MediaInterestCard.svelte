@@ -60,7 +60,9 @@
             {:else}
                <span class="memory-wipe-title">{pick.title}</span>
             {/if}
-            <p>{pick.note}</p>
+            {#if pick.note}
+               <p>{pick.note}</p>
+            {/if}
          </div>
       {/each}
    </div>

@@ -64,7 +64,7 @@ type SystemSlide = {
 
 export type MemoryWipePick = {
    title: string;
-   note: string;
+   note?: string;
    url?: string;
 };
 
@@ -328,28 +328,19 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
    anime: [
       {
          title: "Saenai Heroine no Sodatekata",
-         note: "oh my god i absolutely love the romance in this anime, say what you want but megumi best girl and i love the movie so much",
          url: "https://myanimelist.net/anime/23277/Saenai_Heroine_no_Sodatekata",
       },
       {
          title: "Plastic Memories",
-         note: "first anime that made me cry when i started watching anime, that sense of impending doom and the bittersweet romance is just so good",
          url: "https://myanimelist.net/anime/27775/Plastic_Memories",
       },
       {
          title: "Acchi Kocchi",
-         note: "my comfort anime, the romance is so cute and wholesome and the comedy is just so good, i put it on whenever i work on something and the ost is really relaxing too",
          url: "https://myanimelist.net/anime/12291/Acchi_Kocchi",
       },
       {
          title: "Shuumatsu Nani Shitemasu ka? Isogashii desu ka? Sukutte Moratte Ii desu ka?",
-         note: "gang, what word do i need for this?",
          url: "https://myanimelist.net/anime/33502/Shuumatsu_Nani_Shitemasu_ka_Isogashii_desu_ka_Sukutte_Moratte_Ii_desu_ka",
-      },
-      {
-         title: "anything by Makoto Shinkai",
-         note: "wonderful animation, beautiful romance, amazing music, and the stories are just so good for first time watching, i love the bittersweet romance in his works",
-         url: "https://myanimelist.net/people/1117/Makoto_Shinkai",
       },
    ],
 
@@ -364,7 +355,6 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
    visualNovels: [
       {
          title: "Summer Pockets: Reflection Blue",
-         note: "Key strikes again with a wonderful romance story, the music is amazing and the art is beautiful, i love the bittersweet romance in this visual novel. the anime butchered the story but the visual novel is just so good, i would love to play it again if i could",
          url: "https://vndb.org/v20424",
       },
       {
@@ -374,12 +364,10 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
       },
       {
          title: "Atri: My Dear Moments",
-         note: "Asta Konno's writing and Yusano's art made up a very cute high performance robot, i love the bittersweet romance in this visual novel, the music is amazing and the art is beautiful, i would love to play it again if i could",
          url: "https://vndb.org/v27448",
       },
       {
          title: "anything by Yuzusoft",
-         note: "no words, i played most of their visual novels and how i wish they can pump out more",
          url: "https://vndb.org/p98",
       },
       {
