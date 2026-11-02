@@ -97,9 +97,10 @@
          0 0 0.3em var(--fill),
          0 0 0.7em var(--bullet-active-color);
       transform: scale(0.2) rotate(calc(var(--star-r) - 30deg));
+      /* hover-out: shrink and twist away */
       transition:
-         opacity 180ms ease,
-         transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+         opacity 220ms ease-in 40ms,
+         transform 280ms cubic-bezier(0.5, 0, 0.75, 0);
    }
 
    .pagination-button::before {
@@ -118,32 +119,28 @@
       font-size: 0.9em;
    }
 
+   /* transitions instead of keyframes, so re-hovering reverses from the current
+      state rather than restarting, and the already-lit active tab doesn't replay */
    .pagination-button.active::before,
-   .pagination-button.active::after {
-      opacity: 1;
-      transform: scale(1) rotate(var(--star-r));
-   }
-
+   .pagination-button.active::after,
    .pagination-button:hover::before,
    .pagination-button:hover::after {
-      animation: sparkle-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      opacity: 1;
+      transform: scale(1) rotate(var(--star-r));
+      transition:
+         opacity 160ms ease-out,
+         transform 420ms cubic-bezier(0.34, 1.9, 0.64, 1);
    }
 
-   @keyframes sparkle-pop {
-      0% {
-         opacity: 0;
-         transform: scale(0.15) rotate(calc(var(--star-r) - 35deg));
-      }
-      55% {
-         opacity: 1;
-         transform: scale(1.35) rotate(calc(var(--star-r) + 8deg));
-      }
-      75% {
-         transform: scale(0.9) rotate(calc(var(--star-r) - 3deg));
-      }
-      100% {
-         opacity: 1;
+   @media (prefers-reduced-motion: reduce) {
+      .pagination-button::before,
+      .pagination-button::after,
+      .pagination-button.active::before,
+      .pagination-button.active::after,
+      .pagination-button:hover::before,
+      .pagination-button:hover::after {
          transform: scale(1) rotate(var(--star-r));
+         transition: opacity 160ms ease;
       }
    }
 </style>

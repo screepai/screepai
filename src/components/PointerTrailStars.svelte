@@ -11,8 +11,8 @@
 
    const config = {
       duration: 1500,
-      minimumTimeBetweenStars: 250,
-      minimumDistanceBetweenStars: 75,
+      minimumTimeBetweenStars: 400,
+      minimumDistanceBetweenStars: 110,
 
       sizes: ["1.4rem", "1rem", "0.6rem"],
    };
@@ -85,6 +85,8 @@
    }
 
    onMount(() => {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
       const layer = window.document.createElement("div");
 
       layer.className = "pointer-trail-layer";
@@ -194,6 +196,8 @@
          config.minimumDistanceBetweenStars * config.minimumDistanceBetweenStars;
 
       function handlePointerMove(event: PointerEvent) {
+         if (reducedMotion.matches) return;
+
          const position: Position = {
             x: event.clientX,
             y: event.clientY,

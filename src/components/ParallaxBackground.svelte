@@ -26,6 +26,7 @@
       style:z-index={!darkMode && transitionEnd ? 0 : 1}
       style:background-image={`url(${darkBackground.backgroundImage})`}
       style:background-position={darkBackground.backgroundPosition}
+      style:background-size={darkBackground.backgroundSize}
    ></div>
    <div
       data-depth="0.02"
@@ -34,6 +35,7 @@
       style:z-index={darkMode && transitionEnd ? 0 : 2}
       style:background-image={`url(${lightBackground.backgroundImage})`}
       style:background-position={lightBackground.backgroundPosition}
+      style:background-size={lightBackground.backgroundSize}
    ></div>
 </div>
 

@@ -14,6 +14,7 @@ type ThemeDefinition = {
    bodyBackground: string;
    backgroundImage: string;
    backgroundPosition: string;
+   backgroundSize: string;
    cssVars: Record<string, string>;
    discord: DiscordThemeConfig;
 };
@@ -23,6 +24,8 @@ export const themeDefinitions: Record<ThemeName, ThemeDefinition> = {
       bodyBackground: "#f7f8f3",
       backgroundImage: "/background2.jpg",
       backgroundPosition: "center -3.5em",
+      // "cover" plus the 3.5em upward shift, so the bottom edge never shows (image is 3200x1670)
+      backgroundSize: "max(100%, calc((106vh + 3.5em) * 3200 / 1670)) auto",
       cssVars: {
          "--profile-left": "-80%",
          "--profile-before-left": "-15%",
@@ -47,6 +50,7 @@ export const themeDefinitions: Record<ThemeName, ThemeDefinition> = {
       bodyBackground: "#232a44",
       backgroundImage: "/sw.jpg",
       backgroundPosition: "center center",
+      backgroundSize: "cover",
       cssVars: {
          "--profile-left": "80%",
          "--profile-before-left": "100%",

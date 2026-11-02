@@ -429,6 +429,7 @@
       width: 1.45rem;
       height: 1.45rem;
       color: var(--fill);
+      filter: drop-shadow(0 0 6px var(--fill));
       pointer-events: none;
 
       offset-path: path("M 0 0 C 13 -42, 40 -45, 52 15");
@@ -462,7 +463,7 @@
    }
 
    .wink-shooting-star path {
-      fill: currentColor;
+      fill: color-mix(in srgb, var(--fill) 75%, white);
    }
 
    @keyframes wink-star-travel {
@@ -520,6 +521,20 @@
 
       100% {
          opacity: 0;
+      }
+   }
+
+   @media (prefers-reduced-motion: reduce) {
+      .centered.winking {
+         animation: none;
+      }
+
+      .wink-shooting-star {
+         display: none;
+      }
+
+      .profile::before {
+         animation: none;
       }
    }
 

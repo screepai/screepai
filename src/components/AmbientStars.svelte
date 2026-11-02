@@ -3,7 +3,7 @@
    import { star } from "../config/shapes";
    export let darkMode = false;
 
-   const magicStars = Array.from({ length: 8 }, (_, index) => index);
+   const magicStars = Array.from({ length: 5 }, (_, index) => index);
    const shootingStars = [0, 1, 2];
 
    const colors = ["--color1", "--color2", "--color3", "--color4"];
@@ -46,7 +46,7 @@
             ) {
                const count = Math.random() < 0.38 ? rand(2, 3) : 1;
                const stagger = rand(100, 180);
-               const edge = rand(0, 3);
+               const edge = [0, 1, 3][rand(0, 2)];
                for (let index = 0; index < count; index++) {
                   shootingTimeouts[index] = window.setTimeout(
                      () => shoot(shootingElements[index], index, edge),
@@ -71,7 +71,7 @@
       const width = layer.clientWidth;
       const height = layer.clientHeight;
       const angle = (45 * Math.PI) / 180;
-      const distance = rand(100, 145);
+      const distance = rand(200, 280);
       const dx = Math.cos(angle) * distance * shootingDirection;
       const dy = Math.sin(angle) * distance;
       const rotation = (Math.atan2(dy, dx) * 180) / Math.PI;
@@ -84,8 +84,8 @@
       }
       element.style.setProperty("--shooting-color", `var(${colors[rand(0, colors.length - 1)]})`);
       element.style.setProperty("--shooting-size", `${rand(10, 16)}px`);
-      element.style.setProperty("--trail-length", `${rand(65, 100)}px`);
-      const duration = rand(460, 580);
+      element.style.setProperty("--trail-length", `${rand(90, 130)}px`);
+      const duration = rand(750, 950);
       const path = (progress: number) =>
          `translate3d(${dx * progress}px, ${dy * progress}px, 0) rotate(${rotation}deg)`;
       const animation = element.animate(
@@ -94,7 +94,7 @@
             { opacity: 1, transform: path(0.04), offset: 0.04 },
             { opacity: 1, transform: path(1) },
          ],
-         { duration, easing: "linear" }
+         { duration, easing: "cubic-bezier(0.25, 0.6, 0.4, 1)" }
       );
       const trailAnimation = trail.animate(
          [
@@ -106,16 +106,13 @@
          ],
          { duration, easing: "linear", fill: "forwards" }
       );
-      const spin = 360 * shootingDirection;
+      const spin = 180 * shootingDirection;
       const twinkle = head.animate(
          [
             { opacity: 0, transform: "rotate(0deg) scale(0.3)" },
-            { opacity: 1, transform: `rotate(${spin * 0.25}deg) scale(1)`, offset: 0.08 },
-            { opacity: 1, transform: `rotate(${spin}deg) scale(1.15)`, offset: 0.38 },
-            { opacity: 0.45, transform: `rotate(${spin}deg) scale(0.55)`, offset: 0.54 },
-            { opacity: 0.75, transform: `rotate(${spin}deg) scale(0.85)`, offset: 0.68 },
-            { opacity: 0.3, transform: `rotate(${spin}deg) scale(0.4)`, offset: 0.84 },
-            { opacity: 0, transform: `rotate(${spin}deg) scale(0)` },
+            { opacity: 1, transform: `rotate(${spin * 0.15}deg) scale(1)`, offset: 0.1 },
+            { opacity: 1, transform: `rotate(${spin * 0.7}deg) scale(1)`, offset: 0.6 },
+            { opacity: 0, transform: `rotate(${spin}deg) scale(0.5)` },
          ],
          { duration, easing: "linear", fill: "forwards" }
       );
@@ -158,6 +155,11 @@
    }
 
    function animate(starElement: HTMLElement, index: number) {
+      if (document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+         scheduleNext(starElement, index);
+         return;
+      }
+
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
       const position = randomEdgePosition();
@@ -188,55 +190,38 @@
 
       activeAnimations[index]?.cancel();
 
+      const drift = (progress: number) =>
+         `translate3d(${driftX * progress}px, ${driftY * progress}px, 0)`;
+
+      starElement.classList.add("is-active");
+
       const animation = starElement.animate(
          [
             {
                opacity: 0,
                transform: "translate3d(0, 4px, 0) scale(0.15)",
+               easing: "cubic-bezier(0.16, 1, 0.3, 1)",
             },
             {
                opacity: 1,
-               transform: `translate3d(
-                        ${driftX * 0.25}px,
-                        ${driftY * 0.25}px,
-                        0
-                     )
-                     scale(${scale * 1.16})`,
-               offset: 0.25,
+               transform: `${drift(0.3)} scale(${scale * 1.1})`,
+               offset: 0.3,
+               easing: "ease-in-out",
             },
             {
-               opacity: 0.8,
-               transform: `translate3d(
-                        ${driftX * 0.55}px,
-                        ${driftY * 0.55}px,
-                        0
-                     )
-                     scale(${scale})`,
-               offset: 0.55,
-            },
-            {
-               opacity: 0.35,
-               transform: `translate3d(
-                        ${driftX * 0.8}px,
-                        ${driftY * 0.8}px,
-                        0
-                     )
-                     scale(${scale * 0.82})`,
-               offset: 0.82,
+               opacity: 0.85,
+               transform: `${drift(0.65)} scale(${scale})`,
+               offset: 0.65,
+               easing: "ease-in",
             },
             {
                opacity: 0,
-               transform: `translate3d(
-                        ${driftX}px,
-                        ${driftY}px,
-                        0
-                     )
-                     scale(${scale * 0.55})`,
+               transform: `${drift(1)} scale(${scale * 0.6})`,
             },
          ],
          {
             duration,
-            easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+            easing: "linear",
             fill: "forwards",
          }
       );
@@ -250,6 +235,7 @@
 
          activeAnimations[index] = undefined;
          animation.cancel();
+         starElement.classList.remove("is-active");
 
          scheduleNext(starElement, index);
       };
@@ -280,6 +266,7 @@
          starTimeouts.forEach((timeout) => clearTimeout(timeout));
          shootingTimeouts.forEach((timeout) => clearTimeout(timeout));
          activeAnimations.forEach((animation) => animation?.cancel());
+         starElements.forEach((starElement) => starElement?.classList.remove("is-active"));
          shootingAnimations.forEach((animations) =>
             animations?.forEach((animation) => animation.cancel())
          );
@@ -319,7 +306,7 @@
       height: var(--shooting-size, 12px);
       opacity: 0;
       will-change: transform, opacity;
-      filter: drop-shadow(0 0 5px var(--shooting-color));
+      filter: drop-shadow(0 0 6px var(--shooting-color));
    }
 
    .shooting-trail {
@@ -343,11 +330,15 @@
       display: block;
       width: 100%;
       height: 100%;
-      fill: color-mix(in srgb, var(--shooting-color) 65%, white);
+      fill: color-mix(in srgb, var(--shooting-color) 50%, white);
    }
 
    @media (prefers-reduced-motion: reduce) {
       .shooting-star-layer {
+         display: none;
+      }
+
+      .magic-star {
          display: none;
       }
    }
@@ -381,14 +372,17 @@
 
       opacity: 0.95;
 
-      filter: drop-shadow(0 0 calc(0.35rem * var(--star-glow, 0.6)) white)
-         drop-shadow(0 0 calc(0.7rem * var(--star-glow, 0.6)) var(--star-color))
+      filter: drop-shadow(0 0 calc(0.7rem * var(--star-glow, 0.6)) var(--star-color))
          drop-shadow(
             0 0 calc(1.15rem * var(--star-glow, 0.6))
                color-mix(in srgb, var(--star-color) 45%, transparent)
          );
 
       animation: rotate var(--star-spin-duration, 4000ms) linear infinite;
+   }
+
+   .magic-star:not(.is-active) > svg {
+      animation-play-state: paused;
    }
 
    .magic-star > svg > path {
