@@ -2,6 +2,8 @@
 <html lang="en">
    <head>
       <meta charset="utf-8" />
+      <link rel="preconnect" href="https://lanyard.kyrie25.dev" crossorigin />
+      <link rel="dns-prefetch" href="https://lanyard.kyrie25.dev" />
       <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -14,6 +16,18 @@
          name="viewport"
          content="width=device-width, height=device-height, initial-scale=0.85, maximum-scale=1.0, user-scalable=no"
       />
+      <script>
+         try {
+            const stored = localStorage.getItem("theme");
+            const dark =
+               stored === "dark" ||
+               (stored !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+            if (dark) {
+               document.documentElement.style.setProperty("--bg", "#232a44");
+               document.documentElement.style.setProperty("--uwu", "#f7f8f3");
+            }
+         } catch {}
+      </script>
       %sveltekit.head%
    </head>
    <body>

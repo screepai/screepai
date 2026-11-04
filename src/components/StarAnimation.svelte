@@ -1,7 +1,11 @@
 <script lang="ts">
    import AmbientStars from "./AmbientStars.svelte";
    import PointerTrailStars from "./PointerTrailStars.svelte";
-   export let darkMode = false;
+   interface Props {
+      darkMode?: boolean;
+   }
+
+   let { darkMode = false }: Props = $props();
 </script>
 
 <AmbientStars {darkMode} />

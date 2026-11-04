@@ -1,3 +1,11 @@
+import lightAvif from "#lib/assets/background2.avif";
+import lightJpg from "#lib/assets/background2.jpg";
+import lightWebp from "#lib/assets/background2.webp";
+import darkAvif from "#lib/assets/sw.avif";
+import darkJpg from "#lib/assets/sw.jpg";
+import darkWebp from "#lib/assets/sw.webp";
+import { getBestImageFormat, type ImageFormat } from "../utils/imageFormat";
+
 export const themeNames = ["light", "dark"] as const;
 
 export type ThemeName = (typeof themeNames)[number];
@@ -10,9 +18,11 @@ type DiscordThemeConfig = {
    gradient: string;
 };
 
+type BackgroundSources = Record<ImageFormat, string>;
+
 type ThemeDefinition = {
    bodyBackground: string;
-   backgroundImage: string;
+   backgroundSources: BackgroundSources;
    backgroundPosition: string;
    backgroundSize: string;
    cssVars: Record<string, string>;
@@ -22,9 +32,8 @@ type ThemeDefinition = {
 export const themeDefinitions: Record<ThemeName, ThemeDefinition> = {
    light: {
       bodyBackground: "#f7f8f3",
-      backgroundImage: "/background2.jpg",
+      backgroundSources: { avif: lightAvif, webp: lightWebp, jpg: lightJpg },
       backgroundPosition: "center -3.5em",
-      // "cover" plus the 3.5em upward shift, so the bottom edge never shows (image is 3200x1670)
       backgroundSize: "max(100%, calc((106vh + 3.5em) * 3200 / 1670)) auto",
       cssVars: {
          "--profile-left": "-80%",
@@ -48,7 +57,7 @@ export const themeDefinitions: Record<ThemeName, ThemeDefinition> = {
    },
    dark: {
       bodyBackground: "#232a44",
-      backgroundImage: "/sw.jpg",
+      backgroundSources: { avif: darkAvif, webp: darkWebp, jpg: darkJpg },
       backgroundPosition: "center center",
       backgroundSize: "cover",
       cssVars: {
@@ -86,8 +95,12 @@ function isThemeName(value: string | null): value is ThemeName {
 }
 
 export function getStoredTheme() {
-   const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-   return isThemeName(storedTheme) ? storedTheme : null;
+   try {
+      const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      return isThemeName(storedTheme) ? storedTheme : null;
+   } catch {
+      return null;
+   }
 }
 
 export function getSystemTheme() {
@@ -112,7 +125,11 @@ export function applyTheme(theme: ThemeName) {
 }
 
 export function saveTheme(theme: ThemeName) {
-   localStorage.setItem(THEME_STORAGE_KEY, theme);
+   try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+   } catch {
+      return;
+   }
 }
 
 export function toggleTheme(theme: ThemeName) {
@@ -134,7 +151,7 @@ export function watchSystemTheme(onChange: (theme: ThemeName) => void) {
    };
 }
 
-export function getDiscordUrl(theme: ThemeName) {
+export function getDiscordUrl(theme: ThemeName, animated = true) {
    const { discord } = getThemeDefinition(theme);
    const bg = "FBFBFB";
    const idleMessage = "( ´ ω ` )ノﾞ";
@@ -142,12 +159,18 @@ export function getDiscordUrl(theme: ThemeName) {
    const hideNameplate = "false";
    const useDisplayName = "false";
    const forceGradient = "true";
-   const animatedDecoration = "true";
+   const animatedDecoration = String(animated);
 
    return `https://lanyard.kyrie25.dev/api/${DISCORD_USER_ID}?theme=${theme}&bg=${bg}&idleMessage=${encodeURIComponent(idleMessage)}&hideBadges=${hideBadges}&hideNameplate=${hideNameplate}&useDisplayName=${useDisplayName}&waveColor=${discord.waveColor}&waveSpotifyColor=${discord.waveColor}&gradient=${discord.gradient}&forceGradient=${forceGradient}&animatedDecoration=${animatedDecoration}`;
 }
 
-export const backgroundImageUrls = themeNames.map(
-   (theme) => getThemeDefinition(theme).backgroundImage
-);
-export const discordImageUrls = themeNames.map(getDiscordUrl);
+export function getBackgroundUrlsFor(format: ImageFormat) {
+   return {
+      light: getThemeDefinition("light").backgroundSources[format],
+      dark: getThemeDefinition("dark").backgroundSources[format],
+   } satisfies Record<ThemeName, string>;
+}
+
+export async function getBackgroundUrls() {
+   return getBackgroundUrlsFor(await getBestImageFormat());
+}

@@ -1,16 +1,21 @@
 <script lang="ts">
    import type { ContentSlide } from "../../../config/contents";
-   import type { InterestsResponse } from "$lib/interests/types";
+   import type { InterestsResponse } from "#lib/interests/types.js";
    import GamesCard from "../interests/GamesCard.svelte";
    import MusicCard from "../interests/MusicCard.svelte";
    import MediaInterestCard from "../interests/MediaInterestCard.svelte";
 
-   export let slide: Extract<ContentSlide, { kind: "interests" }>;
-   export let interestsData: InterestsResponse | null;
-   export let interestsLoading: boolean;
-   export let interestsError: string;
-   export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
-   export let hideTooltip: (event?: Event) => void;
+   interface Props {
+      slide: Extract<ContentSlide, { kind: "interests" }>;
+      interestsData: InterestsResponse | null;
+      interestsLoading: boolean;
+      interestsError: string;
+      showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+      hideTooltip: (event?: Event) => void;
+   }
+
+   let { slide, interestsData, interestsLoading, interestsError, showTooltip, hideTooltip }: Props =
+      $props();
 </script>
 
 <div class="interest-board">
@@ -30,7 +35,7 @@
          delay={350}
          collection={interestsData.visualNovels}
          picks={slide.memoryPicks.visualNovels}
-         memoryLabel="oh how i wish i could forget these VNs to experience them anew"
+         memoryLabel="would wipe my memory to read these again"
          sourceLabel="pulled from VNDB ↗"
          {showTooltip}
          {hideTooltip}
@@ -42,7 +47,7 @@
          delay={180}
          collection={interestsData.anime}
          picks={slide.memoryPicks.anime}
-         memoryLabel="id wipe my memory of these anime if i could"
+         memoryLabel="would wipe my memory to watch these again"
          sourceLabel="from MyAnimeList ↗"
          {showTooltip}
          {hideTooltip}
@@ -54,7 +59,7 @@
          delay={265}
          collection={interestsData.manga}
          picks={slide.memoryPicks.manga}
-         memoryLabel="i can read these again and again and still enjoy them"
+         memoryLabel="still rereading these"
          sourceLabel="from MyAnimeList ↗"
          {showTooltip}
          {hideTooltip}

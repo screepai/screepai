@@ -1,8 +1,12 @@
 <script lang="ts">
-   import type { MusicCollection } from "$lib/interests/types";
+   import type { MusicCollection } from "#lib/interests/types.js";
    import InterestCard from "./InterestCard.svelte";
 
-   export let music: MusicCollection;
+   interface Props {
+      music: MusicCollection;
+   }
+
+   let { music }: Props = $props();
 </script>
 
 <InterestCard

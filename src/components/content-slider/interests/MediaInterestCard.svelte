@@ -1,18 +1,33 @@
 <script lang="ts">
-   import type { InterestCollection, RankedInterest } from "$lib/interests/types";
+   import type { InterestCollection, RankedInterest } from "#lib/interests/types.js";
    import type { MemoryWipePick } from "../../../config/contents";
    import InterestCard from "./InterestCard.svelte";
 
-   export let kind: "vn" | "anime" | "manga";
-   export let title: string;
-   export let kicker: string;
-   export let delay: number;
-   export let collection: InterestCollection;
-   export let picks: readonly MemoryWipePick[];
-   export let memoryLabel: string;
-   export let sourceLabel: string;
-   export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
-   export let hideTooltip: (event?: Event) => void;
+   interface Props {
+      kind: "vn" | "anime" | "manga";
+      title: string;
+      kicker: string;
+      delay: number;
+      collection: InterestCollection;
+      picks: readonly MemoryWipePick[];
+      memoryLabel: string;
+      sourceLabel: string;
+      showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+      hideTooltip: (event?: Event) => void;
+   }
+
+   let {
+      kind,
+      title,
+      kicker,
+      delay,
+      collection,
+      picks,
+      memoryLabel,
+      sourceLabel,
+      showTooltip,
+      hideTooltip,
+   }: Props = $props();
 
    function interestTooltip(interest: RankedInterest) {
       const examples = interest.examples.map((example) => example.title).join(" · ");
@@ -38,12 +53,12 @@
             class="interest-tag"
             class:interest-tag-main={i === 0}
             aria-describedby="profile-tooltip"
-            on:mouseenter={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
-            on:mousemove={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
-            on:mouseleave={hideTooltip}
-            on:focus={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
-            on:blur={hideTooltip}
-            on:click={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
+            onmouseenter={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
+            onmousemove={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
+            onmouseleave={hideTooltip}
+            onfocus={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
+            onblur={hideTooltip}
+            onclick={(event) => showTooltip(event, interest.name, interestTooltip(interest))}
          >
             {interest.name}
          </button>
@@ -51,20 +66,22 @@
    </div>
    <div class="memory-wipe">
       <span class="memory-wipe-label">{memoryLabel}</span>
-      {#each picks as pick (pick.title)}
-         <div class="memory-wipe-entry">
-            {#if pick.url}
-               <a class="memory-wipe-title" href={pick.url} target="_blank" rel="noreferrer"
-                  >{pick.title}</a
-               >
-            {:else}
-               <span class="memory-wipe-title">{pick.title}</span>
-            {/if}
-            {#if pick.note}
-               <p>{pick.note}</p>
-            {/if}
-         </div>
-      {/each}
+      <ul class="memory-wipe-list">
+         {#each picks as pick (pick.title)}
+            <li class="memory-wipe-entry" class:has-note={pick.note}>
+               {#if pick.url}
+                  <a class="memory-wipe-title" href={pick.url} target="_blank" rel="noreferrer"
+                     >{pick.title}</a
+                  >
+               {:else}
+                  <span class="memory-wipe-title">{pick.title}</span>
+               {/if}
+               {#if pick.note}
+                  <p>{pick.note}</p>
+               {/if}
+            </li>
+         {/each}
+      </ul>
    </div>
 </InterestCard>
 
@@ -141,13 +158,34 @@
       letter-spacing: 0.03em;
    }
 
-   .memory-wipe-entry {
+   .memory-wipe-list {
       display: grid;
-      gap: 0.12em;
+      gap: 0.3em;
+      margin: 0;
+      padding: 0;
    }
 
-   .memory-wipe-entry + .memory-wipe-entry {
-      margin-top: 0.45em;
+   .memory-wipe-entry {
+      position: relative;
+      display: grid;
+      gap: 0.18em;
+      padding-left: 1em;
+   }
+
+   .memory-wipe-entry::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      top: 0.32em;
+      color: var(--fill);
+      opacity: 0.55;
+      font-size: 0.56em;
+      line-height: 1;
+   }
+
+   .memory-wipe-entry.has-note:not(:first-child),
+   .memory-wipe-entry.has-note + .memory-wipe-entry {
+      margin-top: 0.3em;
    }
 
    .memory-wipe-title {
@@ -165,6 +203,8 @@
 
    .memory-wipe-entry p {
       margin: 0;
+      padding-left: 0.6em;
+      border-left: 1.5px solid color-mix(in srgb, var(--fill) 22%, transparent);
       color: #8b8b8b;
       font-size: 0.7em;
       line-height: 1.32;

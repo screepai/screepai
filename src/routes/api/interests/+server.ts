@@ -1,6 +1,14 @@
-import { json, type RequestHandler } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
 
-import { env } from "$env/dynamic/private";
+import {
+   MAL_USERNAME,
+   MAL_CLIENT_ID,
+   MAL_ACCESS_TOKEN,
+   VNDB_USER,
+   VNDB_TOKEN,
+   LASTFM_USERNAME,
+   LASTFM_API_KEY,
+} from "$app/env/private";
 
 import { aggregateInterests, emptyInterestCollection } from "../../../lib/interests/score";
 
@@ -25,90 +33,35 @@ export const GET: RequestHandler = async ({ fetch, setHeaders }) => {
    });
 
    const warnings: string[] = [];
+   const malUsername = MAL_USERNAME.trim();
+   const malClientId = MAL_CLIENT_ID.trim();
+   const malAccessToken = MAL_ACCESS_TOKEN.trim();
+   const vndbUser = VNDB_USER.trim();
+   const vndbToken = VNDB_TOKEN.trim();
+   const lastfmUsername = LASTFM_USERNAME.trim();
+   const lastfmApiKey = LASTFM_API_KEY.trim();
 
-   const malUsername = env.MAL_USERNAME?.trim();
+   const malConfig =
+      malUsername && malClientId
+         ? {
+              username: malUsername,
 
-   const malClientId = env.MAL_CLIENT_ID?.trim();
+              clientId: malClientId,
 
-   const malAccessToken = env.MAL_ACCESS_TOKEN?.trim();
+              accessToken: malAccessToken || undefined,
+           }
+         : null;
 
-   const vndbUser = env.VNDB_USER?.trim();
-
-   const vndbToken = env.VNDB_TOKEN?.trim();
-
-   const lastfmUsername = env.LASTFM_USERNAME?.trim();
-
-   const lastfmApiKey = env.LASTFM_API_KEY?.trim();
-
-   let animeEntries: MediaEntry[] = [];
-
-   let mangaEntries: MediaEntry[] = [];
-
-   let vnEntries: MediaEntry[] = [];
-
-   let vndbProfileUrl = "";
-
-   /*
-    * MAL
-    */
-   if (malUsername && malClientId) {
-      const config = {
-         username: malUsername,
-
-         clientId: malClientId,
-
-         accessToken: malAccessToken || undefined,
-      };
-
-      const [animeResult, mangaResult] = await Promise.allSettled([
-         fetchMalAnime(config, fetch),
-
-         fetchMalManga(config, fetch),
-      ]);
-
-      if (animeResult.status === "fulfilled") {
-         animeEntries = animeResult.value;
-      } else {
-         console.error(animeResult.reason);
-
-         warnings.push("Anime data could not be loaded.");
-      }
-
-      if (mangaResult.status === "fulfilled") {
-         mangaEntries = mangaResult.value;
-      } else {
-         console.error(mangaResult.reason);
-
-         warnings.push("Manga data could not be loaded.");
-      }
-   } else {
-      warnings.push("MAL_USERNAME or MAL_CLIENT_ID is missing.");
+   if (!malConfig) {
+      console.warn("MAL_USERNAME or MAL_CLIENT_ID is missing.");
    }
 
-   /*
-    * VNDB
-    */
-   if (vndbUser) {
-      try {
-         const result = await fetchVndbVisualNovels(
-            {
-               user: vndbUser,
+   if (!vndbUser) {
+      console.warn("VNDB_USER is missing.");
+   }
 
-               token: vndbToken || undefined,
-            },
-            fetch
-         );
-
-         vnEntries = result.entries;
-
-         vndbProfileUrl = `https://vndb.org/${result.user.id}`;
-      } catch (error) {
-         console.error(error);
-
-         warnings.push("VNDB data could not be loaded.");
-      }
-   } else {
-      warnings.push("VNDB_USER is missing.");
+   if (!lastfmUsername || !lastfmApiKey) {
+      console.warn("LASTFM_USERNAME or LASTFM_API_KEY is missing.");
    }
 
    const malProfileUrl = malUsername
@@ -129,14 +82,66 @@ export const GET: RequestHandler = async ({ fetch, setHeaders }) => {
       tracks: [],
    };
 
-   if (lastfmUsername && lastfmApiKey) {
-      try {
-         music = await fetchLastfmTopTracks(lastfmUsername, lastfmApiKey, fetch);
-      } catch (error) {
-         console.error(error);
+   const [animeResult, mangaResult, vndbResult, lastfmResult] = await Promise.allSettled([
+      malConfig ? fetchMalAnime(malConfig, fetch) : Promise.resolve(null),
 
-         warnings.push("Last.fm data could not be loaded.");
-      }
+      malConfig ? fetchMalManga(malConfig, fetch) : Promise.resolve(null),
+
+      vndbUser
+         ? fetchVndbVisualNovels({ user: vndbUser, token: vndbToken || undefined }, fetch)
+         : Promise.resolve(null),
+
+      lastfmUsername && lastfmApiKey
+         ? fetchLastfmTopTracks(lastfmUsername, lastfmApiKey, fetch)
+         : Promise.resolve(null),
+   ]);
+
+   let animeEntries: MediaEntry[] = [];
+
+   let mangaEntries: MediaEntry[] = [];
+
+   let vnEntries: MediaEntry[] = [];
+
+   let vndbProfileUrl = "";
+
+   if (animeResult.status === "rejected") {
+      console.error(animeResult.reason);
+
+      warnings.push("Anime data could not be loaded.");
+   } else if (animeResult.value) {
+      animeEntries = animeResult.value;
+   } else {
+      warnings.push("Anime data is unavailable.");
+   }
+
+   if (mangaResult.status === "rejected") {
+      console.error(mangaResult.reason);
+
+      warnings.push("Manga data could not be loaded.");
+   } else if (mangaResult.value) {
+      mangaEntries = mangaResult.value;
+   } else {
+      warnings.push("Manga data is unavailable.");
+   }
+
+   if (vndbResult.status === "rejected") {
+      console.error(vndbResult.reason);
+
+      warnings.push("Visual novel data could not be loaded.");
+   } else if (vndbResult.value) {
+      vnEntries = vndbResult.value.entries;
+
+      vndbProfileUrl = `https://vndb.org/${vndbResult.value.user.id}`;
+   } else {
+      warnings.push("Visual novel data is unavailable.");
+   }
+
+   if (lastfmResult.status === "rejected") {
+      console.error(lastfmResult.reason);
+
+      warnings.push("Last.fm data could not be loaded.");
+   } else if (lastfmResult.value) {
+      music = lastfmResult.value;
    }
 
    const response: InterestsResponse = {
@@ -195,5 +200,5 @@ export const GET: RequestHandler = async ({ fetch, setHeaders }) => {
       warnings,
    };
 
-   return json(response);
+   return Response.json(response);
 };

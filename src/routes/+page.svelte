@@ -12,9 +12,10 @@
    import { ANIMATION } from "../config/animation";
    import {
       applyTheme,
+      getBackgroundUrls,
+      getBackgroundUrlsFor,
       getDiscordUrl,
       getInitialTheme,
-      getThemeDefinition,
       isDarkTheme,
       saveTheme,
       themeFromDarkMode,
@@ -22,16 +23,18 @@
       watchSystemTheme,
       type ThemeName,
    } from "../config/theme";
-   import { preloadImages } from "../utils/preload";
-   import { preloadInterests } from "$lib/interests/client";
+   import { preloadImage, preloadImages } from "../utils/preload";
+   import introFontUrl from "@fontsource/inter-tight/files/inter-tight-latin-200-normal.woff2?url";
+   import { preloadInterests } from "#lib/interests/client.js";
 
    import "../styles/global.css";
 
-   let darkMode = false;
-   let transitionEnd = true;
+   let darkMode = $state(false);
+   let transitionEnd = $state(true);
    let themeTransitionTimeout: ReturnType<typeof setTimeout> | undefined;
-   let introPhase: IntroPhase = "hidden";
+   let introPhase = $state<IntroPhase>("hidden");
    let introRunId = 0;
+   let backgroundUrls = $state(getBackgroundUrlsFor("jpg"));
 
    type IntroPhase = "hidden" | "typing" | "wink" | "holdingWink" | "leaving" | "ready";
 
@@ -40,11 +43,13 @@
    const WINK_STAR_DURATION = 650;
    let introTimeouts: ReturnType<typeof setTimeout>[] = [];
 
-   $: visible = introPhase === "typing" || introPhase === "wink" || introPhase === "holdingWink";
-   $: ready = introPhase === "ready";
-   $: isWinking = introPhase === "wink" || introPhase === "holdingWink";
-   $: winkStarVisible = introPhase === "wink";
-   $: displayOwo = isWinking ? WINK_TEXT : OWO_TEXT;
+   let visible = $derived(
+      introPhase === "typing" || introPhase === "wink" || introPhase === "holdingWink"
+   );
+   let ready = $derived(introPhase === "ready");
+   let isWinking = $derived(introPhase === "wink" || introPhase === "holdingWink");
+   let winkStarVisible = $derived(introPhase === "wink");
+   let displayOwo = $derived(isWinking ? WINK_TEXT : OWO_TEXT);
 
    function setTheme(theme: ThemeName) {
       darkMode = isDarkTheme(theme);
@@ -63,13 +68,10 @@
       }, ANIMATION.TRANSITION.THEME_DURATION);
    }
 
-   function preloadOtherThemeAssets(currentTheme: ThemeName) {
+   function preloadOtherThemeAssets(currentTheme: ThemeName, urls: Record<ThemeName, string>) {
       const otherTheme = toggleTheme(currentTheme);
 
-      const otherThemeUrls = [
-         getThemeDefinition(otherTheme).backgroundImage,
-         getDiscordUrl(otherTheme),
-      ];
+      const otherThemeUrls = [urls[otherTheme], getDiscordUrl(otherTheme, false)];
 
       setTimeout(() => {
          void preloadImages(otherThemeUrls);
@@ -79,15 +81,16 @@
    async function preloadIntroAssets() {
       const currentTheme = themeFromDarkMode(darkMode);
 
-      const introUrls = [
-         getThemeDefinition(currentTheme).backgroundImage,
-         getDiscordUrl("light"),
-         getDiscordUrl("dark"),
-      ];
+      const backgroundReady = getBackgroundUrls().then(async (urls) => {
+         backgroundUrls = urls;
+         await preloadImage(urls[currentTheme]);
 
-      await preloadImages(introUrls);
+         return urls;
+      });
 
-      preloadOtherThemeAssets(currentTheme);
+      await preloadImage(getDiscordUrl(currentTheme, false));
+
+      preloadOtherThemeAssets(currentTheme, await backgroundReady);
    }
 
    function getInitialAnimationDelay() {
@@ -171,7 +174,10 @@
    <meta property="og:type" content="website" />
    <meta property="og:site_name" content="seepie" />
    <meta property="twitter:card" content="summary_large_image" />
-   <meta property="og:image" content="/og.png" />
+   <meta property="og:image" content="/og.jpg" />
+   <meta property="og:image:width" content="1200" />
+   <meta property="og:image:height" content="676" />
+   <link rel="preload" as="font" type="font/woff2" href={introFontUrl} crossorigin="anonymous" />
 </svelte:head>
 
 <svg
@@ -233,7 +239,7 @@
    </div>
 {/if}
 {#if ready}
-   <ParallaxBackground {darkMode} {transitionEnd} />
+   <ParallaxBackground {backgroundUrls} {darkMode} {transitionEnd} />
    <div
       use:parallax
       transition:fade={{

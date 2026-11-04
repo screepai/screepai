@@ -1,12 +1,16 @@
 <script lang="ts">
    import type { ContentSlide } from "../../../config/contents";
    import { animateOnScroll } from "../../../actions/animateOnScroll";
-   export let slide: Extract<
-      ContentSlide,
-      {
-         kind: "credits";
-      }
-   >;
+   interface Props {
+      slide: Extract<
+         ContentSlide,
+         {
+            kind: "credits";
+         }
+      >;
+   }
+
+   let { slide }: Props = $props();
 </script>
 
 <ul class="content-list">

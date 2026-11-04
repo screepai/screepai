@@ -7,13 +7,10 @@ import type {
    RankedInterest,
 } from "./types";
 import { selectInterestExamples } from "./examples";
-
-function clamp(value: number, min = 0, max = 1) {
-   return Math.min(max, Math.max(min, value));
-}
+import { clamp01 } from "./util";
 
 function getConsumptionWeight(status: MediaStatus, progress: number | null) {
-   const safeProgress = progress === null ? null : clamp(progress);
+   const safeProgress = progress === null ? null : clamp01(progress);
 
    switch (status) {
       case "completed":
@@ -89,7 +86,7 @@ export function aggregateInterests({
       analyzedEntries++;
 
       for (const signal of entry.signals) {
-         const strength = clamp(signal.strength);
+         const strength = clamp01(signal.strength);
 
          if (strength <= 0) {
             continue;

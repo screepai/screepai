@@ -1,5 +1,5 @@
 <script lang="ts">
-   import type { InterestsResponse } from "$lib/interests/types";
+   import type { InterestsResponse } from "#lib/interests/types.js";
    import { swipeIn, swipeOut, playOutAnimations } from "../utils/sliderAnimations";
    import {
       nextFrame,
@@ -18,21 +18,24 @@
    import SliderPagination from "./content-slider/SliderPagination.svelte";
    import { onMount, tick } from "svelte";
    import { contentSlides } from "../config/contents";
-   import { preloadInterests } from "$lib/interests/client";
+   import { preloadInterests } from "#lib/interests/client.js";
 
-   let activeIndex = 0;
-   let direction = 1;
-   let slideViewport: HTMLDivElement | null = null;
-   let sliderRoot: HTMLDivElement | null = null;
-   let changingSlide = false;
-   let tooltip: TooltipState | null = null;
-   let tooltipArrowOffset = 0;
-   let scrollRegion: HTMLDivElement | null = null;
-   let interestsData: InterestsResponse | null = null;
-   let interestsLoading = false;
-   let interestsError = "";
+   const SLIDE_SETTLE_MS = 440;
 
-   $: activeSlide = contentSlides[activeIndex];
+   let activeIndex = $state(0);
+   let direction = $state(1);
+   let slideViewport: HTMLDivElement | null = $state(null);
+   let sliderRoot: HTMLDivElement | null = $state(null);
+   let changingSlide = $state(false);
+   let tooltip: TooltipState | null = $state(null);
+   let tooltipArrowOffset = $state(0);
+   let scrollRegion: HTMLDivElement | null = $state(null);
+   let interestsData: InterestsResponse | null = $state(null);
+   let interestsLoading = $state(false);
+   let interestsError = $state("");
+
+   let activeSlide = $derived(contentSlides[activeIndex]);
+   let settleTimeout: number | undefined;
 
    function showTooltip(event: MouseEvent | FocusEvent, name: string, text: string) {
       if (!sliderRoot) return;
@@ -87,23 +90,18 @@
       }
    }
 
-   function syncActiveSlideLayout() {
-      if (!slideViewport || !scrollRegion) {
-         return;
-      }
+   function fitViewportToPanel(panel: HTMLElement | null | undefined) {
+      if (!slideViewport || !scrollRegion || !panel) return;
       const viewport = slideViewport;
       const activeScrollRegion = scrollRegion;
-      const activePanel = getSlidePanel(viewport, activeIndex);
-      if (!activePanel) return;
-      const activeContent = activePanel.querySelector<HTMLElement>(".slide-content");
-      if (!activeContent) return;
+      const content = panel.querySelector<HTMLElement>(".slide-content");
+      if (!content) return;
       viewport.style.minHeight = "";
-      const targetHeight = activeContent.offsetHeight;
       const previousViewportTransition = viewport.style.transition;
       const previousScrollTransition = activeScrollRegion.style.transition;
       viewport.style.transition = "none";
       activeScrollRegion.style.transition = "none";
-      viewport.style.height = `${targetHeight}px`;
+      viewport.style.height = `${content.offsetHeight}px`;
       activeScrollRegion.style.height = "";
       void viewport.offsetHeight;
       void activeScrollRegion.offsetHeight;
@@ -111,27 +109,27 @@
       activeScrollRegion.style.transition = previousScrollTransition;
    }
 
-   function normalizeCurrentSlideLayout() {
-      if (!slideViewport || !scrollRegion) {
-         return;
-      }
-      const viewport = slideViewport;
-      const activeScrollRegion = scrollRegion;
-      const panels = viewport.querySelectorAll<HTMLElement>(".slide-panel");
-      const activePanel = panels[panels.length - 1];
-      if (!activePanel) return;
-      const activeContent = activePanel.querySelector<HTMLElement>(".slide-content");
-      if (!activeContent) return;
-      const previousViewportTransition = viewport.style.transition;
-      const previousScrollTransition = activeScrollRegion.style.transition;
-      viewport.style.transition = "none";
-      activeScrollRegion.style.transition = "none";
-      viewport.style.height = `${activeContent.offsetHeight}px`;
-      activeScrollRegion.style.height = "";
-      viewport.style.minHeight = "";
-      void viewport.offsetHeight;
-      viewport.style.transition = previousViewportTransition;
-      activeScrollRegion.style.transition = previousScrollTransition;
+   function syncActiveSlideLayout() {
+      if (!slideViewport) return;
+      fitViewportToPanel(getSlidePanel(slideViewport, activeIndex));
+   }
+
+   function settleSlideLayout(previousMinHeight: string) {
+      if (!slideViewport || !scrollRegion) return;
+      slideViewport.style.minHeight = previousMinHeight;
+      scrollRegion.style.height = "";
+      const panels = slideViewport.querySelectorAll<HTMLElement>(".slide-panel");
+      fitViewportToPanel(panels[panels.length - 1]);
+   }
+
+   function waitForSettle(previousMinHeight: string) {
+      return new Promise<void>((resolve) => {
+         settleTimeout = window.setTimeout(() => {
+            settleTimeout = undefined;
+            settleSlideLayout(previousMinHeight);
+            resolve();
+         }, SLIDE_SETTLE_MS);
+      });
    }
 
    async function changeSlide(nextIndex: number) {
@@ -139,59 +137,51 @@
          return;
       }
       changingSlide = true;
-      tooltip = null;
-      const viewport = slideViewport;
-      const currentHeight = viewport.getBoundingClientRect().height;
-      const currentScrollRegion = scrollRegion;
-      const previousScrollTop = currentScrollRegion?.scrollTop ?? 0;
-      const previousMinHeight = viewport.style.minHeight;
-      if (currentScrollRegion && previousScrollTop > 0) {
-         viewport.style.minHeight = `${viewport.scrollHeight}px`;
-      }
-      viewport.style.height = `${currentHeight}px`;
-      direction = nextIndex > activeIndex ? 1 : -1;
-      const outgoingPanel = getSlidePanel(viewport, activeIndex);
-      if (outgoingPanel) {
-         playOutAnimations(outgoingPanel, direction);
-      }
-      await nextFrame();
-      activeIndex = nextIndex;
-      await tick();
-      const activeScrollRegion = scrollRegion;
-      if (!activeScrollRegion) {
+      try {
+         tooltip = null;
+         const viewport = slideViewport;
+         const currentHeight = viewport.getBoundingClientRect().height;
+         const currentScrollRegion = scrollRegion;
+         const previousScrollTop = currentScrollRegion?.scrollTop ?? 0;
+         const previousMinHeight = viewport.style.minHeight;
+         if (currentScrollRegion && previousScrollTop > 0) {
+            viewport.style.minHeight = `${viewport.scrollHeight}px`;
+         }
+         viewport.style.height = `${currentHeight}px`;
+         direction = nextIndex > activeIndex ? 1 : -1;
+         const outgoingPanel = getSlidePanel(viewport, activeIndex);
+         if (outgoingPanel) {
+            playOutAnimations(outgoingPanel, direction);
+         }
+         await nextFrame();
+         activeIndex = nextIndex;
+         await tick();
+         const activeScrollRegion = scrollRegion;
+         if (!activeScrollRegion) return;
+         if (previousScrollTop > 0) {
+            activeScrollRegion.scrollTop = previousScrollTop;
+         }
+         const incomingPanel = getSlidePanel(viewport, nextIndex);
+         const incomingContent = incomingPanel?.querySelector<HTMLElement>(".slide-content");
+         if (!incomingPanel || !incomingContent) return;
+         const targetHeight = incomingContent.offsetHeight;
+         const currentVisibleHeight = activeScrollRegion.getBoundingClientRect().height;
+         const targetVisibleHeight = measureVisibleTargetHeight(
+            incomingContent,
+            activeScrollRegion
+         );
+         incomingPanel.dataset.entryHeight = String(targetVisibleHeight);
+         activeScrollRegion.style.height = `${currentVisibleHeight}px`;
+         resetScrollSmoothly(activeScrollRegion);
+         await nextFrame();
+         requestAnimationFrame(() => {
+            viewport.style.height = `${targetHeight}px`;
+            activeScrollRegion.style.height = `${targetVisibleHeight}px`;
+         });
+         await waitForSettle(previousMinHeight);
+      } finally {
          changingSlide = false;
-         return;
       }
-      if (previousScrollTop > 0) {
-         activeScrollRegion.scrollTop = previousScrollTop;
-      }
-      const incomingPanel = getSlidePanel(viewport, nextIndex);
-      if (!incomingPanel) {
-         changingSlide = false;
-         return;
-      }
-      const incomingContent = incomingPanel.querySelector<HTMLElement>(".slide-content");
-      if (!incomingContent) {
-         changingSlide = false;
-         return;
-      }
-      const targetHeight = incomingContent.offsetHeight;
-      const currentVisibleHeight = activeScrollRegion.getBoundingClientRect().height;
-      const targetVisibleHeight = measureVisibleTargetHeight(incomingContent, activeScrollRegion);
-      incomingPanel.dataset.entryHeight = String(targetVisibleHeight);
-      activeScrollRegion.style.height = `${currentVisibleHeight}px`;
-      resetScrollSmoothly(activeScrollRegion);
-      await nextFrame();
-      requestAnimationFrame(() => {
-         viewport.style.height = `${targetHeight}px`;
-         activeScrollRegion.style.height = `${targetVisibleHeight}px`;
-      });
-      window.setTimeout(() => {
-         viewport.style.minHeight = previousMinHeight;
-         activeScrollRegion.style.height = "";
-         normalizeCurrentSlideLayout();
-         changingSlide = false;
-      }, 440);
    }
 
    function syncCurrentHeight() {
@@ -239,6 +229,7 @@
       document.addEventListener("visibilitychange", handleVisibilityChange);
       return () => {
          mounted = false;
+         clearTimeout(settleTimeout);
          window.removeEventListener("resize", syncCurrentHeight);
          document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
@@ -252,7 +243,7 @@
       class="slide-scroll"
       data-changing-slide={changingSlide}
       bind:this={scrollRegion}
-      on:scroll={hideTooltip}
+      onscroll={hideTooltip}
    >
       <div class="slide-viewport" bind:this={slideViewport}>
          {#key activeIndex}

@@ -1,10 +1,14 @@
 <script lang="ts">
-   export let visible: boolean;
+   interface Props {
+      visible: boolean;
+   }
+
+   let { visible }: Props = $props();
 
    function eraseDiscordNote(node: HTMLElement) {
       const paths = Array.from(node.querySelectorAll<SVGPathElement>("path"));
       const offsets = paths.map((path) => parseFloat(getComputedStyle(path).strokeDashoffset));
-      const label = node.querySelector<SVGTextElement>("text");
+      const label = node.querySelector<HTMLElement>(".discord-label");
       const labelOpacity = label ? getComputedStyle(label).opacity : "1";
 
       paths.forEach((path, index) => {
@@ -34,7 +38,7 @@
 
 {#if visible}
    <div class="discord-note" aria-hidden="true" out:eraseDiscordNote>
-      <svg viewBox="0 0 124 38" fill="none">
+      <svg viewBox="0 0 42 38" fill="none">
          <path
             class="arrow-body"
             d="M 4 31 C 20 34, 39 29, 39 18 C 40 11, 36 6, 32 3"
@@ -52,8 +56,8 @@
             stroke-linecap="round"
             stroke-linejoin="round"
          />
-         <text x="47" y="24" fill="currentColor" transform="rotate(-6 47 24)"> my discord ꉂ(˵˃ ᗜ ˂˵) </text>
       </svg>
+      <span class="discord-label">my discord <span class="kaomoji">ꉂ(˵˃ ᗜ ˂˵)</span></span>
    </div>
 {/if}
 
@@ -62,7 +66,9 @@
       position: absolute;
       top: 2px;
       left: calc(50% + 1.75rem);
-      width: min(7.75rem, calc(50% - 2.25rem));
+      right: 0.5rem;
+      display: flex;
+      align-items: flex-start;
       color: var(--fill);
       z-index: 3;
       pointer-events: none;
@@ -70,14 +76,24 @@
 
    .discord-note svg {
       display: block;
-      width: 100%;
+      flex: 0 0 42px;
+      width: 42px;
       overflow: visible;
    }
 
-   .discord-note text {
+   .discord-label {
+      min-width: 0;
+      margin: 14px 0 0 5px;
       font-family: "Inter Tight", sans-serif;
       font-size: 12px;
+      line-height: 1.2;
+      transform: rotate(-6deg);
+      transform-origin: 0 10px;
       animation: discord-label-appear 240ms ease-out 860ms both;
+   }
+
+   .kaomoji {
+      white-space: nowrap;
    }
 
    .discord-note path {
@@ -110,7 +126,7 @@
 
    @media (prefers-reduced-motion: reduce) {
       .discord-note path,
-      .discord-note text {
+      .discord-label {
          animation: none;
       }
    }

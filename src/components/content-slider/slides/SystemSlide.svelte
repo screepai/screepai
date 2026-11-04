@@ -1,12 +1,16 @@
 <script lang="ts">
    import type { ContentSlide } from "../../../config/contents";
    import { animateOnScroll } from "../../../actions/animateOnScroll";
-   export let slide: Extract<
-      ContentSlide,
-      {
-         kind: "system";
-      }
-   >;
+   interface Props {
+      slide: Extract<
+         ContentSlide,
+         {
+            kind: "system";
+         }
+      >;
+   }
+
+   let { slide }: Props = $props();
 </script>
 
 <div class="system-groups">

@@ -1,5 +1,7 @@
 import type { InterestSignal, MediaEntry, MediaStatus } from "../types";
 
+import { MAX_PAGES, REQUEST_TIMEOUT_MS, clamp01 } from "../util";
+
 type VndbUser = {
    id: string;
    username: string;
@@ -53,10 +55,6 @@ export type VndbConfig = {
    token?: string;
 };
 
-function clamp01(value: number) {
-   return Math.min(1, Math.max(0, value));
-}
-
 function createHeaders(token?: string) {
    const headers = new Headers();
 
@@ -76,6 +74,8 @@ async function resolveUser(config: VndbConfig, fetcher: typeof fetch): Promise<V
       `https://api.vndb.org/kana/user?q=${encodeURIComponent(requested)}`,
       {
          headers: createHeaders(config.token),
+
+         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       }
    );
 
@@ -191,11 +191,13 @@ export async function fetchVndbVisualNovels(
    let page = 1;
    let more = true;
 
-   while (more) {
+   while (more && page <= MAX_PAGES) {
       const response = await fetcher("https://api.vndb.org/kana/ulist", {
          method: "POST",
 
          headers: createHeaders(config.token),
+
+         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
 
          body: JSON.stringify({
             user: user.id,

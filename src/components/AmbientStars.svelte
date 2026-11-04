@@ -1,15 +1,19 @@
 <script lang="ts">
-   import { onMount } from "svelte";
+   import { onMount, untrack } from "svelte";
    import { star } from "../config/shapes";
-   export let darkMode = false;
+   interface Props {
+      darkMode?: boolean;
+   }
+
+   let { darkMode = false }: Props = $props();
 
    const magicStars = Array.from({ length: 5 }, (_, index) => index);
    const shootingStars = [0, 1, 2];
 
    const colors = ["--color1", "--color2", "--color3", "--color4"];
 
-   let starElements: HTMLElement[] = [];
-   let shootingElements: HTMLElement[] = [];
+   let starElements: HTMLElement[] = $state([]);
+   let shootingElements: HTMLElement[] = $state([]);
 
    const activeAnimations: (Animation | undefined)[] = Array(magicStars.length);
 
@@ -17,7 +21,7 @@
    const shootingTimeouts: (number | undefined)[] = [];
    const shootingAnimations: (Animation[] | undefined)[] = [];
    let burstTimeout: number | undefined;
-   let mounted = false;
+   let mounted = $state(false);
    let shootingDirection = -1;
 
    const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -35,7 +39,11 @@
       scheduleShootingBurst(true);
    }
 
-   $: if (mounted) resetShootingStars(darkMode);
+   $effect(() => {
+      if (!mounted) return;
+      const isDark = darkMode;
+      untrack(() => resetShootingStars(isDark));
+   });
 
    function scheduleShootingBurst(initial = false) {
       burstTimeout = window.setTimeout(

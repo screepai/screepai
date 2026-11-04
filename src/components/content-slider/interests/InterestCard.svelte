@@ -1,13 +1,29 @@
 <script lang="ts">
    import { animateOnScroll } from "../../../actions/animateOnScroll";
 
-   export let kind: "games" | "music" | "vn" | "anime" | "manga";
-   export let title: string;
-   export let kicker: string;
-   export let count: number | string;
-   export let delay: number;
-   export let sourceUrl = "";
-   export let sourceLabel = "";
+   import type { Snippet } from "svelte";
+
+   interface Props {
+      kind: "games" | "music" | "vn" | "anime" | "manga";
+      title: string;
+      kicker: string;
+      count: number | string;
+      delay: number;
+      sourceUrl?: string;
+      sourceLabel?: string;
+      children?: Snippet;
+   }
+
+   let {
+      kind,
+      title,
+      kicker,
+      count,
+      delay,
+      sourceUrl = "",
+      sourceLabel = "",
+      children,
+   }: Props = $props();
 </script>
 
 <div
@@ -30,7 +46,7 @@
          <span class="interest-count">{count}</span>
       </div>
 
-      <slot />
+      {@render children?.()}
 
       {#if sourceUrl}
          <a class="interest-source" href={sourceUrl} target="_blank" rel="noreferrer">

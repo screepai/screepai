@@ -1,6 +1,10 @@
 <script lang="ts">
-   export let darkMode: boolean;
-   export let onToggle: () => void = () => undefined;
+   interface Props {
+      darkMode: boolean;
+      onToggle?: () => void;
+   }
+
+   let { darkMode, onToggle = () => undefined }: Props = $props();
 </script>
 
 <label class="theme-toggle">
@@ -8,7 +12,7 @@
       class="toggle-checkbox"
       type="checkbox"
       checked={darkMode}
-      on:change={onToggle}
+      onchange={onToggle}
       aria-label="Toggle dark mode"
    />
 

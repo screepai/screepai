@@ -3,34 +3,9 @@ import ts from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import type { Linter } from "eslint";
 import svelte from "eslint-plugin-svelte";
+import globals from "globals";
 
 const tsRecommendedConfigs = ts.configs["flat/recommended"] as Linter.Config[];
-
-const browserGlobals = {
-   customElements: "readonly",
-   document: "readonly",
-   Element: "readonly",
-   HTMLImageElement: "readonly",
-   HTMLElement: "readonly",
-   Image: "readonly",
-   localStorage: "readonly",
-   MediaQueryList: "readonly",
-   MouseEvent: "readonly",
-   setInterval: "readonly",
-   setTimeout: "readonly",
-   clearInterval: "readonly",
-   clearTimeout: "readonly",
-   Touch: "readonly",
-   TouchEvent: "readonly",
-   window: "readonly",
-};
-
-const nodeGlobals = {
-   console: "readonly",
-   module: "readonly",
-   process: "readonly",
-   require: "readonly",
-};
 
 export default [
    {
@@ -45,8 +20,8 @@ export default [
          ecmaVersion: "latest",
          sourceType: "module",
          globals: {
-            ...browserGlobals,
-            ...nodeGlobals,
+            ...globals.browser,
+            ...globals.node,
          },
       },
    },

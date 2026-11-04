@@ -1,5 +1,7 @@
 import type { MusicCollection, MusicTrack } from "../types";
 
+import { REQUEST_TIMEOUT_MS } from "../util";
+
 type LastfmTrack = {
    name: string;
 
@@ -107,6 +109,8 @@ export async function fetchLastfmTopTracks(
 
          "User-Agent": "screepai/1.0 (https://screepy.vercel.app)",
       },
+
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
    });
 
    const raw = await response.text();

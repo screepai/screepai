@@ -1,27 +1,66 @@
 <script lang="ts">
+   import { onMount, untrack } from "svelte";
    import { ANIMATION } from "../config/animation";
-   import { getDiscordUrl } from "../config/theme";
+   import {
+      getDiscordUrl,
+      themeFromDarkMode,
+      themeNames,
+      toggleTheme,
+      type ThemeName,
+   } from "../config/theme";
+   import { preloadImage } from "../utils/preload";
 
-   export let darkMode: boolean;
+   interface Props {
+      darkMode: boolean;
+   }
 
-   const lightUrl = getDiscordUrl("light");
-   const darkUrl = getDiscordUrl("dark");
+   type CardQuality = "static" | "animated";
 
-   let cardRatio = "410 / 190";
+   type CardState = {
+      src: string | undefined;
+      quality: CardQuality;
+      staticLoaded: boolean;
+      upgradeStarted: boolean;
+      failed: boolean;
+      retries: number;
+   };
 
-   let lightFailed = false;
-   let darkFailed = false;
-
-   let lightRetries = 0;
-   let darkRetries = 0;
-
-   $: discordFailed = darkMode ? darkFailed : lightFailed;
-
-   let lightSrc = lightUrl;
-
-   let darkSrc = darkUrl;
+   let { darkMode }: Props = $props();
 
    const MAX_HEADER_RETRIES = 3;
+   const ANIMATED_PRELOAD_TIMEOUT = 30000;
+   const IDLE_PREFETCH_TIMEOUT = 3000;
+
+   const cardUrls: Record<ThemeName, Record<CardQuality, string>> = {
+      light: { static: getDiscordUrl("light", false), animated: getDiscordUrl("light") },
+      dark: { static: getDiscordUrl("dark", false), animated: getDiscordUrl("dark") },
+   };
+
+   function createCard(): CardState {
+      return {
+         src: undefined,
+         quality: "static",
+         staticLoaded: false,
+         upgradeStarted: false,
+         failed: false,
+         retries: 0,
+      };
+   }
+
+   let cardRatio = $state("410 / 190");
+
+   let cards = $state<Record<ThemeName, CardState>>({
+      light: createCard(),
+      dark: createCard(),
+   });
+
+   let activeTheme = $derived(themeFromDarkMode(darkMode));
+   let discordFailed = $derived(cards[activeTheme].failed);
+
+   let destroyed = false;
+   let prefetchScheduled = false;
+   let idleCallbackId: number | undefined;
+   let prefetchTimeoutId: ReturnType<typeof setTimeout> | undefined;
 
    function retryUrl(url: string) {
       const separator = url.includes("?") ? "&" : "?";
@@ -29,33 +68,54 @@
       return url + separator + "_retry=" + Date.now();
    }
 
-   function retryHeader(theme: "light" | "dark") {
-      if (theme === "light") {
-         lightFailed = true;
+   function requestStatic(theme: ThemeName) {
+      cards[theme].src ??= cardUrls[theme].static;
+   }
 
-         if (lightRetries >= MAX_HEADER_RETRIES) {
-            return;
-         }
+   async function upgradeToAnimated(theme: ThemeName) {
+      const card = cards[theme];
 
-         lightRetries += 1;
+      if (card.upgradeStarted || !card.staticLoaded) return;
 
-         setTimeout(() => {
-            lightSrc = retryUrl(lightUrl);
-         }, 2000);
+      card.upgradeStarted = true;
 
+      const url = cardUrls[theme].animated;
+      const loaded = await preloadImage(url, ANIMATED_PRELOAD_TIMEOUT);
+
+      if (!loaded || destroyed) return;
+
+      card.quality = "animated";
+      card.src = url;
+   }
+
+   function prefetchInactiveTheme() {
+      if (prefetchScheduled) return;
+
+      prefetchScheduled = true;
+
+      const prefetch = () => requestStatic(toggleTheme(activeTheme));
+
+      if (typeof requestIdleCallback === "function") {
+         idleCallbackId = requestIdleCallback(prefetch, { timeout: IDLE_PREFETCH_TIMEOUT });
          return;
       }
 
-      darkFailed = true;
+      prefetchTimeoutId = setTimeout(prefetch, 300);
+   }
 
-      if (darkRetries >= MAX_HEADER_RETRIES) {
+   function retryHeader(theme: ThemeName) {
+      const card = cards[theme];
+
+      card.failed = true;
+
+      if (card.retries >= MAX_HEADER_RETRIES) {
          return;
       }
 
-      darkRetries += 1;
+      card.retries += 1;
 
       setTimeout(() => {
-         darkSrc = retryUrl(darkUrl);
+         card.src = retryUrl(cardUrls[theme][card.quality]);
       }, 2000);
    }
 
@@ -66,6 +126,41 @@
          cardRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
       }
    }
+
+   function handleCardLoad(theme: ThemeName, event: Event) {
+      const card = cards[theme];
+
+      updateCardRatio(event);
+      card.failed = false;
+      card.retries = 0;
+
+      if (card.quality !== "static") return;
+
+      card.staticLoaded = true;
+
+      if (theme !== activeTheme) return;
+
+      void upgradeToAnimated(theme);
+      prefetchInactiveTheme();
+   }
+
+   $effect(() => {
+      const theme = activeTheme;
+
+      untrack(() => {
+         requestStatic(theme);
+         void upgradeToAnimated(theme);
+      });
+   });
+
+   onMount(() => {
+      return () => {
+         destroyed = true;
+
+         if (idleCallbackId !== undefined) cancelIdleCallback(idleCallbackId);
+         clearTimeout(prefetchTimeoutId);
+      };
+   });
 </script>
 
 <div class="discord">
@@ -73,41 +168,24 @@
       <div
          class="card-stack"
          style="--theme-duration: {ANIMATION.TRANSITION
-            .THEME_DURATION}ms;  --card-ratio: ${cardRatio}"
+            .THEME_DURATION}ms;  --card-ratio: {cardRatio}"
       >
          <div class="discord-fallback" class:fallback-visible={discordFailed}>
             oh nyo! you found me!!!<br />(˶˃ ᵕ ˂˶) .ᐟ.ᐟ
          </div>
 
-         <img
-            class="card"
-            class:visible={!darkMode}
-            class:hidden={darkMode}
-            class:failed={lightFailed}
-            src={lightSrc}
-            alt=""
-            on:load={(event) => {
-               updateCardRatio(event);
-               lightFailed = false;
-               lightRetries = 0;
-            }}
-            on:error={() => retryHeader("light")}
-         />
-
-         <img
-            class="card"
-            class:visible={darkMode}
-            class:hidden={!darkMode}
-            class:failed={darkFailed}
-            src={darkSrc}
-            alt=""
-            on:load={(event) => {
-               updateCardRatio(event);
-               darkFailed = false;
-               darkRetries = 0;
-            }}
-            on:error={() => retryHeader("dark")}
-         />
+         {#each themeNames as theme (theme)}
+            <img
+               class="card"
+               class:visible={activeTheme === theme}
+               class:hidden={activeTheme !== theme}
+               class:failed={cards[theme].failed}
+               src={cards[theme].src}
+               alt=""
+               onload={(event) => handleCardLoad(theme, event)}
+               onerror={() => retryHeader(theme)}
+            />
+         {/each}
       </div>
    </a>
 </div>

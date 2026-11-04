@@ -2,10 +2,15 @@
    import { fade } from "svelte/transition";
    import { parallax } from "../actions/parallax";
    import { ANIMATION } from "../config/animation";
-   import { getThemeDefinition } from "../config/theme";
+   import { getThemeDefinition, type ThemeName } from "../config/theme";
 
-   export let darkMode: boolean;
-   export let transitionEnd: boolean;
+   interface Props {
+      backgroundUrls: Record<ThemeName, string>;
+      darkMode: boolean;
+      transitionEnd: boolean;
+   }
+
+   let { backgroundUrls, darkMode, transitionEnd }: Props = $props();
 
    const darkBackground = getThemeDefinition("dark");
    const lightBackground = getThemeDefinition("light");
@@ -24,7 +29,7 @@
       class="bg-layer"
       style:opacity={darkMode ? 1 : 0}
       style:z-index={!darkMode && transitionEnd ? 0 : 1}
-      style:background-image={`url(${darkBackground.backgroundImage})`}
+      style:background-image={`url(${backgroundUrls.dark})`}
       style:background-position={darkBackground.backgroundPosition}
       style:background-size={darkBackground.backgroundSize}
    ></div>
@@ -33,7 +38,7 @@
       class="bg-layer"
       style:opacity={darkMode ? 0 : 1}
       style:z-index={darkMode && transitionEnd ? 0 : 2}
-      style:background-image={`url(${lightBackground.backgroundImage})`}
+      style:background-image={`url(${backgroundUrls.light})`}
       style:background-position={lightBackground.backgroundPosition}
       style:background-size={lightBackground.backgroundSize}
    ></div>

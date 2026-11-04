@@ -4,8 +4,12 @@
    import InterestCard from "./InterestCard.svelte";
    import { uidTooltipMotion } from "../../../actions/uidTooltipMotion";
 
-   export let games: readonly GameAccount[];
-   let copiedGame: string | null = null;
+   interface Props {
+      games: readonly GameAccount[];
+   }
+
+   let { games }: Props = $props();
+   let copiedGame: string | null = $state(null);
    let copyGameTimeout: ReturnType<typeof setTimeout> | null = null;
    let copyRevision = 0;
    async function copyGameUid(gameName: string, uid: string) {
@@ -59,7 +63,7 @@
                   class:copied={copiedGame === game.name}
                   use:uidTooltipMotion={copiedGame === game.name}
                   aria-label={`Copy ${game.name} UID`}
-                  on:click={() => copyGameUid(game.name, game.uid)}
+                  onclick={() => copyGameUid(game.name, game.uid)}
                >
                   <span class="game-uid-number">
                      {game.uid}

@@ -1,7 +1,14 @@
 <script lang="ts">
-   export let heading: string;
-   export let socials: boolean;
-   export let direction: number;
+   import type { Snippet } from "svelte";
+
+   interface Props {
+      heading: string;
+      socials: boolean;
+      direction: number;
+      children?: Snippet;
+   }
+
+   let { heading, socials, direction, children }: Props = $props();
 </script>
 
 <div
@@ -21,7 +28,7 @@
       </h4>
    </div>
 
-   <slot />
+   {@render children?.()}
 </div>
 
 <style>
@@ -42,11 +49,11 @@
       text-align: center;
    }
 
-   :where(.slide-content) :global(.content-list) {
+   :where(:global(.slide-content)) :global(.content-list) {
       padding-inline-start: 0;
    }
 
-   :where(.slide-content) :global(p) {
+   :where(:global(.slide-content)) :global(p) {
       margin: 0;
    }
 
@@ -67,7 +74,7 @@
       animation: heading-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 100ms both;
    }
 
-   :where(.slide-content) :global(.item-card) {
+   :where(:global(.slide-content)) :global(.item-card) {
       opacity: 1;
       animation-name: item-enter;
       animation-duration: 820ms;

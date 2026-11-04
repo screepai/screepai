@@ -1,14 +1,18 @@
 <script lang="ts">
    import type { ContentSlide } from "../../../config/contents";
    import { animateOnScroll } from "../../../actions/animateOnScroll";
-   export let slide: Extract<
-      ContentSlide,
-      {
-         kind: "socials";
-      }
-   >;
-   export let showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
-   export let hideTooltip: (event?: Event) => void;
+   interface Props {
+      slide: Extract<
+         ContentSlide,
+         {
+            kind: "socials";
+         }
+      >;
+      showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+      hideTooltip: (event?: Event) => void;
+   }
+
+   let { slide, showTooltip, hideTooltip }: Props = $props();
 </script>
 
 <ul class="social-icons">
@@ -20,13 +24,12 @@
             rel="noreferrer"
             aria-label={socialLink.label}
             aria-describedby="profile-tooltip"
-            on:mouseenter={(event) =>
-               showTooltip(event, socialLink.label, socialLink.tooltip || "")}
-            on:mousemove={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
-            on:mouseleave={hideTooltip}
-            on:focus={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
-            on:blur={hideTooltip}
-            on:pointerup={(event) => {
+            onmouseenter={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
+            onmousemove={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
+            onmouseleave={hideTooltip}
+            onfocus={(event) => showTooltip(event, socialLink.label, socialLink.tooltip || "")}
+            onblur={hideTooltip}
+            onpointerup={(event) => {
                (event.currentTarget as HTMLElement).blur();
 
                hideTooltip();

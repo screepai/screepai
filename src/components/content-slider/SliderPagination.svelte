@@ -1,8 +1,12 @@
 <script lang="ts">
    import type { ContentSlide } from "../../config/contents";
-   export let slides: readonly ContentSlide[];
-   export let activeIndex: number;
-   export let changeSlide: (index: number) => void;
+   interface Props {
+      slides: readonly ContentSlide[];
+      activeIndex: number;
+      changeSlide: (index: number) => void;
+   }
+
+   let { slides, activeIndex, changeSlide }: Props = $props();
    function rotationOne(index: number) {
       return ((index * 17) % 40) - 10;
    }
@@ -19,7 +23,7 @@
          class:active={index === activeIndex}
          aria-pressed={index === activeIndex}
          style={`--r1:${rotationOne(index)}deg;--r2:${rotationTwo(index)}deg;`}
-         on:click={() => changeSlide(index)}
+         onclick={() => changeSlide(index)}
       >
          {slide.label}
       </button>
@@ -97,7 +101,6 @@
          0 0 0.3em var(--fill),
          0 0 0.7em var(--bullet-active-color);
       transform: scale(0.2) rotate(calc(var(--star-r) - 30deg));
-      /* hover-out: shrink and twist away */
       transition:
          opacity 220ms ease-in 40ms,
          transform 280ms cubic-bezier(0.5, 0, 0.75, 0);
@@ -119,8 +122,6 @@
       font-size: 0.9em;
    }
 
-   /* transitions instead of keyframes, so re-hovering reverses from the current
-      state rather than restarting, and the already-lit active tab doesn't replay */
    .pagination-button.active::before,
    .pagination-button.active::after,
    .pagination-button:hover::before,

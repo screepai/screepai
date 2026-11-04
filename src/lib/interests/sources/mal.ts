@@ -1,51 +1,36 @@
-import type { InterestSignal, MediaEntry, MediaStatus } from "../types";
+import type { InterestSignal, MediaEntry, MediaKind, MediaStatus } from "../types";
+
+import { MAX_PAGES, REQUEST_TIMEOUT_MS, clamp01 } from "../util";
 
 type MalGenre = {
    id: number;
    name: string;
 };
 
-type MalAnimeNode = {
+type MalNode = {
    id: number;
    title: string;
 
-   num_episodes?: number;
-
    genres?: readonly MalGenre[];
+
+   [field: string]: unknown;
 };
 
-type MalAnimeStatus = {
+type MalListStatus = {
    status: string;
 
    score?: number;
 
-   num_episodes_watched?: number;
+   [field: string]: unknown;
 };
 
-type MalMangaNode = {
-   id: number;
-   title: string;
-
-   num_chapters?: number;
-
-   genres?: readonly MalGenre[];
+type MalListItem = {
+   node: MalNode;
+   list_status: MalListStatus;
 };
 
-type MalMangaStatus = {
-   status: string;
-
-   score?: number;
-
-   num_chapters_read?: number;
-};
-
-type MalListItem<Node, Status> = {
-   node: Node;
-   list_status: Status;
-};
-
-type MalPagedResponse<T> = {
-   data: readonly T[];
+type MalPagedResponse = {
+   data: readonly MalListItem[];
 
    paging?: {
       next?: string;
@@ -58,8 +43,50 @@ export type MalConfig = {
    accessToken?: string;
 };
 
-function clamp01(value: number) {
-   return Math.min(1, Math.max(0, value));
+type MalKindConfig = {
+   kind: MediaKind;
+   listPath: string;
+   urlPath: string;
+   totalField: string;
+   progressField: string;
+   statuses: Readonly<Record<string, MediaStatus>>;
+};
+
+const malKinds = {
+   anime: {
+      kind: "anime",
+      listPath: "animelist",
+      urlPath: "anime",
+      totalField: "num_episodes",
+      progressField: "num_episodes_watched",
+      statuses: {
+         watching: "current",
+         completed: "completed",
+         on_hold: "on-hold",
+         dropped: "dropped",
+         plan_to_watch: "planned",
+      },
+   },
+   manga: {
+      kind: "manga",
+      listPath: "mangalist",
+      urlPath: "manga",
+      totalField: "num_chapters",
+      progressField: "num_chapters_read",
+      statuses: {
+         reading: "current",
+         completed: "completed",
+         on_hold: "on-hold",
+         dropped: "dropped",
+         plan_to_read: "planned",
+      },
+   },
+} as const satisfies Record<string, MalKindConfig>;
+
+function numberField(source: Record<string, unknown>, field: string) {
+   const value = source[field];
+
+   return typeof value === "number" ? value : undefined;
 }
 
 function normalizeProgress(
@@ -86,50 +113,6 @@ function normalizeScore(score: number | undefined) {
    return clamp01(score / 10);
 }
 
-function normalizeAnimeStatus(status: string): MediaStatus {
-   switch (status) {
-      case "watching":
-         return "current";
-
-      case "completed":
-         return "completed";
-
-      case "on_hold":
-         return "on-hold";
-
-      case "dropped":
-         return "dropped";
-
-      case "plan_to_watch":
-         return "planned";
-
-      default:
-         return "unknown";
-   }
-}
-
-function normalizeMangaStatus(status: string): MediaStatus {
-   switch (status) {
-      case "reading":
-         return "current";
-
-      case "completed":
-         return "completed";
-
-      case "on_hold":
-         return "on-hold";
-
-      case "dropped":
-         return "dropped";
-
-      case "plan_to_read":
-         return "planned";
-
-      default:
-         return "unknown";
-   }
-}
-
 const ignoredMalGenres = new Set([84]);
 
 function genresToSignals(genres: readonly MalGenre[] | undefined): InterestSignal[] {
@@ -144,14 +127,16 @@ function genresToSignals(genres: readonly MalGenre[] | undefined): InterestSigna
       }));
 }
 
-async function fetchAllPages<T>(firstUrl: string, headers: HeadersInit, fetcher: typeof fetch) {
-   const result: T[] = [];
+async function fetchAllPages(firstUrl: string, headers: HeadersInit, fetcher: typeof fetch) {
+   const result: MalListItem[] = [];
 
    let nextUrl: string | undefined = firstUrl;
 
-   while (nextUrl) {
+   for (let page = 0; nextUrl && page < MAX_PAGES; page++) {
       const response = await fetcher(nextUrl, {
          headers,
+
+         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
 
       if (!response.ok) {
@@ -160,7 +145,7 @@ async function fetchAllPages<T>(firstUrl: string, headers: HeadersInit, fetcher:
          throw new Error(`MAL returned ${response.status}: ${message}`);
       }
 
-      const body = (await response.json()) as MalPagedResponse<T>;
+      const body = (await response.json()) as MalPagedResponse;
 
       result.push(...body.data);
 
@@ -182,44 +167,49 @@ function createHeaders(config: MalConfig) {
    return headers;
 }
 
-export async function fetchMalAnime(
+async function fetchMalList(
    config: MalConfig,
-   fetcher: typeof fetch
+   fetcher: typeof fetch,
+   kind: MalKindConfig
 ): Promise<MediaEntry[]> {
-   const fields = ["num_episodes", "genres", "list_status{status,score,num_episodes_watched}"].join(
-      ","
-   );
+   const fields = [
+      kind.totalField,
+      "genres",
+      `list_status{status,score,${kind.progressField}}`,
+   ].join(",");
 
    const url = new URL(
-      `https://api.myanimelist.net/v2/users/${encodeURIComponent(config.username)}/animelist`
+      `https://api.myanimelist.net/v2/users/${encodeURIComponent(config.username)}/${kind.listPath}`
    );
 
    url.searchParams.set("limit", "1000");
 
    url.searchParams.set("fields", fields);
 
-   const items = await fetchAllPages<MalListItem<MalAnimeNode, MalAnimeStatus>>(
-      url.toString(),
-      createHeaders(config),
-      fetcher
-   );
+   const items = await fetchAllPages(url.toString(), createHeaders(config), fetcher);
 
    return items.map(({ node, list_status }) => {
-      const status = normalizeAnimeStatus(list_status.status);
+      const status = Object.hasOwn(kind.statuses, list_status.status)
+         ? kind.statuses[list_status.status]
+         : "unknown";
 
       return {
          source: "mal",
-         kind: "anime",
+         kind: kind.kind,
 
          id: String(node.id),
 
          title: node.title,
 
-         url: `https://myanimelist.net/anime/${node.id}`,
+         url: `https://myanimelist.net/${kind.urlPath}/${node.id}`,
 
          status,
 
-         progress: normalizeProgress(list_status.num_episodes_watched, node.num_episodes, status),
+         progress: normalizeProgress(
+            numberField(list_status, kind.progressField),
+            numberField(node, kind.totalField),
+            status
+         ),
 
          userScore: normalizeScore(list_status.score),
 
@@ -228,48 +218,10 @@ export async function fetchMalAnime(
    });
 }
 
-export async function fetchMalManga(
-   config: MalConfig,
-   fetcher: typeof fetch
-): Promise<MediaEntry[]> {
-   const fields = ["num_chapters", "genres", "list_status{status,score,num_chapters_read}"].join(
-      ","
-   );
+export function fetchMalAnime(config: MalConfig, fetcher: typeof fetch): Promise<MediaEntry[]> {
+   return fetchMalList(config, fetcher, malKinds.anime);
+}
 
-   const url = new URL(
-      `https://api.myanimelist.net/v2/users/${encodeURIComponent(config.username)}/mangalist`
-   );
-
-   url.searchParams.set("limit", "1000");
-
-   url.searchParams.set("fields", fields);
-
-   const items = await fetchAllPages<MalListItem<MalMangaNode, MalMangaStatus>>(
-      url.toString(),
-      createHeaders(config),
-      fetcher
-   );
-
-   return items.map(({ node, list_status }) => {
-      const status = normalizeMangaStatus(list_status.status);
-
-      return {
-         source: "mal",
-         kind: "manga",
-
-         id: String(node.id),
-
-         title: node.title,
-
-         url: `https://myanimelist.net/manga/${node.id}`,
-
-         status,
-
-         progress: normalizeProgress(list_status.num_chapters_read, node.num_chapters, status),
-
-         userScore: normalizeScore(list_status.score),
-
-         signals: genresToSignals(node.genres),
-      };
-   });
+export function fetchMalManga(config: MalConfig, fetcher: typeof fetch): Promise<MediaEntry[]> {
+   return fetchMalList(config, fetcher, malKinds.manga);
 }

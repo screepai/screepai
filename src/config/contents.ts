@@ -207,6 +207,10 @@ const systemGroups: readonly SystemGroup[] = [
             label: "Storage",
             value: "~2 TiB / Btrfs",
          },
+         {
+            label: "Laptop",
+            value: "ASUS ROG Flow Z13",
+         },
       ],
    },
    {
@@ -347,7 +351,7 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
    manga: [
       {
          title: "anything in my list",
-         note: "honestly i am very selective with manga, i only read romance manga and some shounen manga, i dont update the list as often as i should, but i do have a lot of manga in my list that i would love to read again if i could",
+         note: "honestly i am very selective with manga, i only read romance manga and some shounen manga, i also dont update the list as often as i should, teehee",
          url: "https://myanimelist.net/mangalist/screepy",
       },
    ],

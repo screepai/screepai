@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
    export type TooltipState = {
       name: string;
       text: string;
@@ -8,21 +8,25 @@
 </script>
 
 <script lang="ts">
-   import { onMount, tick } from "svelte";
+   import { onMount, tick, untrack } from "svelte";
 
-   export let tooltip: TooltipState | null;
-   export let arrowOffset = 0;
-   let displayedTooltip: TooltipState = { name: "", text: "", x: 0, y: 0 };
-   let content: HTMLDivElement | null = null;
-   let outgoingContent: HTMLDivElement | null = null;
-   let outgoingTooltip: TooltipState | null = null;
-   let viewport: HTMLDivElement | null = null;
+   interface Props {
+      tooltip: TooltipState | null;
+      arrowOffset?: number;
+   }
+
+   let { tooltip, arrowOffset = 0 }: Props = $props();
+   let displayedTooltip: TooltipState = $state({ name: "", text: "", x: 0, y: 0 });
+   let content: HTMLDivElement | null = $state(null);
+   let outgoingContent: HTMLDivElement | null = $state(null);
+   let outgoingTooltip: TooltipState | null = $state(null);
+   let viewport: HTMLDivElement | null = $state(null);
    let contentAnimation: Animation | null = null;
    let outgoingAnimation: Animation | null = null;
    let heightAnimation: Animation | null = null;
    let contentLeaving = false;
    let visible = false;
-   let positioned = false;
+   let positioned = $state(false);
    let height = 0;
    let revision = 0;
 
@@ -140,7 +144,10 @@
          .catch(() => {});
    }
 
-   $: void updateContent(tooltip);
+   $effect.pre(() => {
+      const next = tooltip;
+      untrack(() => void updateContent(next));
+   });
 
    onMount(() => {
       const observer = new ResizeObserver(resizeContent);

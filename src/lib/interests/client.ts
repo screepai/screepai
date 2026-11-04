@@ -7,7 +7,7 @@ export function preloadInterests() {
       return interestsPromise;
    }
 
-   interestsPromise = fetch("/api/interests")
+   interestsPromise = fetch("/api/interests", { signal: AbortSignal.timeout(15000) })
       .then(async (response) => {
          if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
