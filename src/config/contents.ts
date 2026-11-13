@@ -62,9 +62,12 @@ type SystemSlide = {
    groups: readonly SystemGroup[];
 };
 
+export type MemoryWipeNotePart =
+   string | { text: string; url: string } | { text: string; bold: true };
+
 export type MemoryWipePick = {
    title: string;
-   note?: string;
+   note?: string | readonly MemoryWipeNotePart[];
    url?: string;
 };
 
@@ -331,16 +334,72 @@ const findMeLinks: readonly SocialExtraLink[] = [
 const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
    anime: [
       {
-         title: "Saenai Heroine no Sodatekata",
+         title: "Saenai Heroine no Sodatekata (Saekano)",
          url: "https://myanimelist.net/anime/23277/Saenai_Heroine_no_Sodatekata",
+         note: "the movie is the main point about why i like this series, all the build up is just to make the movie more impactful, and it did its job",
+      },
+      {
+         title: "Tamako Market",
+         url: "https://myanimelist.net/anime/16417/Tamako_Market",
+         note: [
+            "similar to ",
+            {
+               text: "saekano",
+               url: "https://myanimelist.net/anime/23277/Saenai_Heroine_no_Sodatekata",
+            },
+            ", the movie is also the main point about why i like this series",
+         ],
       },
       {
          title: "Plastic Memories",
          url: "https://myanimelist.net/anime/27775/Plastic_Memories",
       },
       {
+         title: "Angel Beats!",
+         url: "https://myanimelist.net/anime/6547/Angel_Beats",
+      },
+      {
+         title: "Clannad",
+         url: "https://myanimelist.net/anime/2167/Clannad",
+      },
+      {
+         title: "Tsuki ga Kirei",
+         url: "https://myanimelist.net/anime/34822/Tsuki_ga_Kirei",
+      },
+      {
+         title: "Your Name",
+         url: "https://myanimelist.net/anime/32281/Kimi_no_Na_wa",
+      },
+      {
+         title: "Weathering With You",
+         url: "https://myanimelist.net/anime/38826/Tenki_no_Ko",
+      },
+      {
+         title: "Uma Musume series",
+         url: "https://myanimelist.net/anime/35249/Uma_Musume__Pretty_Derby",
+         note: "genuinely emotional asl for a series about horse girls racing",
+      },
+      {
+         title: "New Game!",
+         url: "https://myanimelist.net/anime/31953/New_Game",
+      },
+      {
          title: "Acchi Kocchi",
          url: "https://myanimelist.net/anime/12291/Acchi_Kocchi",
+      },
+      {
+         title: "Zero no Tsukaima",
+         url: "https://myanimelist.net/anime/1195/Zero_no_Tsukaima",
+         note: "the og knows this one for sure",
+      },
+      {
+         title: "Sword Art Online series",
+         url: "https://myanimelist.net/anime/11757/Sword_Art_Online",
+         note: "say what you want about this series, but it is actually good",
+      },
+      {
+         title: "Sousou no Frieren",
+         url: "https://myanimelist.net/anime/52991/Sousou_no_Frieren",
       },
       {
          title: "Shuumatsu Nani Shitemasu ka? Isogashii desu ka? Sukutte Moratte Ii desu ka?",
@@ -350,34 +409,159 @@ const interestMemoryPicks: InterestsSlide["memoryPicks"] = {
 
    manga: [
       {
-         title: "anything in my list",
-         note: "honestly i am very selective with manga, i only read romance manga and some shounen manga, i also dont update the list as often as i should, teehee",
-         url: "https://myanimelist.net/mangalist/screepy",
+         title: "Akanabe-sensei wa Tereshirazu",
+         url: "https://myanimelist.net/manga/164252/Akanabe-sensei_wa_Tereshirazu",
+      },
+      {
+         title: "Class de 2-banme ni Kawaii Onnanoko to Tomodachi ni Natta",
+         url: "https://myanimelist.net/manga/149804/Class_de_2-banme_ni_Kawaii_Onnanoko_to_Tomodachi_ni_Natta",
+      },
+      {
+         title: "Maou ga Inaka ni Totsuidara",
+         url: "https://myanimelist.net/manga/159216/Maou_ga_Inaka_ni_Totsuidara",
+      },
+      {
+         title: "Okusama wa Niizuma-chan",
+         url: "https://myanimelist.net/manga/118063/Okusama_wa_Niizuma-chan",
+      },
+      {
+         title: "Osake to Senpai Kanojo to no Amaama Doukyo Love Comedy wa Hatachi ni Natte kara",
+         url: "https://myanimelist.net/manga/182521/Osake_to_Senpai_Kanojo_to_no_Amaama_Doukyo_Love_Comedy_wa_Hatachi_ni_Natte_kara",
+      },
+      {
+         title: "Otonari no Tenshi-sama ni Itsunomanika Dame Ningen ni Sareteita Ken",
+         url: "https://myanimelist.net/manga/130934/Otonari_no_Tenshi-sama_ni_Itsunomanika_Dame_Ningen_ni_Sareteita_Ken",
+      },
+      {
+         title: "Sasaki-san wa Chotto dake Sugoi.",
+         url: "https://myanimelist.net/manga/171011/Sasaki-san_wa_Chotto_dake_Sugoi",
+      },
+      {
+         title: "Kawaii dake ja Nai Shikimori-san",
+         url: "https://myanimelist.net/manga/118196/Kawaii_dake_ja_Nai_Shikimori-san",
+      },
+      {
+         title: "Suki na Ko ga Megane wo Wasureta",
+         url: "https://myanimelist.net/manga/117332/Suki_na_Ko_ga_Megane_wo_Wasureta",
+      },
+      {
+         title: "Boku no Kanojo wa Dekkawaii",
+         url: "https://myanimelist.net/manga/172522/Boku_no_Kanojo_wa_Dekkawaii",
+      },
+      {
+         title: "Isshiki-san wa Koi wo Shiritai.",
+         url: "https://myanimelist.net/manga/137313/Isshiki-san_wa_Koi_wo_Shiritai",
+      },
+      {
+         title: "Yaiteru Futari",
+         url: "https://myanimelist.net/manga/130633/Yaiteru_Futari",
+      },
+      {
+         title: "Cuprum no Hanayome",
+         url: "https://myanimelist.net/manga/127084/Cuprum_no_Hanayome",
       },
    ],
 
    visualNovels: [
       {
-         title: "Summer Pockets: Reflection Blue",
-         url: "https://vndb.org/v20424",
+         title: "9-nine- series",
+         url: "https://vndb.org/v19829",
       },
       {
-         title: "Amakano series and anything by Azarashi Soft",
-         note: "best romance visual novel series i have ever played, literally nothing is happening but lovey dovey couples",
-         url: "https://vndb.org/p4542",
+         title: "Amakano series",
+         note: [
+            "quite frankly i will and had read anything from ",
+            { text: "Azarashi Soft", bold: true },
+            ", this series is just one of the best examples of their work",
+         ],
+         url: "https://vndb.org/v15679",
+      },
+      {
+         title: "Ao no Kanata no Four Rhythm",
+         note: "if you do ever read this, dont skip out on the extra fandiscs, theyre are really good too, misaki best girl (i like mashiro's too)",
+         url: "https://vndb.org/v12849",
       },
       {
          title: "Atri: My Dear Moments",
          url: "https://vndb.org/v27448",
+         note: [
+            "the writer of this VN, ",
+            { text: "Konno Asta", bold: true },
+            ", also wrote some fire VNs like ",
+            { text: "GINKA", url: "https://vndb.org/v38430" },
+            " (scrumptious art from ",
+            { text: "Yusano", bold: true },
+            " btw (also did the art for the visual novel ",
+            { text: "KANADE", url: "https://vndb.org/v52778" },
+            " which you should also checkout)) and ",
+            { text: "COCORO", url: "https://vndb.org/v52780" },
+            ", i recommend checking them out if you like this one",
+         ],
+      },
+      {
+         title: "Kinkoi: Golden Loveriche",
+         url: "https://vndb.org/v21852",
+      },
+      {
+         title: "	Kinkoi: Golden Time",
+         url: "https://vndb.org/v24717",
+         note: [
+            "must if youve read ",
+            { text: "Kinkoi: Golden Loveriche", url: "https://vndb.org/v21852" },
+         ],
+      },
+      {
+         title: "Summer Pockets: Reflection Blue",
+         url: "https://vndb.org/v20424",
+         note: [
+            "if you plan to read this then skip original ",
+            { text: "Summer Pockets", url: "https://vndb.org/v20424" },
+            ", ",
+            { text: "Reflection Blue", url: "https://vndb.org/r102263" },
+            " is packed with more content containing the original story",
+         ],
+      },
+      {
+         title: "Amatsutsumi",
+         url: "https://vndb.org/v18852",
+      },
+      {
+         title: "Aoi Tori",
+         url: "https://vndb.org/v21523",
+      },
+      {
+         title: "Nandome ka no Hajimemashite",
+         url: "https://vndb.org/v57252",
       },
       {
          title: "anything by Yuzusoft",
          url: "https://vndb.org/p98",
+         note: "ive already read all of their selection available aside from the ones that are not translated and i lowkey enjoyed all of them, so i suppose putting their entire catalog here is gonna make this list a bit too long",
       },
       {
-         title: "everything else in my list",
-         note: "im not very selective with visual novels, i just read whatever is romance and has a good story",
-         url: "https://vndb.org/u326697/ulist?q=&ch=&f=&l=1&l=2&l=3&l=4&l=5&l=6&l=7&mul=1&s=3q02",
+         title: "anything by ASa Project",
+         url: "https://vndb.org/p371",
+         note: [
+            "similar to Yuzusoft, ive already read (mostly) all of their selection available, its a mediocre read at best (no shade, i still enjoyed their works) but the jokes are rubbing off on me and i cant lie sometimes the writing does get fire (yuna from ",
+            { text: "renai royale", url: "https://vndb.org/v28633" },
+            " best girl)",
+         ],
+      },
+      {
+         title: "anything by Marmalade",
+         url: "https://vndb.org/p391",
+         note: [
+            "similar to the two above, ive already read (mostly, starting from ",
+            { text: "PRIMAL×HEARTS", url: "https://vndb.org/v14887" },
+            ") all of their selection available, maybe im just a sucker from romance (duh) but i do enjoy their works, especially the ones that are more on the comedy side of things. they do have some misses like ",
+            { text: "Study § Steady", url: "https://vndb.org/v24689" },
+            " that i genuinely cannot finish reading because the animation is too uncanny",
+         ],
+      },
+      {
+         title: "anything by Sonora",
+         url: "https://vndb.org/p8310",
+         note: "not similar to the three above, they genuinely have only made 4 VNs, i have only read 2 of them because its translated but the other 2 are not and i enjoyed the 2 that i have read, so rather than putting the 2 that i have read here, i just put their entire catalog here because so the list doesnt get too long and also because i genuinely want to read the other 2 VNs that are not translated yet",
       },
    ],
 };

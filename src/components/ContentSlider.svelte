@@ -1,12 +1,7 @@
 <script lang="ts">
    import type { InterestsResponse } from "#lib/interests/types.js";
-   import { swipeIn, swipeOut, playOutAnimations } from "../utils/sliderAnimations";
-   import {
-      nextFrame,
-      getSlidePanel,
-      measureVisibleTargetHeight,
-      resetScrollSmoothly,
-   } from "../utils/sliderLayout";
+   import { swipeIn, holdForExit, playOutAnimations } from "../utils/sliderAnimations";
+   import { nextFrame, getSlidePanel, measureVisibleTargetHeight } from "../utils/sliderLayout";
    import AboutSlide from "./content-slider/slides/AboutSlide.svelte";
    import SystemSlide from "./content-slider/slides/SystemSlide.svelte";
    import SocialsSlide from "./content-slider/slides/SocialsSlide.svelte";
@@ -14,7 +9,10 @@
    import CreditsSlide from "./content-slider/slides/CreditsSlide.svelte";
    import SlideContent from "./content-slider/SlideContent.svelte";
    import DiscordNote from "./content-slider/DiscordNote.svelte";
-   import ProfileTooltip, { type TooltipState } from "./content-slider/ProfileTooltip.svelte";
+   import ProfileTooltip, {
+      type TooltipCover,
+      type TooltipState,
+   } from "./content-slider/ProfileTooltip.svelte";
    import SliderPagination from "./content-slider/SliderPagination.svelte";
    import { onMount, tick } from "svelte";
    import { contentSlides } from "../config/contents";
@@ -24,6 +22,7 @@
 
    let activeIndex = $state(0);
    let direction = $state(1);
+   let enterDelay = $state(0);
    let slideViewport: HTMLDivElement | null = $state(null);
    let sliderRoot: HTMLDivElement | null = $state(null);
    let changingSlide = $state(false);
@@ -37,19 +36,29 @@
    let activeSlide = $derived(contentSlides[activeIndex]);
    let settleTimeout: number | undefined;
 
-   function showTooltip(event: MouseEvent | FocusEvent, name: string, text: string) {
+   function showTooltip(
+      event: MouseEvent | FocusEvent | HTMLElement,
+      name: string,
+      text: string,
+      cover?: TooltipCover
+   ) {
       if (!sliderRoot) return;
-      const button = event.currentTarget as HTMLElement;
+      const button = event instanceof HTMLElement ? event : (event.currentTarget as HTMLElement);
       const buttonRect = button.getBoundingClientRect();
-      const rootRect = sliderRoot.getBoundingClientRect();
-      const x = buttonRect.left + buttonRect.width / 2 - rootRect.left;
-      const y = buttonRect.top - rootRect.top;
+      const x = buttonRect.left + buttonRect.width / 2;
+      const y = buttonRect.top;
       tooltipArrowOffset =
          event instanceof MouseEvent
             ? Math.min(buttonRect.right, Math.max(buttonRect.left, event.clientX)) -
               (buttonRect.left + buttonRect.width / 2)
             : 0;
-      if (tooltip?.name === name && tooltip.text === text && tooltip.x === x && tooltip.y === y) {
+      if (
+         tooltip?.name === name &&
+         tooltip.text === text &&
+         tooltip.cover === cover &&
+         tooltip.x === x &&
+         tooltip.y === y
+      ) {
          return;
       }
       tooltip = {
@@ -57,6 +66,7 @@
          text,
          x,
          y,
+         cover,
       };
    }
 
@@ -114,22 +124,19 @@
       fitViewportToPanel(getSlidePanel(slideViewport, activeIndex));
    }
 
-   function settleSlideLayout(previousMinHeight: string) {
+   function settleSlideLayout() {
       if (!slideViewport || !scrollRegion) return;
-      slideViewport.style.minHeight = previousMinHeight;
       scrollRegion.style.height = "";
       const panels = slideViewport.querySelectorAll<HTMLElement>(".slide-panel");
       fitViewportToPanel(panels[panels.length - 1]);
    }
 
-   function waitForSettle(previousMinHeight: string) {
-      return new Promise<void>((resolve) => {
-         settleTimeout = window.setTimeout(() => {
-            settleTimeout = undefined;
-            settleSlideLayout(previousMinHeight);
-            resolve();
-         }, SLIDE_SETTLE_MS);
-      });
+   function scheduleSettle() {
+      clearTimeout(settleTimeout);
+      settleTimeout = window.setTimeout(() => {
+         settleTimeout = undefined;
+         settleSlideLayout();
+      }, SLIDE_SETTLE_MS);
    }
 
    async function changeSlide(nextIndex: number) {
@@ -137,48 +144,54 @@
          return;
       }
       changingSlide = true;
+      clearTimeout(settleTimeout);
       try {
          tooltip = null;
          const viewport = slideViewport;
          const currentHeight = viewport.getBoundingClientRect().height;
          const currentScrollRegion = scrollRegion;
+         if (!currentScrollRegion) return;
          const previousScrollTop = currentScrollRegion?.scrollTop ?? 0;
-         const previousMinHeight = viewport.style.minHeight;
-         if (currentScrollRegion && previousScrollTop > 0) {
-            viewport.style.minHeight = `${viewport.scrollHeight}px`;
-         }
+         const currentVisibleHeight = currentScrollRegion.getBoundingClientRect().height;
          viewport.style.height = `${currentHeight}px`;
+         currentScrollRegion.style.height = `${currentVisibleHeight}px`;
          direction = nextIndex > activeIndex ? 1 : -1;
+         const wasScrolled = previousScrollTop > 0;
          const outgoingPanel = getSlidePanel(viewport, activeIndex);
+         let exitFinished: Promise<void> | undefined;
+         enterDelay = 0;
          if (outgoingPanel) {
-            playOutAnimations(outgoingPanel, direction);
+            const exit = playOutAnimations(outgoingPanel, direction);
+            exitFinished = exit.finished;
+            enterDelay = exit.enterDelay;
+            if (wasScrolled) {
+               outgoingPanel.style.position = "absolute";
+               outgoingPanel.style.inset = "0 0 auto";
+               outgoingPanel.style.translate = `0 ${-previousScrollTop}px`;
+            }
          }
+         currentScrollRegion.scrollTop = 0;
          await nextFrame();
          activeIndex = nextIndex;
          await tick();
          const activeScrollRegion = scrollRegion;
          if (!activeScrollRegion) return;
-         if (previousScrollTop > 0) {
-            activeScrollRegion.scrollTop = previousScrollTop;
-         }
          const incomingPanel = getSlidePanel(viewport, nextIndex);
          const incomingContent = incomingPanel?.querySelector<HTMLElement>(".slide-content");
          if (!incomingPanel || !incomingContent) return;
          const targetHeight = incomingContent.offsetHeight;
-         const currentVisibleHeight = activeScrollRegion.getBoundingClientRect().height;
          const targetVisibleHeight = measureVisibleTargetHeight(
             incomingContent,
             activeScrollRegion
          );
          incomingPanel.dataset.entryHeight = String(targetVisibleHeight);
-         activeScrollRegion.style.height = `${currentVisibleHeight}px`;
-         resetScrollSmoothly(activeScrollRegion);
          await nextFrame();
-         requestAnimationFrame(() => {
-            viewport.style.height = `${targetHeight}px`;
-            activeScrollRegion.style.height = `${targetVisibleHeight}px`;
-         });
-         await waitForSettle(previousMinHeight);
+         viewport.style.height = `${Math.max(currentHeight, targetHeight)}px`;
+         activeScrollRegion.style.height = `${Math.max(currentVisibleHeight, targetVisibleHeight)}px`;
+         await exitFinished;
+         viewport.style.height = `${targetHeight}px`;
+         activeScrollRegion.style.height = `${targetVisibleHeight}px`;
+         scheduleSettle();
       } finally {
          changingSlide = false;
       }
@@ -242,6 +255,7 @@
    <div
       class="slide-scroll"
       data-changing-slide={changingSlide}
+      inert={changingSlide}
       bind:this={scrollRegion}
       onscroll={hideTooltip}
    >
@@ -250,8 +264,8 @@
             <div
                class="slide-panel"
                data-slide-index={activeIndex}
-               in:swipeIn={{ direction }}
-               out:swipeOut={{ direction }}
+               in:swipeIn={{ direction, delay: enterDelay }}
+               out:holdForExit
             >
                <SlideContent
                   heading={activeSlide.heading}
@@ -310,6 +324,7 @@
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
+      overflow-anchor: none;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: thin;
       scrollbar-color: color-mix(in srgb, var(--fill) 45%, transparent) transparent;

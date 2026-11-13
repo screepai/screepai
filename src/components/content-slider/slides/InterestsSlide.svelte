@@ -4,13 +4,14 @@
    import GamesCard from "../interests/GamesCard.svelte";
    import MusicCard from "../interests/MusicCard.svelte";
    import MediaInterestCard from "../interests/MediaInterestCard.svelte";
+   import type { ShowTooltip } from "../ProfileTooltip.svelte";
 
    interface Props {
       slide: Extract<ContentSlide, { kind: "interests" }>;
       interestsData: InterestsResponse | null;
       interestsLoading: boolean;
       interestsError: string;
-      showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+      showTooltip: ShowTooltip;
       hideTooltip: (event?: Event) => void;
    }
 
@@ -59,7 +60,7 @@
          delay={265}
          collection={interestsData.manga}
          picks={slide.memoryPicks.manga}
-         memoryLabel="still rereading these"
+         memoryLabel="still rereading these (tracker list too outdated and im too lazy to check if i have read more)"
          sourceLabel="from MyAnimeList ↗"
          {showTooltip}
          {hideTooltip}

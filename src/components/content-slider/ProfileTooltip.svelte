@@ -1,10 +1,24 @@
 <script lang="ts" module>
+   export type TooltipCover = {
+      imageUrl?: string;
+      unavailable?: boolean;
+      pinned?: boolean;
+   };
+
    export type TooltipState = {
       name: string;
       text: string;
       x: number;
       y: number;
+      cover?: TooltipCover;
    };
+
+   export type ShowTooltip = (
+      target: MouseEvent | FocusEvent | HTMLElement,
+      name: string,
+      text: string,
+      cover?: TooltipCover
+   ) => void;
 </script>
 
 <script lang="ts">
@@ -21,6 +35,25 @@
    let outgoingContent: HTMLDivElement | null = $state(null);
    let outgoingTooltip: TooltipState | null = $state(null);
    let viewport: HTMLDivElement | null = $state(null);
+   let tooltipElement: HTMLDivElement | null = $state(null);
+   let loadedCover = $state("");
+   let failedCover = $state("");
+   let tooltipWidth = $state(280);
+   let tooltipHeight = $state(0);
+   let viewportWidth = $state(0);
+   let viewportHeight = $state(0);
+   let tooltipX = $derived(
+      Math.max(
+         tooltipWidth / 2 + 12,
+         Math.min(displayedTooltip.x, viewportWidth - tooltipWidth / 2 - 12)
+      )
+   );
+   let below = $derived(displayedTooltip.y < tooltipHeight + 26);
+   let tooltipY = $derived(
+      below
+         ? Math.min(displayedTooltip.y + 32, viewportHeight - tooltipHeight - 12)
+         : displayedTooltip.y
+   );
    let contentAnimation: Animation | null = null;
    let outgoingAnimation: Animation | null = null;
    let heightAnimation: Animation | null = null;
@@ -85,8 +118,18 @@
          animateContent(false);
          return;
       }
+      if (next.cover || displayedTooltip.cover) {
+         clearOutgoing();
+         contentAnimation?.cancel();
+         contentAnimation = null;
+         contentLeaving = false;
+         displayedTooltip = next;
+         return;
+      }
       const sameContent =
-         next.name === displayedTooltip.name && next.text === displayedTooltip.text;
+         next.name === displayedTooltip.name &&
+         next.text === displayedTooltip.text &&
+         Boolean(next.cover) === Boolean(displayedTooltip.cover);
       if (wasVisible && sameContent) {
          displayedTooltip = next;
          if (contentLeaving) animateContent(true);
@@ -150,12 +193,27 @@
    });
 
    onMount(() => {
+      if (tooltipElement) document.body.appendChild(tooltipElement);
+      function measureTooltip() {
+         if (!tooltipElement) return;
+         tooltipWidth = tooltipElement.offsetWidth;
+         tooltipHeight = tooltipElement.offsetHeight;
+         viewportWidth = window.innerWidth;
+         viewportHeight = window.innerHeight;
+      }
       const observer = new ResizeObserver(resizeContent);
       if (content) observer.observe(content);
+      const positionObserver = new ResizeObserver(measureTooltip);
+      if (tooltipElement) positionObserver.observe(tooltipElement);
+      window.addEventListener("resize", measureTooltip);
+      measureTooltip();
       resizeContent();
       return () => {
          revision++;
          observer.disconnect();
+         positionObserver.disconnect();
+         window.removeEventListener("resize", measureTooltip);
+         tooltipElement?.remove();
          contentAnimation?.cancel();
          outgoingAnimation?.cancel();
          heightAnimation?.cancel();
@@ -167,7 +225,11 @@
    id="profile-tooltip"
    class="profile-tip"
    class:visible={tooltip !== null}
-   style={`--tooltip-x:${displayedTooltip.x}px;--tooltip-y:${displayedTooltip.y}px;--arrow-offset:${arrowOffset}px;--position-duration:${positioned ? 220 : 0}ms;`}
+   class:cover-tip={Boolean(displayedTooltip.cover)}
+   class:pinned={Boolean(displayedTooltip.cover?.pinned)}
+   class:below
+   bind:this={tooltipElement}
+   style={`--tooltip-x:${tooltipX}px;--tooltip-y:${tooltipY}px;--arrow-offset:${arrowOffset + displayedTooltip.x - tooltipX}px;--position-duration:${positioned ? 220 : 0}ms;`}
    role="tooltip"
    aria-hidden={tooltip === null}
 >
@@ -178,25 +240,60 @@
             bind:this={outgoingContent}
             aria-hidden="true"
          >
+            {#if outgoingTooltip.cover}
+               <div class="tooltip-cover">
+                  {#if outgoingTooltip.cover.imageUrl}
+                     <img src={outgoingTooltip.cover.imageUrl} alt="" class="loaded" />
+                  {/if}
+               </div>
+            {/if}
             <span class="tooltip-name">{outgoingTooltip.name}</span>
             <span class="tooltip-text">{outgoingTooltip.text}</span>
          </div>
       {/if}
       <div class="tooltip-content" bind:this={content}>
-         <span class="tooltip-name" aria-hidden="true">
+         {#if displayedTooltip.cover}
+            <div class="tooltip-cover">
+               {#if displayedTooltip.cover.imageUrl}
+                  {#key displayedTooltip.cover.imageUrl}
+                     <img
+                        src={displayedTooltip.cover.imageUrl}
+                        alt=""
+                        class:loaded={loadedCover === displayedTooltip.cover.imageUrl}
+                        onload={(event) =>
+                           (loadedCover = event.currentTarget.getAttribute("src") ?? "")}
+                        onerror={(event) =>
+                           (failedCover = event.currentTarget.getAttribute("src") ?? "")}
+                     />
+                  {/key}
+               {/if}
+               {#if !displayedTooltip.cover.imageUrl || loadedCover !== displayedTooltip.cover.imageUrl}
+                  {@const unavailable =
+                     displayedTooltip.cover.unavailable ||
+                     (displayedTooltip.cover.imageUrl &&
+                        failedCover === displayedTooltip.cover.imageUrl)}
+                  <span class="cover-placeholder" class:loading={!unavailable}>
+                     {unavailable ? "cover unavailable" : "loading cover…"}
+                  </span>
+               {/if}
+            </div>
+         {/if}
+         <span class="tooltip-name" aria-hidden={!displayedTooltip.cover}>
             {displayedTooltip.name}
          </span>
 
-         <span class="tooltip-text">
-            {displayedTooltip.text}
-         </span>
+         {#if displayedTooltip.text}
+            <span class="tooltip-text">
+               {displayedTooltip.text}
+            </span>
+         {/if}
       </div>
    </div>
 </div>
 
 <style>
    .profile-tip {
-      position: absolute;
+      position: fixed;
       left: var(--tooltip-x);
       top: var(--tooltip-y);
       width: 280px;
@@ -232,6 +329,79 @@
          opacity 220ms ease-out,
          transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
          visibility 0s;
+   }
+
+   .profile-tip.below {
+      transform: translateX(-50%) scale(0.92);
+      transform-origin: top center;
+   }
+
+   .profile-tip.below.visible {
+      transform: translateX(-50%) scale(1);
+   }
+
+   .profile-tip.below::after {
+      top: auto;
+      bottom: 100%;
+      border-top: 0;
+      border-bottom: 6px solid var(--fill);
+   }
+
+   .cover-tip {
+      width: 172px;
+      padding: 8px;
+   }
+
+   .profile-tip.pinned {
+      pointer-events: auto;
+   }
+
+   .tooltip-cover {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: min(200px, 40vh);
+      border-radius: 4px;
+      overflow: hidden;
+      background: rgb(255 255 255 / 0.12);
+      margin-bottom: 7px;
+   }
+
+   .tooltip-cover img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 160ms ease;
+   }
+
+   .tooltip-cover img.loaded {
+      opacity: 1;
+   }
+
+   .cover-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      color: rgb(255 255 255 / 0.85);
+   }
+
+   .cover-placeholder.loading {
+      animation: cover-pulse 1.2s ease-in-out infinite alternate;
+   }
+
+   @keyframes cover-pulse {
+      to {
+         opacity: 0.45;
+      }
+   }
+
+   .cover-tip .tooltip-name {
+      white-space: normal;
+      overflow-wrap: anywhere;
    }
 
    .profile-tip::after {
@@ -284,6 +454,14 @@
    }
 
    @media (prefers-reduced-motion: reduce) {
+      .cover-placeholder.loading {
+         animation: none;
+      }
+
+      .tooltip-cover img {
+         transition: none;
+      }
+
       .profile-tip,
       .profile-tip.visible,
       .profile-tip::after {

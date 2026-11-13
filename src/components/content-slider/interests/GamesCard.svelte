@@ -2,7 +2,6 @@
    import { onDestroy } from "svelte";
    import type { GameAccount } from "../../../config/contents";
    import InterestCard from "./InterestCard.svelte";
-   import { uidTooltipMotion } from "../../../actions/uidTooltipMotion";
 
    interface Props {
       games: readonly GameAccount[];
@@ -61,7 +60,6 @@
                   type="button"
                   class="game-uid"
                   class:copied={copiedGame === game.name}
-                  use:uidTooltipMotion={copiedGame === game.name}
                   aria-label={`Copy ${game.name} UID`}
                   onclick={() => copyGameUid(game.name, game.uid)}
                >
@@ -73,7 +71,7 @@
                      {copiedGame === game.name ? "✓" : "⧉"}
                   </span>
 
-                  <span class="game-copy-motion" aria-hidden="true">
+                  <span class="game-copy-anchor" aria-hidden="true">
                      <span class="game-copy-feedback">
                         <span class="game-copy-sparkle">✦</span>
                         <span class="game-copy-labels">
@@ -170,13 +168,13 @@
       animation: game-copy-check 420ms cubic-bezier(0.16, 1, 0.3, 1);
    }
 
-   .game-copy-motion {
+   .game-copy-anchor {
       position: absolute;
-      left: 50%;
+      right: 0.5em;
       bottom: calc(100% + 0.55em);
       z-index: 20;
       pointer-events: none;
-      transform: translateX(-50%);
+      transform: translateX(50%);
    }
 
    .game-copy-feedback {

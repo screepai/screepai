@@ -30,20 +30,3 @@ export function measureVisibleTargetHeight(
    const maxVisibleHeight = Math.max(0, maxMagicHeight - headerHeight - paginationHeight);
    return Math.min(naturalHeight, maxVisibleHeight);
 }
-
-export function resetScrollSmoothly(element: HTMLElement, duration = 220) {
-   const start = element.scrollTop;
-   if (start <= 0) return;
-   const startTime = performance.now();
-   function animate(time: number) {
-      const progress = Math.min((time - startTime) / duration, 1);
-      const eased = 1 - (1 - progress) ** 3;
-      element.scrollTop = start * (1 - eased);
-      if (progress < 1) {
-         requestAnimationFrame(animate);
-      } else {
-         element.scrollTop = 0;
-      }
-   }
-   requestAnimationFrame(animate);
-}

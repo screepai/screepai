@@ -74,21 +74,22 @@
       font-size: 0.88em;
       line-height: 1.25;
       cursor: pointer;
+      touch-action: manipulation;
       transition:
          background 300ms ease,
          transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+         scale 120ms cubic-bezier(0.23, 1, 0.32, 1),
          box-shadow 300ms ease;
       font-weight: 600;
    }
 
-   .pagination-button:hover,
    .pagination-button.active {
       background: var(--bullet-active-color);
       box-shadow: 0 0 10px var(--bullet-active-color);
    }
 
-   .pagination-button:hover {
-      transform: translateY(-2px);
+   .pagination-button:active {
+      scale: 0.97;
    }
 
    .pagination-button::before,
@@ -123,9 +124,7 @@
    }
 
    .pagination-button.active::before,
-   .pagination-button.active::after,
-   .pagination-button:hover::before,
-   .pagination-button:hover::after {
+   .pagination-button.active::after {
       opacity: 1;
       transform: scale(1) rotate(var(--star-r));
       transition:
@@ -133,7 +132,31 @@
          transform 420ms cubic-bezier(0.34, 1.9, 0.64, 1);
    }
 
+   @media (hover: hover) and (pointer: fine) {
+      .pagination-button:hover {
+         background: var(--bullet-active-color);
+         box-shadow: 0 0 10px var(--bullet-active-color);
+         transform: translateY(-2px);
+      }
+
+      .pagination-button:hover::before,
+      .pagination-button:hover::after {
+         opacity: 1;
+         transform: scale(1) rotate(var(--star-r));
+         transition:
+            opacity 160ms ease-out,
+            transform 420ms cubic-bezier(0.34, 1.9, 0.64, 1);
+      }
+   }
+
    @media (prefers-reduced-motion: reduce) {
+      .pagination-button,
+      .pagination-button:hover,
+      .pagination-button:active {
+         transform: none;
+         scale: 1;
+      }
+
       .pagination-button::before,
       .pagination-button::after,
       .pagination-button.active::before,

@@ -2,6 +2,8 @@
    import type { InterestCollection, RankedInterest } from "#lib/interests/types.js";
    import type { MemoryWipePick } from "../../../config/contents";
    import InterestCard from "./InterestCard.svelte";
+   import MediaTitleLink from "./MediaTitleLink.svelte";
+   import type { ShowTooltip } from "../ProfileTooltip.svelte";
 
    interface Props {
       kind: "vn" | "anime" | "manga";
@@ -12,7 +14,7 @@
       picks: readonly MemoryWipePick[];
       memoryLabel: string;
       sourceLabel: string;
-      showTooltip: (event: MouseEvent | FocusEvent, name: string, text: string) => void;
+      showTooltip: ShowTooltip;
       hideTooltip: (event?: Event) => void;
    }
 
@@ -66,18 +68,40 @@
    </div>
    <div class="memory-wipe">
       <span class="memory-wipe-label">{memoryLabel}</span>
+      <p class="cover-preview-hint">
+         <span class="hover-hint">hover marked titles or&nbsp;</span>tap the image icon to preview a
+         cover
+      </p>
       <ul class="memory-wipe-list">
          {#each picks as pick (pick.title)}
             <li class="memory-wipe-entry" class:has-note={pick.note}>
                {#if pick.url}
-                  <a class="memory-wipe-title" href={pick.url} target="_blank" rel="noreferrer"
-                     >{pick.title}</a
-                  >
+                  <MediaTitleLink href={pick.url} label={pick.title} {showTooltip} {hideTooltip} />
                {:else}
                   <span class="memory-wipe-title">{pick.title}</span>
                {/if}
                {#if pick.note}
-                  <p>{pick.note}</p>
+                  <p>
+                     {#if typeof pick.note === "string"}
+                        {pick.note}
+                     {:else}
+                        {#each pick.note as part, i (i)}
+                           {#if typeof part === "string"}
+                              {part}
+                           {:else if "url" in part}
+                              <MediaTitleLink
+                                 href={part.url}
+                                 label={part.text}
+                                 variant="note"
+                                 {showTooltip}
+                                 {hideTooltip}
+                              />
+                           {:else}
+                              <strong>{part.text}</strong>
+                           {/if}
+                        {/each}
+                     {/if}
+                  </p>
                {/if}
             </li>
          {/each}
@@ -197,19 +221,31 @@
       transition: color 180ms ease;
    }
 
-   a.memory-wipe-title:hover {
-      color: var(--fill);
+   .cover-preview-hint {
+      margin: 0 0 0.65em;
+      color: #6f6f78;
+      font-size: 0.64em;
+      line-height: 1.5;
+   }
+
+   @media (hover: none), (pointer: coarse), (max-width: 600px) {
+      .hover-hint {
+         display: none;
+      }
    }
 
    .memory-wipe-entry p {
       margin: 0;
       padding-left: 0.6em;
       border-left: 1.5px solid color-mix(in srgb, var(--fill) 22%, transparent);
-      color: #8b8b8b;
+      color: #6f6f78;
       font-size: 0.7em;
-      line-height: 1.32;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+   }
+
+   .memory-wipe-entry p strong {
+      color: #555560;
+      font-weight: 650;
    }
 </style>
