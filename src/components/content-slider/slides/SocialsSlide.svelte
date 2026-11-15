@@ -302,7 +302,7 @@
       padding-bottom: 0;
       opacity: 1;
       animation: note-enter 700ms cubic-bezier(0.16, 1, 0.3, 1)
-         calc(605ms + var(--entry-delay, 0ms)) both;
+         calc(605ms + var(--entry-delay, 0ms)) backwards;
    }
 
    @keyframes note-enter {

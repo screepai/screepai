@@ -4,11 +4,8 @@ import { REQUEST_TIMEOUT_MS } from "../util";
 
 type LastfmTrack = {
    name: string;
-
    playcount: string | number;
-
    url: string;
-
    artist: {
       name: string;
    };
@@ -18,7 +15,6 @@ type LastfmResponse = {
    toptracks?: {
       track?: LastfmTrack[];
    };
-
    error?: number;
    message?: string;
 };
@@ -91,22 +87,16 @@ export async function fetchLastfmTopTracks(
 ): Promise<MusicCollection> {
    const params = new URLSearchParams({
       method: "user.gettoptracks",
-
       user: username,
-
       api_key: apiKey,
-
       format: "json",
-
       period: "1month",
-
       limit: "5",
    });
 
    const response = await fetcher(`https://ws.audioscrobbler.com/2.0/?${params.toString()}`, {
       headers: {
          Accept: "application/json",
-
          "User-Agent": "screepai/1.0 (https://screepai.moe)",
       },
 
@@ -114,7 +104,6 @@ export async function fetchLastfmTopTracks(
    });
 
    const raw = await response.text();
-
    let data: LastfmResponse;
 
    try {
@@ -133,23 +122,16 @@ export async function fetchLastfmTopTracks(
 
    const tracks: MusicTrack[] = (data.toptracks?.track ?? []).slice(0, 5).map((track) => ({
       name: cleanTrackTitle(track.name, track.artist.name),
-
       artist: track.artist.name,
-
       url: track.url,
-
       playcount: Number(track.playcount) || 0,
    }));
 
    return {
       source: "lastfm",
-
       sourceLabel: "Last.fm",
-
       profileUrl: `https://www.last.fm/user/${encodeURIComponent(username)}`,
-
       period: "1month",
-
       tracks,
    };
 }

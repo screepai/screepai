@@ -38,7 +38,10 @@ export function parallax(node: HTMLElement) {
          y = targetY;
       }
       for (const layer of layers) {
-         layer.element.style.transform = `translate3d(${(-x * width * 0.1 * layer.depthX).toFixed(3)}px, ${(-y * height * 0.1 * layer.depthY).toFixed(3)}px, 0)`;
+         const dx = -x * width * 0.1 * layer.depthX;
+         const dy = -y * height * 0.1 * layer.depthY;
+         // Keep smooth tracking, but let text settle on whole pixels in a 2D layer.
+         layer.element.style.transform = `translate(${settled ? Math.round(dx) : dx.toFixed(3)}px, ${settled ? Math.round(dy) : dy.toFixed(3)}px)`;
       }
       if (!settled) frame = requestAnimationFrame(render);
       else previousTime = 0;

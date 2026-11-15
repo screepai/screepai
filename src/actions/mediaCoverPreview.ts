@@ -6,6 +6,7 @@ type Options = {
    hideTooltip: () => void;
    href?: string;
    title?: string;
+   imageUrl?: string | null;
    trigger?: "press";
 };
 
@@ -74,7 +75,12 @@ export function mediaCoverPreview(node: HTMLAnchorElement | HTMLButtonElement, o
          if (press) node.setAttribute("aria-expanded", "true");
          shown = true;
          options.showTooltip(node, title, "", { pinned: press });
-         const cover = await loadCover(key!);
+         const cover =
+            options.imageUrl === undefined
+               ? await loadCover(key!)
+               : options.imageUrl
+                 ? { imageUrl: options.imageUrl, title }
+                 : null;
          if (current !== revision || !node.isConnected) return;
          options.showTooltip(
             node,
@@ -126,7 +132,13 @@ export function mediaCoverPreview(node: HTMLAnchorElement | HTMLButtonElement, o
          options = next;
       },
       destroy() {
+         const hide = shown ? options.hideTooltip : null;
+         shown = false;
          stop();
+         if (hide)
+            queueMicrotask(() => {
+               if (!dismissActive) hide();
+            });
          node.removeEventListener("mouseenter", start);
          node.removeEventListener("mouseleave", stop);
          node.removeEventListener("focus", start);

@@ -4,7 +4,7 @@
    import type { Snippet } from "svelte";
 
    interface Props {
-      kind: "games" | "music" | "vn" | "anime" | "manga";
+      kind: "games" | "music" | "vn" | "anime" | "manga" | "light-novel";
       title: string;
       kicker: string;
       count: number | string;
@@ -34,10 +34,6 @@
    <article class="interest-piece" class:interest-piece-wide={kind === "vn"} data-kind={kind}>
       <span class="interest-tape"></span>
 
-      {#if kind === "vn"}
-         <span class="interest-doodle" aria-hidden="true">✦</span>
-      {/if}
-
       <div class="interest-header">
          <div>
             <span class="interest-kicker">{kicker}</span>
@@ -51,6 +47,9 @@
       {#if sourceUrl}
          <a class="interest-source" href={sourceUrl} target="_blank" rel="noreferrer">
             {sourceLabel}
+            {#if kind === "vn"}
+               <span class="interest-doodle" aria-hidden="true">✦</span>
+            {/if}
          </a>
       {/if}
    </article>
@@ -107,6 +106,12 @@
       --tape-tilt: 2deg;
    }
 
+   .interest-piece[data-kind="light-novel"] {
+      --paper: color-mix(in srgb, var(--color3) 7%, white);
+      --tilt: -0.5deg;
+      --tape-tilt: 4deg;
+   }
+
    .interest-piece-wide {
       padding: 1em 1em 0.9em;
    }
@@ -156,7 +161,9 @@
    }
 
    .interest-source {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 0.55em;
       width: fit-content;
       margin-top: 0.8em;
       margin-left: auto;
@@ -174,12 +181,11 @@
    }
 
    .interest-doodle {
-      position: absolute;
-      right: 0.75em;
-      bottom: 0.65em;
+      flex-shrink: 0;
       color: var(--fill);
       opacity: 0.2;
-      font-size: 1.4em;
+      font-size: 2em;
+      line-height: 1;
       transform: rotate(18deg);
       pointer-events: none;
    }

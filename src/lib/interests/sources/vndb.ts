@@ -1,6 +1,7 @@
 import type { InterestSignal, MediaEntry, MediaStatus } from "../types";
 
 import { MAX_PAGES, REQUEST_TIMEOUT_MS, clamp01 } from "../util";
+import { vndbRomajiTitle, type VndbTitle } from "../titles";
 
 type VndbUser = {
    id: string;
@@ -15,38 +16,32 @@ type VndbLabel = {
 type VndbTag = {
    id: string;
    name: string;
-
    category: string;
-
    rating: number;
    spoiler: number;
-
    lie: boolean;
 };
 
 type VndbVisualNovel = {
    title: string;
-
+   titles: readonly VndbTitle[];
    tags: readonly VndbTag[];
+   image: { thumbnail: string } | null;
+   released: string | null;
+   relations: NonNullable<MediaEntry["relations"]>;
 };
 
 type VndbListEntry = {
    id: string;
-
    vote: number | null;
-
    started: string | null;
-
    finished: string | null;
-
    labels: readonly VndbLabel[];
-
    vn: VndbVisualNovel;
 };
 
 type VndbListResponse = {
    results: readonly VndbListEntry[];
-
    more: boolean;
 };
 
@@ -59,7 +54,6 @@ function createHeaders(token?: string) {
    const headers = new Headers();
 
    headers.set("Content-Type", "application/json");
-
    if (token) {
       headers.set("Authorization", `Token ${token}`);
    }
@@ -74,7 +68,6 @@ async function resolveUser(config: VndbConfig, fetcher: typeof fetch): Promise<V
       `https://api.vndb.org/kana/user?q=${encodeURIComponent(requested)}`,
       {
          headers: createHeaders(config.token),
-
          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       }
    );
@@ -84,7 +77,6 @@ async function resolveUser(config: VndbConfig, fetcher: typeof fetch): Promise<V
    }
 
    const body = (await response.json()) as Record<string, VndbUser | null>;
-
    const user = body[requested];
 
    if (!user) {
@@ -170,9 +162,7 @@ function tagsToSignals(tags: readonly VndbTag[]): InterestSignal[] {
       )
       .map((tag) => ({
          id: `vndb-tag-${tag.id}`,
-
          name: tag.name,
-
          strength: clamp01(tag.rating / 3),
       }));
 }
@@ -185,7 +175,6 @@ export async function fetchVndbVisualNovels(
    entries: MediaEntry[];
 }> {
    const user = await resolveUser(config, fetcher);
-
    const entries: MediaEntry[] = [];
 
    let page = 1;
@@ -194,31 +183,24 @@ export async function fetchVndbVisualNovels(
    while (more && page <= MAX_PAGES) {
       const response = await fetcher("https://api.vndb.org/kana/ulist", {
          method: "POST",
-
          headers: createHeaders(config.token),
-
          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-
          body: JSON.stringify({
             user: user.id,
-
             page,
-
             results: 100,
-
             fields: [
                "vote",
                "started",
                "finished",
                "labels{id,label}",
-               "vn{title,tags{id,name,category,rating,spoiler,lie}}",
+               "vn{title,titles{lang,title,latin,official},image.thumbnail,released,relations{id,relation,relation_official},tags{id,name,category,rating,spoiler,lie}}",
             ].join(","),
          }),
       });
 
       if (!response.ok) {
          const message = await response.text();
-
          throw new Error(`VNDB returned ${response.status}: ${message}`);
       }
 
@@ -229,27 +211,24 @@ export async function fetchVndbVisualNovels(
 
          entries.push({
             source: "vndb",
-
             kind: "visual-novel",
-
             id: item.id,
-
             title: item.vn.title,
-
+            englishTitle:
+               item.vn.titles.find((title) => title.lang === "en" && title.official)?.title || null,
+            romajiTitle: vndbRomajiTitle(item.vn.title, item.vn.titles),
             url: `https://vndb.org/${item.id}`,
-
             status,
-
             progress: status === "completed" ? 1 : null,
-
             userScore: normalizeVote(item.vote),
-
+            imageUrl: item.vn.image?.thumbnail ?? null,
+            released: item.vn.released,
+            relations: item.vn.relations,
             signals: tagsToSignals(item.vn.tags),
          });
       }
 
       more = body.more;
-
       page++;
    }
 

@@ -1,16 +1,21 @@
 <script lang="ts">
-   import type { InterestCollection, RankedInterest } from "#lib/interests/types.js";
+   import type { InterestCollection, RankedInterest, MediaDetails } from "#lib/interests/types.js";
+   import { mediaReferenceKey } from "#lib/interests/covers.js";
    import type { MemoryWipePick } from "../../../config/contents";
    import InterestCard from "./InterestCard.svelte";
    import MediaTitleLink from "./MediaTitleLink.svelte";
+   import MediaSeries from "./MediaSeries.svelte";
+   import MediaNotes from "./MediaNotes.svelte";
+   import { groupMediaPicks } from "#lib/interests/series.js";
    import type { ShowTooltip } from "../ProfileTooltip.svelte";
 
    interface Props {
-      kind: "vn" | "anime" | "manga";
+      kind: "vn" | "anime" | "manga" | "light-novel";
       title: string;
       kicker: string;
       delay: number;
       collection: InterestCollection;
+      media: Readonly<Record<string, MediaDetails>>;
       picks: readonly MemoryWipePick[];
       memoryLabel: string;
       sourceLabel: string;
@@ -24,12 +29,15 @@
       kicker,
       delay,
       collection,
+      media,
       picks,
       memoryLabel,
       sourceLabel,
       showTooltip,
       hideTooltip,
    }: Props = $props();
+
+   let displayedPicks = $derived(groupMediaPicks(picks, media));
 
    function interestTooltip(interest: RankedInterest) {
       const examples = interest.examples.map((example) => example.title).join(" · ");
@@ -118,42 +126,22 @@
          cover
       </p>
       <ul class="memory-wipe-list" use:revealRows>
-         {#each picks as pick (pick.title)}
-            <li class="memory-wipe-entry" class:has-note={pick.note}>
+         {#each displayedPicks as { pick, parts } (pick.url)}
+            <li class="memory-wipe-entry">
                <div class="memory-wipe-heading">
-                  {#if pick.url}
+                  {#if parts?.length}
+                     <MediaSeries {parts} {media} {showTooltip} {hideTooltip} />
+                  {:else}
                      <MediaTitleLink
                         href={pick.url}
-                        label={pick.title}
+                        details={media[mediaReferenceKey(pick.url) ?? ""]}
                         {showTooltip}
                         {hideTooltip}
                      />
-                  {:else}
-                     <span class="memory-wipe-title">{pick.title}</span>
                   {/if}
                </div>
                {#if pick.note}
-                  <p>
-                     {#if typeof pick.note === "string"}
-                        {pick.note}
-                     {:else}
-                        {#each pick.note as part, i (i)}
-                           {#if typeof part === "string"}
-                              {part}
-                           {:else if "url" in part}
-                              <MediaTitleLink
-                                 href={part.url}
-                                 label={part.text}
-                                 variant="note"
-                                 {showTooltip}
-                                 {hideTooltip}
-                              />
-                           {:else}
-                              <strong>{part.text}</strong>
-                           {/if}
-                        {/each}
-                     {/if}
-                  </p>
+                  <MediaNotes note={pick.note} {media} {showTooltip} {hideTooltip} />
                {/if}
             </li>
          {/each}
@@ -233,25 +221,25 @@
 
    .memory-wipe-label {
       display: block;
-      margin-bottom: 0.28em;
+      margin-bottom: 0.35em;
       color: var(--fill);
       opacity: 0.72;
       font-size: 0.64em;
       font-weight: 700;
-      letter-spacing: 0.03em;
+      line-height: 1.5;
    }
 
    .memory-wipe-list {
       display: grid;
-      gap: 0.3em;
+      gap: 0.6em;
       margin: 0;
       padding: 0;
    }
 
    .memory-wipe-entry {
       display: grid;
-      grid-template-columns: 0.65em minmax(0, 1fr);
-      gap: 0.18em 0.35em;
+      grid-template-columns: 0.62em minmax(0, 1fr);
+      row-gap: 0.3em;
    }
 
    @media (prefers-reduced-motion: no-preference) {
@@ -261,41 +249,16 @@
       }
    }
 
-   .memory-wipe-entry::before {
-      content: "✦";
-      grid-column: 1;
-      grid-row: 1;
-      align-self: center;
-      color: var(--fill);
-      opacity: 0.55;
-      font-size: 0.56em;
-      line-height: 1;
-   }
-
    .memory-wipe-heading {
-      grid-column: 2;
+      grid-column: 1 / -1;
       min-width: 0;
       align-content: center;
    }
 
-   .memory-wipe-entry.has-note:not(:first-child),
-   .memory-wipe-entry.has-note + .memory-wipe-entry {
-      margin-top: 0.3em;
-   }
-
-   .memory-wipe-title {
-      width: fit-content;
-      color: #777777;
-      font-size: 0.78em;
-      font-weight: 700;
-      text-decoration: none;
-      transition: color 180ms ease;
-   }
-
    .cover-preview-hint {
-      margin: 0 0 0.65em;
-      color: #6f6f78;
-      font-size: 0.64em;
+      margin: 0 0 0.8em;
+      color: #7c7c87;
+      font-size: 0.6em;
       line-height: 1.5;
    }
 
@@ -303,21 +266,5 @@
       .hover-hint {
          display: none;
       }
-   }
-
-   .memory-wipe-entry p {
-      grid-column: 2;
-      margin: 0;
-      padding-left: 0.6em;
-      border-left: 1.5px solid color-mix(in srgb, var(--fill) 22%, transparent);
-      color: #6f6f78;
-      font-size: 0.7em;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-   }
-
-   .memory-wipe-entry p strong {
-      color: #555560;
-      font-weight: 650;
    }
 </style>

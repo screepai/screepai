@@ -16,7 +16,7 @@
    import SliderPagination from "./content-slider/SliderPagination.svelte";
    import { onMount, tick } from "svelte";
    import { contentSlides } from "../config/contents";
-   import { preloadInterests } from "#lib/interests/client.js";
+   import { preloadInterests, preloadMalRelations } from "#lib/interests/client.js";
 
    const SLIDE_SETTLE_MS = 560;
 
@@ -89,6 +89,12 @@
       interestsError = "";
       try {
          interestsData = await preloadInterests();
+         void preloadMalRelations()
+            .then((media) => {
+               if (interestsData)
+                  interestsData = { ...interestsData, media: { ...interestsData.media, ...media } };
+            })
+            .catch((error) => console.warn("MAL relations unavailable:", error));
       } catch (error) {
          console.error("Failed to load interests:", error);
          interestsError = "couldn't load my antidepressant :(";

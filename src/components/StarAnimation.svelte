@@ -9,4 +9,4 @@
 </script>
 
 <AmbientStars {darkMode} />
-<PointerTrailStars />
+<PointerTrailStars {darkMode} />

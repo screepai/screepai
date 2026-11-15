@@ -1,6 +1,6 @@
 export type InterestSource = "mal" | "vndb";
 
-export type MediaKind = "anime" | "manga" | "visual-novel";
+export type MediaKind = "anime" | "manga" | "light-novel" | "visual-novel";
 
 export type MediaStatus = "current" | "completed" | "on-hold" | "dropped" | "planned" | "unknown";
 
@@ -15,10 +15,15 @@ export type MediaEntry = {
    kind: MediaKind;
    id: string;
    title: string;
+   englishTitle: string | null;
+   romajiTitle: string | null;
    url: string;
    status: MediaStatus;
    progress: number | null;
    userScore: number | null;
+   imageUrl?: string | null;
+   released?: string | null;
+   relations?: readonly { id: string; relation: string; relation_official: boolean }[];
    signals: readonly InterestSignal[];
 };
 
@@ -63,11 +68,22 @@ export type MusicCollection = {
 };
 
 export type InterestsResponse = {
-   version: 2;
+   version: 6;
    generatedAt: string;
    anime: InterestCollection;
    manga: InterestCollection;
+   lightNovels: InterestCollection;
    visualNovels: InterestCollection;
    music: MusicCollection;
+   media: Readonly<Record<string, MediaDetails>>;
    warnings: readonly string[];
+};
+
+export type MediaDetails = {
+   title: string;
+   alternateTitle: string | null;
+   imageUrl?: string | null;
+   status?: MediaStatus;
+   related?: readonly string[];
+   rating: { score: number | null; source: InterestSource } | null;
 };

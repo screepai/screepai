@@ -74,7 +74,7 @@
    .heading-card {
       opacity: 1;
       animation: heading-enter 700ms cubic-bezier(0.16, 1, 0.3, 1)
-         calc(100ms + var(--entry-delay, 0ms)) both;
+         calc(100ms + var(--entry-delay, 0ms)) backwards;
    }
 
    :where(:global(.slide-content)) :global(.item-card) {
@@ -83,7 +83,7 @@
       animation-duration: 820ms;
       animation-timing-function: linear;
       animation-delay: calc(var(--in-delay, 0ms) + var(--entry-delay, 0ms));
-      animation-fill-mode: both;
+      animation-fill-mode: backwards;
    }
 
    :where(:global(.slide-content))

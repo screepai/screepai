@@ -2,6 +2,8 @@
    import { onMount } from "svelte";
    import { star } from "../config/shapes";
 
+   let { darkMode = false }: { darkMode?: boolean } = $props();
+
    type Position = {
       x: number;
       y: number;
@@ -168,7 +170,9 @@
          element.style.color = color;
          element.style.willChange = "transform, opacity";
 
-         element.style.filter = `drop-shadow(0 0 0.625rem ${color})`;
+         element.style.filter = darkMode
+            ? `drop-shadow(0 0 0.625rem ${color})`
+            : `drop-shadow(0 0 0.35rem color-mix(in srgb, ${color} 45%, transparent))`;
 
          const keyframes = animations[animationIndex++ % animations.length];
 

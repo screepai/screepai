@@ -3,7 +3,7 @@ export type MediaCover = {
    imageUrl: string;
 };
 
-export function mediaCoverKey(href: string): string | null {
+export function mediaReferenceKey(href: string): string | null {
    let url: URL;
    try {
       url = new URL(href);
@@ -13,7 +13,7 @@ export function mediaCoverKey(href: string): string | null {
    if (url.protocol !== "https:") return null;
 
    if (url.hostname === "vndb.org") {
-      const match = /^\/([vr]\d+)\/?$/.exec(url.pathname);
+      const match = /^\/([vrpc]\d+)\/?$/.exec(url.pathname);
       return match ? `vndb:${match[1]}` : null;
    }
    if (url.hostname === "myanimelist.net") {
@@ -21,4 +21,9 @@ export function mediaCoverKey(href: string): string | null {
       return match ? `${match[1]}:${match[2]}` : null;
    }
    return null;
+}
+
+export function mediaCoverKey(href: string): string | null {
+   const key = mediaReferenceKey(href);
+   return key?.startsWith("vndb:p") ? null : key;
 }

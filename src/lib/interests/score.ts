@@ -15,19 +15,14 @@ function getConsumptionWeight(status: MediaStatus, progress: number | null) {
    switch (status) {
       case "completed":
          return 1;
-
       case "current":
          return safeProgress === null ? 0.75 : 0.55 + safeProgress * 0.45;
-
       case "on-hold":
          return safeProgress === null ? 0.45 : 0.3 + safeProgress * 0.5;
-
       case "dropped":
          return safeProgress === null ? 0.2 : 0.1 + safeProgress * 0.35;
-
       case "planned":
          return 0;
-
       default:
          return 0.25;
    }
@@ -59,9 +54,7 @@ export function aggregateInterests({
          id: string;
          name: string;
          score: number;
-
          titles: Set<string>;
-
          examples: Map<
             string,
             {
@@ -82,28 +75,20 @@ export function aggregateInterests({
       if (consumption <= 0 || entry.signals.length === 0) {
          continue;
       }
-
       analyzedEntries++;
-
       for (const signal of entry.signals) {
          const strength = clamp01(signal.strength);
-
          if (strength <= 0) {
             continue;
          }
-
          const contribution = consumption * strength;
-
          let interest = interests.get(signal.id);
-
          if (!interest) {
             interest = {
                id: signal.id,
                name: signal.name,
                score: 0,
-
                titles: new Set(),
-
                examples: new Map(),
             };
 
@@ -111,9 +96,7 @@ export function aggregateInterests({
          }
 
          interest.score += contribution;
-
          interest.titles.add(entry.id);
-
          const previousExample = interest.examples.get(entry.id);
 
          if (!previousExample || contribution > previousExample.contribution) {
@@ -151,14 +134,10 @@ export function aggregateInterests({
       return {
          id: interest.id,
          name: interest.name,
-
          score: Math.round(interest.score * 1000) / 1000,
-
          titleCount: interest.titles.size,
-
          share:
             strongestScore > 0 ? Math.round((interest.score / strongestScore) * 1000) / 1000 : 0,
-
          examples: examples[index],
       };
    });

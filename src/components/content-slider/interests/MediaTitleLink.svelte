@@ -1,56 +1,155 @@
 <script lang="ts">
    import { mediaCoverPreview } from "../../../actions/mediaCoverPreview";
-   import { mediaCoverKey } from "#lib/interests/covers.js";
+   import { mediaCoverKey, mediaReferenceKey } from "#lib/interests/covers.js";
+   import type { MediaDetails } from "#lib/interests/types.js";
    import type { ShowTooltip } from "../ProfileTooltip.svelte";
 
    interface Props {
       href: string;
-      label: string;
+      label?: string;
       variant?: "title" | "note";
+      details?: MediaDetails;
       showTooltip: ShowTooltip;
       hideTooltip: () => void;
    }
 
-   let { href, label, variant = "title", showTooltip, hideTooltip }: Props = $props();
+   let {
+      href,
+      label,
+      variant = "title",
+      details,
+      showTooltip,
+      hideTooltip,
+   }: Props = $props();
    let previewable = $derived(mediaCoverKey(href) !== null);
+   let producer = $derived(mediaReferenceKey(href)?.startsWith("vndb:p") ?? false);
+   let character = $derived(mediaReferenceKey(href)?.startsWith("vndb:c") ?? false);
+   let displayTitle = $derived(
+      variant === "title" && details
+         ? producer
+            ? `anything by ${details.title}`
+            : details.title
+         : (label ?? `title unavailable · ${mediaReferenceKey(href) ?? href}`)
+   );
 </script>
 
-<span class="media-reference" class:main-title={variant === "title"}>
-   <a
-      {href}
-      target="_blank"
-      rel="noreferrer"
-      class:has-preview={previewable}
-      use:mediaCoverPreview={{ showTooltip, hideTooltip }}>{label}</a
-   >{#if previewable}<button
-         type="button"
-         class="cover-button"
-         aria-label={`Preview cover: ${label.trim()}`}
+<span class="media-entry" class:with-details={variant === "title"}>
+   <span class="media-reference" class:main-title={variant === "title"}>
+      <a
+         {href}
+         target="_blank"
+         rel="noreferrer"
+         class:has-preview={previewable}
          use:mediaCoverPreview={{
-            href,
-            title: label.trim(),
-            trigger: "press",
             showTooltip,
             hideTooltip,
-         }}
-      >
-         <svg
-            viewBox="0 0 16 16"
-            width="10"
-            height="10"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.3"
-            aria-hidden="true"
+            title: details?.title ?? displayTitle,
+            imageUrl: details?.imageUrl,
+         }}>{displayTitle}</a
+      >{#if previewable}<button
+            type="button"
+            class="cover-button"
+            aria-label={`Preview ${character ? "image" : "cover"}: ${displayTitle.trim()}`}
+            use:mediaCoverPreview={{
+               href,
+               title: details?.title ?? displayTitle.trim(),
+               imageUrl: details?.imageUrl,
+               trigger: "press",
+               showTooltip,
+               hideTooltip,
+            }}
          >
-            <rect x="1.5" y="1.5" width="13" height="13" rx="2" />
-            <circle cx="5" cy="5" r="1.2" />
-            <path d="m2 12 4-4 3 3 2-2 3 3" />
-         </svg>
-      </button>{/if}
+            <svg
+               viewBox="0 0 16 16"
+               width="10"
+               height="10"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="1.3"
+               aria-hidden="true"
+            >
+               <rect x="1.5" y="1.5" width="13" height="13" rx="2" />
+               <circle cx="5" cy="5" r="1.2" />
+               <path d="m2 12 4-4 3 3 2-2 3 3" />
+            </svg>
+         </button>{/if}
+   </span>
+   {#if variant === "title" && details}
+      {#if details.alternateTitle}
+         <span class="alternate-title" lang="ja-Latn">{details.alternateTitle}</span>
+      {/if}
+      {#if !producer && !character}
+         <span class="media-rating">
+            {#if details.rating}
+               {#if details.rating.score !== null}
+                  <span class="rating-label"><span aria-hidden="true">✦</span> my rating ·</span>
+                  <strong>{details.rating.score}<span>/10</span></strong>
+               {:else}
+                  not rated yet
+               {/if}
+            {:else}
+               rating unavailable
+            {/if}
+            {#if details.status === "current" || details.status === "on-hold" || details.status === "dropped"}
+               <span class="media-status"
+                  >{details.status === "current"
+                     ? "in progress"
+                     : details.status === "on-hold"
+                       ? "on hold"
+                       : "dropped"}</span
+               >
+            {/if}
+         </span>
+      {/if}
+   {/if}
 </span>
 
 <style>
+   .with-details {
+      display: grid;
+      gap: 0.24em;
+      min-width: 0;
+   }
+
+   .alternate-title {
+      color: #7c7c87;
+      font-size: 0.65em;
+      font-weight: 400;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+   }
+
+   .media-rating {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.15em 0.35em;
+      color: var(--text-muted);
+      font-size: 0.61em;
+      line-height: 1.45;
+   }
+
+   .media-rating strong {
+      color: color-mix(in srgb, var(--fill) 45%, #555560);
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+   }
+
+   .rating-label,
+   .media-rating strong {
+      white-space: nowrap;
+   }
+
+   .media-rating strong span {
+      color: var(--text-muted);
+      font-weight: 450;
+   }
+
+   .media-status::before {
+      content: "·";
+      margin-right: 0.4em;
+   }
+
    .media-reference {
       color: #555560;
       font-weight: 650;
@@ -61,10 +160,10 @@
       align-items: center;
       gap: 0.25em;
       min-width: 0;
-      color: #777777;
-      font-size: 0.78em;
-      font-weight: 700;
-      line-height: 1.35;
+      color: color-mix(in srgb, var(--fill) 24%, #777777);
+      font-size: 0.8em;
+      font-weight: 650;
+      line-height: 1.4;
    }
 
    a {
@@ -136,7 +235,7 @@
 
    @media (hover: hover) and (pointer: fine) {
       a:hover {
-         color: color-mix(in srgb, var(--fill) 40%, #34343c);
+         color: color-mix(in srgb, var(--fill) 50%, #777777);
          text-decoration-color: currentColor;
       }
 

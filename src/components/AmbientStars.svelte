@@ -73,7 +73,7 @@
          return;
       }
       const layer = element.parentElement;
-      const head = element.querySelector("svg");
+      const head = element.querySelector<HTMLElement>(".shooting-head");
       const trail = element.querySelector<HTMLElement>(".shooting-trail");
       if (!layer || !head || !trail) return;
       const width = layer.clientWidth;
@@ -100,7 +100,8 @@
          [
             { opacity: 0, transform: path(0) },
             { opacity: 1, transform: path(0.04), offset: 0.04 },
-            { opacity: 1, transform: path(1) },
+            { opacity: 1, transform: path(0.6), offset: 0.6 },
+            { opacity: 0, transform: path(1) },
          ],
          { duration, easing: "cubic-bezier(0.25, 0.6, 0.4, 1)" }
       );
@@ -283,18 +284,25 @@
 </script>
 
 {#each magicStars as starId (starId)}
-   <span bind:this={starElements[starId]} class="magic-star" aria-hidden="true">
+   <span
+      bind:this={starElements[starId]}
+      class="magic-star"
+      class:light={!darkMode}
+      aria-hidden="true"
+   >
       <svg viewBox="0 0 512 512">
          <path d={star} />
       </svg>
    </span>
 {/each}
 
-<div class="shooting-star-layer" aria-hidden="true">
+<div class="shooting-star-layer" class:light={!darkMode} aria-hidden="true">
    {#each shootingStars as starId (starId)}
       <span bind:this={shootingElements[starId]} class="shooting-star">
          <span class="shooting-trail"></span>
-         <svg viewBox="0 0 512 512"><path d={star} /></svg>
+         <span class="shooting-head">
+            <svg viewBox="0 0 512 512"><path d={star} /></svg>
+         </span>
       </span>
    {/each}
 </div>
@@ -315,13 +323,25 @@
       opacity: 0;
    }
 
-   .shooting-star::before {
+   .shooting-star-layer.light {
+      --shooting-glow-inset: -40%;
+      --shooting-glow-strength: 25%;
+   }
+
+   .shooting-head {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+   }
+
+   .shooting-head::before {
       content: "";
       position: absolute;
-      inset: -60%;
+      inset: var(--shooting-glow-inset, -60%);
       background: radial-gradient(
          closest-side,
-         color-mix(in srgb, var(--shooting-color) 40%, transparent),
+         color-mix(in srgb, var(--shooting-color) var(--shooting-glow-strength, 40%), transparent),
          transparent
       );
    }
@@ -383,13 +403,19 @@
    .magic-star::before {
       content: "";
       position: absolute;
-      inset: -100%;
-      opacity: var(--star-glow, 0.6);
+      inset: var(--star-glow-inset, -100%);
+      opacity: calc(var(--star-glow, 0.6) * var(--star-glow-opacity, 1));
       background: radial-gradient(
          closest-side,
-         color-mix(in srgb, var(--star-color) 55%, transparent),
+         color-mix(in srgb, var(--star-color) var(--star-glow-strength, 55%), transparent),
          transparent
       );
+   }
+
+   .magic-star.light {
+      --star-glow-inset: -65%;
+      --star-glow-strength: 32%;
+      --star-glow-opacity: 0.55;
    }
 
    .magic-star > svg {

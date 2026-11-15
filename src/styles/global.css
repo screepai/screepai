@@ -38,6 +38,7 @@ a {
 }
 
 body {
+   font-family: "Inter Tight", sans-serif;
    overscroll-behavior: none;
    background: var(--bg) !important;
    background-size: cover;

@@ -1,28 +1,15 @@
 import type { RequestHandler } from "@sveltejs/kit";
 import { MAL_CLIENT_ID } from "$app/env/private";
-import { contentSlides } from "../../../../config/contents";
+import { featuredMediaUrls } from "#lib/interests/references.js";
 import { mediaCoverKey, type MediaCover } from "#lib/interests/covers.js";
 import { REQUEST_TIMEOUT_MS } from "#lib/interests/util.js";
 
 export const prerender = false;
 
 const allowedKeys = new Set<string>();
-for (const slide of contentSlides) {
-   if (slide.kind !== "interests") continue;
-   for (const picks of Object.values(slide.memoryPicks)) {
-      for (const pick of picks) {
-         const urls = [pick.url];
-         if (Array.isArray(pick.note)) {
-            for (const part of pick.note) {
-               if (typeof part !== "string" && "url" in part) urls.push(part.url);
-            }
-         }
-         for (const url of urls) {
-            const key = url && mediaCoverKey(url);
-            if (key) allowedKeys.add(key);
-         }
-      }
-   }
+for (const url of featuredMediaUrls) {
+   const key = mediaCoverKey(url);
+   if (key) allowedKeys.add(key);
 }
 
 const CACHE_MS = 24 * 60 * 60 * 1000;
@@ -32,14 +19,18 @@ async function fetchCover(key: string, fetcher: typeof fetch): Promise<MediaCove
    const [source, id] = key.split(":");
    if (source === "vndb") {
       const release = id.startsWith("r");
-      const response = await fetcher(`https://api.vndb.org/kana/${release ? "release" : "vn"}`, {
+      const character = id.startsWith("c");
+      const endpoint = character ? "character" : release ? "release" : "vn";
+      const response = await fetcher(`https://api.vndb.org/kana/${endpoint}`, {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({
             filters: ["id", "=", id],
-            fields: release
-               ? "title,images{type,thumbnail},vns{image.thumbnail}"
-               : "title,image.thumbnail",
+            fields: character
+               ? "name,image.url"
+               : release
+                 ? "title,images{type,thumbnail},vns{image.thumbnail}"
+                 : "title,image.thumbnail",
             results: 1,
          }),
          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -47,18 +38,21 @@ async function fetchCover(key: string, fetcher: typeof fetch): Promise<MediaCove
       if (!response.ok) throw new Error(`VNDB cover returned ${response.status}`);
       const body = (await response.json()) as {
          results: {
-            title: string;
-            image?: { thumbnail: string } | null;
+            title?: string;
+            name?: string;
+            image?: { thumbnail?: string; url?: string } | null;
             images?: { type: string; thumbnail: string }[];
             vns?: { image: { thumbnail: string } | null }[];
          }[];
       };
       const vn = body.results[0];
-      const imageUrl = release
-         ? vn?.images?.find((image) => image.type === "pkgfront" || image.type === "dig")
-              ?.thumbnail || vn?.vns?.[0]?.image?.thumbnail
-         : vn?.image?.thumbnail;
-      return imageUrl ? { title: vn.title, imageUrl } : null;
+      const imageUrl = character
+         ? vn?.image?.url
+         : release
+           ? vn?.images?.find((image) => image.type === "pkgfront" || image.type === "dig")
+                ?.thumbnail || vn?.vns?.[0]?.image?.thumbnail
+           : vn?.image?.thumbnail;
+      return imageUrl ? { title: vn.title || vn.name || id, imageUrl } : null;
    }
 
    if (!MAL_CLIENT_ID.trim()) throw new Error("MAL client ID is unavailable");

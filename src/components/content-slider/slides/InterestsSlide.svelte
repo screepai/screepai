@@ -35,6 +35,7 @@
          title="visual novels"
          kicker="my antidepressant"
          delay={350}
+         media={interestsData.media}
          collection={interestsData.visualNovels}
          picks={slide.memoryPicks.visualNovels}
          memoryLabel="would wipe my memory to read these again"
@@ -47,6 +48,7 @@
          title="anime"
          kicker="mostly watching"
          delay={180}
+         media={interestsData.media}
          collection={interestsData.anime}
          picks={slide.memoryPicks.anime}
          memoryLabel="would wipe my memory to watch these again"
@@ -59,9 +61,23 @@
          title="manga"
          kicker="apparently reading"
          delay={265}
+         media={interestsData.media}
          collection={interestsData.manga}
          picks={slide.memoryPicks.manga}
          memoryLabel="still rereading these (tracker list too outdated and im too lazy to check if i have read more)"
+         sourceLabel="from MyAnimeList ↗"
+         {showTooltip}
+         {hideTooltip}
+      />
+      <MediaInterestCard
+         kind="light-novel"
+         title="light novels"
+         kicker="just one more chapter"
+         delay={350}
+         media={interestsData.media}
+         collection={interestsData.lightNovels}
+         picks={slide.memoryPicks.lightNovels}
+         memoryLabel="from my reading list"
          sourceLabel="from MyAnimeList ↗"
          {showTooltip}
          {hideTooltip}

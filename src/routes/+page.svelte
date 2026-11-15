@@ -7,6 +7,7 @@
    import DiscordProfile from "../components/DiscordProfile.svelte";
    import StarAnimation from "../components/StarAnimation.svelte";
    import WinkStar from "../components/WinkStar.svelte";
+   import ConsoleEasterEgg from "../components/ConsoleEasterEgg.svelte";
    import ContentSlider from "../components/ContentSlider.svelte";
    import ParallaxBackground from "../components/ParallaxBackground.svelte";
    import { parallax } from "../actions/parallax";
@@ -26,7 +27,8 @@
    } from "../config/theme";
    import { preloadImage, preloadImages } from "../utils/preload";
    import introFontUrl from "@fontsource/inter-tight/files/inter-tight-latin-200-normal.woff2?url";
-   import { preloadInterests } from "#lib/interests/client.js";
+   import siteFontUrl from "@fontsource/inter-tight/files/inter-tight-latin-400-normal.woff2?url";
+   import { preloadInterests, preloadMalRelations } from "#lib/interests/client.js";
 
    import "../styles/global.css";
 
@@ -35,15 +37,22 @@
    let introRunId = 0;
    let backgroundUrls = $state(getBackgroundUrlsFor("jpg"));
 
-   type IntroPhase = "hidden" | "typing" | "wink" | "holdingWink" | "leaving" | "ready";
+   type IntroPhase = "hidden" | "typing" | "loading" | "wink" | "holdingWink" | "leaving" | "ready";
 
    const OWO_TEXT = "(´•ω•`)";
    const WINK_TEXT = "(´•ω<`)";
    const WINK_STAR_DURATION = ANIMATION.WINK.DURATION;
+   const INTERESTS_PRELOAD_BUDGET_MS = 2000;
+   const LOADING_LETTER_HOP_MS = 900;
+   const LOADING_STATUS_MIN_MS = LOADING_LETTER_HOP_MS * 2;
+   const LOADING_TEXT = "loading data...";
    let introTimeouts: ReturnType<typeof setTimeout>[] = [];
 
    let visible = $derived(
-      introPhase === "typing" || introPhase === "wink" || introPhase === "holdingWink"
+      introPhase === "typing" ||
+         introPhase === "loading" ||
+         introPhase === "wink" ||
+         introPhase === "holdingWink"
    );
    let ready = $derived(introPhase === "ready");
    let isWinking = $derived(introPhase === "wink" || introPhase === "holdingWink");
@@ -111,22 +120,84 @@
       introTimeouts = [];
    }
 
+   function animateLoadingLetters(node: HTMLSpanElement) {
+      const letters = [...node.querySelectorAll<HTMLElement>(".loading-letter")];
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let animation: Animation | undefined;
+      let nextLetter = 0;
+
+      function hop() {
+         if (reducedMotion.matches || document.hidden || !letters.length) return;
+         const letter = letters[nextLetter];
+         nextLetter = (nextLetter + 1) % letters.length;
+         animation = letter.animate(
+            [
+               { transform: "none", offset: 0 },
+               { transform: "translateY(0) scale(1.07, 0.9)", offset: 0.12 },
+               { transform: "translateY(-7px) scale(0.98, 1.04)", offset: 0.38 },
+               {
+                  transform: "translateY(-7px) scale(1)",
+                  offset: 0.47,
+                  easing: "cubic-bezier(0.77, 0, 0.175, 1)",
+               },
+               { transform: "translateY(0) scale(1.08, 0.88)", offset: 0.8 },
+               { transform: "translateY(-0.5px) scale(0.995, 1.015)", offset: 0.9 },
+               { transform: "none", offset: 1 },
+            ].map((frame) => ({ easing: "cubic-bezier(0.23, 1, 0.32, 1)", ...frame })),
+            { duration: LOADING_LETTER_HOP_MS }
+         );
+         animation.onfinish = () => {
+            // Release the glyph's layer before the next letter takes its turn.
+            animation?.cancel();
+            hop();
+         };
+      }
+
+      function play() {
+         animation?.cancel();
+         nextLetter = 0;
+         hop();
+      }
+
+      play();
+      reducedMotion.addEventListener("change", play);
+      document.addEventListener("visibilitychange", play);
+      return {
+         destroy() {
+            reducedMotion.removeEventListener("change", play);
+            document.removeEventListener("visibilitychange", play);
+            animation?.cancel();
+         },
+      };
+   }
+
    async function runIntroSequence() {
       const runId = ++introRunId;
       const isCurrentRun = () => runId === introRunId;
 
-      void preloadInterests().catch((error) => {
+      const interestsReady = preloadInterests().catch((error) => {
          console.warn("Interests preload failed:", error);
+      });
+      void preloadMalRelations().catch((error) => {
+         console.warn("MAL relations preload failed:", error);
       });
 
       const assetsReady = preloadIntroAssets();
       const textReady = wait(getInitialAnimationDelay());
+      const introReady = Promise.all([
+         assetsReady,
+         Promise.race([interestsReady, wait(INTERESTS_PRELOAD_BUDGET_MS)]),
+      ]);
 
       await wait(100);
       if (!isCurrentRun()) return;
       introPhase = "typing";
 
-      await Promise.all([assetsReady, textReady]);
+      await textReady;
+      if (!isCurrentRun()) return;
+      introPhase = "loading";
+
+      await Promise.all([introReady, wait(LOADING_STATUS_MIN_MS)]);
       if (!isCurrentRun()) return;
       introPhase = "wink";
 
@@ -170,6 +241,7 @@
    <meta property="og:image:width" content="1200" />
    <meta property="og:image:height" content="676" />
    <link rel="preload" as="font" type="font/woff2" href={introFontUrl} crossorigin="anonymous" />
+   <link rel="preload" as="font" type="font/woff2" href={siteFontUrl} crossorigin="anonymous" />
 </svelte:head>
 
 <svg
@@ -204,6 +276,8 @@
    </symbol>
 </svg>
 
+<ConsoleEasterEgg />
+
 {#if visible}
    <div class="centered-shell">
       <div
@@ -220,6 +294,20 @@
                >
             {/each}
          </div>
+         {#if introPhase === "loading" || isWinking}
+            <p class="intro-status" role="status" aria-atomic="true" in:fade={{ duration: 160 }}>
+               {#if isWinking}
+                  data loaded!
+               {:else}
+                  <span class="loading-accessible">{LOADING_TEXT}</span>
+                  <span class="loading-letters" aria-hidden="true" use:animateLoadingLetters>
+                     {#each LOADING_TEXT as letter, i (i)}
+                        <span class="loading-letter">{letter === " " ? "\u00a0" : letter}</span>
+                     {/each}
+                  </span>
+               {/if}
+            </p>
+         {/if}
          {#if winkStarVisible}
             <WinkStar />
          {/if}
@@ -349,9 +437,9 @@
 
    .centered-shell {
       position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      inset: 0;
+      display: grid;
+      place-items: center;
       color: var(--uwu);
       transition: color 0.5s ease;
    }
@@ -359,7 +447,6 @@
    .centered-motion {
       position: relative;
       display: inline-block;
-      will-change: transform, opacity;
    }
 
    .centered {
@@ -371,8 +458,39 @@
       animation: none;
    }
 
-   .centered span {
-      will-change: opacity, filter;
+   .intro-status {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      white-space: nowrap;
+      margin: 0.8em 0 0;
+      color: inherit;
+      opacity: 0.5;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0.035em;
+   }
+
+   .loading-accessible {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+   }
+
+   .loading-letters {
+      display: inline-block;
+   }
+
+   .loading-letter {
+      display: inline-block;
+      transform-origin: center bottom;
    }
 
    .centered-char {
