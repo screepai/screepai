@@ -23,6 +23,7 @@
 
 <script lang="ts">
    import { onMount, tick, untrack } from "svelte";
+   import CoverLoadingStars from "./CoverLoadingStars.svelte";
 
    interface Props {
       tooltip: TooltipState | null;
@@ -273,7 +274,12 @@
                      (displayedTooltip.cover.imageUrl &&
                         failedCover === displayedTooltip.cover.imageUrl)}
                   <span class="cover-placeholder" class:loading={!unavailable}>
-                     {unavailable ? "cover unavailable" : "loading cover…"}
+                     {#if !unavailable && tooltip !== null}
+                        <CoverLoadingStars />
+                     {/if}
+                     <span class="cover-status">
+                        {unavailable ? "cover unavailable" : "loading cover…"}
+                     </span>
                   </span>
                {/if}
             </div>
@@ -389,8 +395,12 @@
       color: rgb(255 255 255 / 0.85);
    }
 
-   .cover-placeholder.loading {
-      animation: cover-pulse 1.2s ease-in-out infinite alternate;
+   .cover-status {
+      position: relative;
+   }
+
+   .cover-placeholder.loading .cover-status {
+      animation: cover-pulse 2.4s ease-in-out infinite alternate;
    }
 
    @keyframes cover-pulse {
@@ -454,7 +464,7 @@
    }
 
    @media (prefers-reduced-motion: reduce) {
-      .cover-placeholder.loading {
+      .cover-placeholder.loading .cover-status {
          animation: none;
       }
 

@@ -86,6 +86,7 @@
 
    onMount(() => {
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const mousePointer = window.matchMedia("(any-hover: hover) and (any-pointer: fine)");
 
       const layer = window.document.createElement("div");
 
@@ -122,7 +123,6 @@
             translate: "-50% -50%",
             opacity: "0",
             pointerEvents: "none",
-            willChange: "transform, opacity",
          });
 
          const svg = window.document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -166,6 +166,7 @@
          element.style.height = size;
 
          element.style.color = color;
+         element.style.willChange = "transform, opacity";
 
          element.style.filter = `drop-shadow(0 0 0.625rem ${color})`;
 
@@ -184,6 +185,8 @@
          animation.onfinish = () => {
             if (runningAnimations[index] === animation) {
                runningAnimations[index] = undefined;
+               animation.cancel();
+               element.style.removeProperty("will-change");
             }
          };
       }
@@ -196,7 +199,13 @@
          config.minimumDistanceBetweenStars * config.minimumDistanceBetweenStars;
 
       function handlePointerMove(event: PointerEvent) {
-         if (reducedMotion.matches) return;
+         if (
+            event.pointerType !== "mouse" ||
+            !mousePointer.matches ||
+            reducedMotion.matches ||
+            document.hidden
+         )
+            return;
 
          const position: Position = {
             x: event.clientX,

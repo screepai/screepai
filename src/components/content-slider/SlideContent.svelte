@@ -5,15 +5,17 @@
       heading: string;
       socials: boolean;
       direction: number;
+      enterDelay?: number;
       children?: Snippet;
    }
 
-   let { heading, socials, direction, children }: Props = $props();
+   let { heading, socials, direction, enterDelay = 0, children }: Props = $props();
 </script>
 
 <div
    class="slide-content"
    style={`
+      --entry-delay:${enterDelay}ms;
       --item-start-x:${52 * direction}px;
       --item-bounce-1:${-5 * direction}px;
       --item-bounce-2:${2.2 * direction}px;
@@ -71,7 +73,8 @@
 
    .heading-card {
       opacity: 1;
-      animation: heading-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 100ms both;
+      animation: heading-enter 700ms cubic-bezier(0.16, 1, 0.3, 1)
+         calc(100ms + var(--entry-delay, 0ms)) both;
    }
 
    :where(:global(.slide-content)) :global(.item-card) {
@@ -79,9 +82,8 @@
       animation-name: item-enter;
       animation-duration: 820ms;
       animation-timing-function: linear;
-      animation-delay: var(--in-delay, 0ms);
+      animation-delay: calc(var(--in-delay, 0ms) + var(--entry-delay, 0ms));
       animation-fill-mode: both;
-      will-change: transform, opacity;
    }
 
    @keyframes heading-enter {

@@ -58,6 +58,8 @@
    }
 
    .bg-layer {
+      position: absolute;
+      inset: 0 auto auto 0;
       width: 106vw;
       height: 106vh;
 
@@ -73,8 +75,5 @@
       opacity: 0;
 
       border-radius: 10px;
-
-      will-change: transform, opacity;
-      backface-visibility: hidden;
    }
 </style>

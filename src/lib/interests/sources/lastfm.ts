@@ -107,7 +107,7 @@ export async function fetchLastfmTopTracks(
       headers: {
          Accept: "application/json",
 
-         "User-Agent": "screepai/1.0 (https://screepy.vercel.app)",
+         "User-Agent": "screepai/1.0 (https://screepai.moe)",
       },
 
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),

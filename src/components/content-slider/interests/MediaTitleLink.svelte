@@ -36,8 +36,8 @@
       >
          <svg
             viewBox="0 0 16 16"
-            width="12"
-            height="12"
+            width="10"
+            height="10"
             fill="none"
             stroke="currentColor"
             stroke-width="1.3"
@@ -57,9 +57,14 @@
    }
 
    .main-title {
+      display: flex;
+      align-items: center;
+      gap: 0.25em;
+      min-width: 0;
       color: #777777;
       font-size: 0.78em;
       font-weight: 700;
+      line-height: 1.35;
    }
 
    a {
@@ -72,7 +77,14 @@
    }
 
    .main-title a {
+      min-width: 0;
+      overflow-wrap: anywhere;
       text-decoration: none;
+   }
+
+   .main-title .cover-button {
+      flex-shrink: 0;
+      margin: -3px 0;
    }
 
    .main-title a.has-preview {
@@ -107,9 +119,9 @@
    .cover-button::before {
       content: "";
       position: absolute;
-      inset: 1px;
+      inset: 3px;
       border: 1px solid color-mix(in srgb, var(--fill) 32%, transparent);
-      border-radius: 5px;
+      border-radius: 4px;
       background: color-mix(in srgb, var(--fill) 7%, white);
    }
 
@@ -148,14 +160,28 @@
    }
 
    @media (hover: none), (pointer: coarse), (max-width: 600px) {
+      .main-title .cover-button {
+         margin: 0;
+      }
+
       .cover-button {
-         width: 44px;
-         height: 44px;
+         width: 28px;
+         height: 28px;
          margin: 1px 0 1px 4px;
       }
 
       .cover-button::before {
-         inset: 10px;
+         inset: 5px;
+      }
+
+      .media-reference:not(.main-title) .cover-button {
+         width: 24px;
+         height: 24px;
+         margin: -3px 0 -3px 2px;
+      }
+
+      .media-reference:not(.main-title) .cover-button::before {
+         inset: 3px;
       }
    }
 </style>

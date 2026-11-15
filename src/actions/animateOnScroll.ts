@@ -34,6 +34,14 @@ export function animateOnScroll(node: HTMLElement) {
    node.style.transform = `translate3d(${startX}, 0, 0) scale(0.95)`;
    node.dataset.scrollHidden = "true";
 
+   function finishEntryAnimation(event: AnimationEvent) {
+      if (event.target !== node || !event.animationName.endsWith("item-enter")) return;
+      node.style.animation = "none";
+      node.style.opacity = "1";
+      node.style.transform = "none";
+   }
+   node.addEventListener("animationend", finishEntryAnimation);
+
    function startEntryAnimation() {
       node.style.removeProperty("animation");
       node.style.removeProperty("opacity");
@@ -113,7 +121,7 @@ export function animateOnScroll(node: HTMLElement) {
          revealAnimation.onfinish = () => {
             delete node.dataset.scrollRevealing;
             node.style.opacity = "1";
-            node.style.transform = "translate3d(0, 0, 0) scale(1)";
+            node.style.transform = "none";
             revealAnimation?.cancel();
             revealAnimation = null;
          };
@@ -146,6 +154,7 @@ export function animateOnScroll(node: HTMLElement) {
    syncObservation();
    return {
       destroy() {
+         node.removeEventListener("animationend", finishEntryAnimation);
          observer.disconnect();
          layoutObserver.disconnect();
          revealAnimation?.cancel();

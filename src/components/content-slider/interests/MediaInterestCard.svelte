@@ -75,11 +75,18 @@
       <ul class="memory-wipe-list">
          {#each picks as pick (pick.title)}
             <li class="memory-wipe-entry" class:has-note={pick.note}>
-               {#if pick.url}
-                  <MediaTitleLink href={pick.url} label={pick.title} {showTooltip} {hideTooltip} />
-               {:else}
-                  <span class="memory-wipe-title">{pick.title}</span>
-               {/if}
+               <div class="memory-wipe-heading">
+                  {#if pick.url}
+                     <MediaTitleLink
+                        href={pick.url}
+                        label={pick.title}
+                        {showTooltip}
+                        {hideTooltip}
+                     />
+                  {:else}
+                     <span class="memory-wipe-title">{pick.title}</span>
+                  {/if}
+               </div>
                {#if pick.note}
                   <p>
                      {#if typeof pick.note === "string"}
@@ -190,21 +197,26 @@
    }
 
    .memory-wipe-entry {
-      position: relative;
       display: grid;
-      gap: 0.18em;
-      padding-left: 1em;
+      grid-template-columns: 0.65em minmax(0, 1fr);
+      gap: 0.18em 0.35em;
    }
 
    .memory-wipe-entry::before {
       content: "✦";
-      position: absolute;
-      left: 0;
-      top: 0.32em;
+      grid-column: 1;
+      grid-row: 1;
+      align-self: center;
       color: var(--fill);
       opacity: 0.55;
       font-size: 0.56em;
       line-height: 1;
+   }
+
+   .memory-wipe-heading {
+      grid-column: 2;
+      min-width: 0;
+      align-content: center;
    }
 
    .memory-wipe-entry.has-note:not(:first-child),
@@ -235,6 +247,7 @@
    }
 
    .memory-wipe-entry p {
+      grid-column: 2;
       margin: 0;
       padding-left: 0.6em;
       border-left: 1.5px solid color-mix(in srgb, var(--fill) 22%, transparent);

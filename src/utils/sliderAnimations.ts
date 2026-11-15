@@ -22,7 +22,7 @@ export function swipeIn(_node: Element, { direction, delay = 0 }: SwipeParams): 
    }
    return {
       delay,
-      duration: 420,
+      duration: 480,
       easing: softBackOut,
       css: (t) => `
          transform: translate3d(${direction * (1 - t) * 100}%, 0, 0);
@@ -60,8 +60,8 @@ export function playOutAnimations(panel: HTMLElement, outgoingDirection: number)
       node.style.animation = "none";
       const timing = {
          delay: reducedMotion ? 0 : delay,
-         duration: reducedMotion ? 160 : 180,
-         easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+         duration: reducedMotion ? 160 : 280,
+         easing: "cubic-bezier(0.4, 0, 0.2, 1)",
          fill: "both" as const,
       };
       const animation = node.animate(
@@ -73,9 +73,9 @@ export function playOutAnimations(panel: HTMLElement, outgoingDirection: number)
             : [
                  { opacity, transform },
                  {
-                    opacity: opacity * 0.35,
-                    offset: 0.45,
-                    transform: `translate3d(${x * 0.45}px, ${y * 0.45}px, 0) scale(0.98)`,
+                    opacity: opacity * 0.7,
+                    offset: 0.35,
+                    transform: `translate3d(${x * 0.35}px, ${y * 0.35}px, 0) scale(0.98)`,
                  },
                  { opacity: 0, transform: `translate3d(${x}px, ${y}px, 0) scale(0.94)` },
               ],
@@ -91,16 +91,15 @@ export function playOutAnimations(panel: HTMLElement, outgoingDirection: number)
    const items = Array.from(panel.querySelectorAll<HTMLElement>(".item-card")).filter(isVisible);
    const itemX = outgoingDirection > 0 ? -110 : 110;
    items.forEach((item, index) => {
-      exit(item, itemX, 0, 20 + index * 40);
+      exit(item, itemX, 0, 30 + index * 65);
    });
 
    const note = panel.querySelector<HTMLElement>(".note-card");
-   if (isVisible(note)) exit(note, 0, 70, 20 + items.length * 40);
+   if (isVisible(note)) exit(note, 0, 70, 30 + items.length * 65);
 
    exitDurations.set(panel, duration);
    return {
-      // Overlap only the fading tail, after the outgoing text has mostly cleared.
-      enterDelay: reducedMotion ? 0 : Math.max(0, duration - 140),
+      enterDelay: reducedMotion ? 0 : Math.max(0, duration - 240),
       finished: Promise.allSettled(animations.map((animation) => animation.finished)).then(
          () => undefined
       ),

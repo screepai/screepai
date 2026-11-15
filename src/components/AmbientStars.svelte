@@ -313,8 +313,17 @@
       width: var(--shooting-size, 12px);
       height: var(--shooting-size, 12px);
       opacity: 0;
-      will-change: transform, opacity;
-      filter: drop-shadow(0 0 6px var(--shooting-color));
+   }
+
+   .shooting-star::before {
+      content: "";
+      position: absolute;
+      inset: -60%;
+      background: radial-gradient(
+         closest-side,
+         color-mix(in srgb, var(--shooting-color) 40%, transparent),
+         transparent
+      );
    }
 
    .shooting-trail {
@@ -369,8 +378,18 @@
       z-index: 99999;
 
       pointer-events: none;
+   }
 
-      will-change: transform, opacity;
+   .magic-star::before {
+      content: "";
+      position: absolute;
+      inset: -100%;
+      opacity: var(--star-glow, 0.6);
+      background: radial-gradient(
+         closest-side,
+         color-mix(in srgb, var(--star-color) 55%, transparent),
+         transparent
+      );
    }
 
    .magic-star > svg {
@@ -379,12 +398,6 @@
       height: 100%;
 
       opacity: 0.95;
-
-      filter: drop-shadow(0 0 calc(0.7rem * var(--star-glow, 0.6)) var(--star-color))
-         drop-shadow(
-            0 0 calc(1.15rem * var(--star-glow, 0.6))
-               color-mix(in srgb, var(--star-color) 45%, transparent)
-         );
 
       animation: rotate var(--star-spin-duration, 4000ms) linear infinite;
    }

@@ -271,6 +271,7 @@
                   heading={activeSlide.heading}
                   socials={activeSlide.kind === "socials"}
                   {direction}
+                  {enterDelay}
                >
                   {#if activeSlide.kind === "about"}
                      <AboutSlide slide={activeSlide} />
@@ -315,7 +316,6 @@
       position: relative;
       width: 100%;
       overflow: hidden;
-      transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1);
    }
 
    .slide-scroll {
@@ -354,8 +354,6 @@
       align-self: start;
       width: 100%;
       min-width: 0;
-      backface-visibility: hidden;
-      will-change: transform, opacity;
       pointer-events: none;
    }
 

@@ -2,10 +2,11 @@
    import { onMount } from "svelte";
    import { fade, fly } from "svelte/transition";
    import { backInOut } from "svelte/easing";
-   import { github, star, mal } from "../config/shapes";
+   import { github, mal } from "../config/shapes";
    import ThemeToggle from "../components/ThemeToggle.svelte";
    import DiscordProfile from "../components/DiscordProfile.svelte";
    import StarAnimation from "../components/StarAnimation.svelte";
+   import WinkStar from "../components/WinkStar.svelte";
    import ContentSlider from "../components/ContentSlider.svelte";
    import ParallaxBackground from "../components/ParallaxBackground.svelte";
    import { parallax } from "../actions/parallax";
@@ -40,7 +41,7 @@
 
    const OWO_TEXT = "(´•ω•`)";
    const WINK_TEXT = "(´•ω<`)";
-   const WINK_STAR_DURATION = 650;
+   const WINK_STAR_DURATION = ANIMATION.WINK.DURATION;
    let introTimeouts: ReturnType<typeof setTimeout>[] = [];
 
    let visible = $derived(
@@ -170,7 +171,7 @@
    <meta property="og:title" content="⸜( ´ ꒳ ` )⸝" />
    <meta name="description" content="about me" />
    <meta property="og:description" content="about me" />
-   <meta property="og:url" content="https://screepy.vercel.app/" />
+   <meta property="og:url" content="https://screepai.moe/" />
    <meta property="og:type" content="website" />
    <meta property="og:site_name" content="seepie" />
    <meta property="twitter:card" content="summary_large_image" />
@@ -229,11 +230,7 @@
             {/each}
          </div>
          {#if winkStarVisible}
-            <span class="wink-shooting-star" aria-hidden="true">
-               <svg viewBox="0 0 512 512">
-                  <path d={star} />
-               </svg>
-            </span>
+            <WinkStar />
          {/if}
       </div>
    </div>
@@ -415,128 +412,22 @@
          transform: translateY(0) scale(1, 1) rotate(0deg);
       }
       18% {
-         transform: translateY(2px) scale(1.08, 0.91) rotate(-1.5deg);
+         transform: translateY(2px) scale(1.045, 0.95) rotate(-1deg);
       }
       42% {
-         transform: translateY(-3px) scale(0.96, 1.08) rotate(1.3deg);
+         transform: translateY(-2px) scale(0.98, 1.04) rotate(0.8deg);
       }
       68% {
-         transform: translateY(1px) scale(1.025, 0.98) rotate(-0.5deg);
+         transform: translateY(0.5px) scale(1.012, 0.99) rotate(-0.3deg);
       }
       100% {
          transform: translateY(0) scale(1, 1) rotate(0deg);
       }
    }
 
-   .wink-shooting-star {
-      position: absolute;
-      left: calc(100% - 0.4rem);
-      top: -0.25rem;
-      width: 1.45rem;
-      height: 1.45rem;
-      color: var(--fill);
-      filter: drop-shadow(0 0 6px var(--fill));
-      pointer-events: none;
-
-      offset-path: path("M 0 0 C 13 -42, 40 -45, 52 15");
-
-      offset-distance: 0%;
-      offset-rotate: 0deg;
-
-      backface-visibility: hidden;
-
-      will-change: opacity, offset-distance;
-
-      animation:
-         wink-star-travel 590ms cubic-bezier(0.25, 0.1, 0.25, 1) 60ms forwards,
-         wink-star-fade 590ms ease-out 60ms forwards;
-
-      z-index: 1;
-   }
-
-   .wink-shooting-star svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-
-      transform-origin: center center;
-      transform-box: fill-box;
-
-      backface-visibility: hidden;
-      will-change: transform;
-
-      animation: wink-star-transform 590ms linear 60ms forwards;
-   }
-
-   .wink-shooting-star path {
-      fill: color-mix(in srgb, var(--fill) 75%, white);
-   }
-
-   @keyframes wink-star-travel {
-      from {
-         offset-distance: 0%;
-      }
-
-      to {
-         offset-distance: 100%;
-      }
-   }
-
-   @keyframes wink-star-transform {
-      0% {
-         transform: rotate(-15deg) scale(0.4);
-      }
-
-      22% {
-         transform: rotate(20deg) scale(1.1);
-      }
-
-      48% {
-         transform: rotate(55deg) scale(0.98);
-      }
-
-      72% {
-         transform: rotate(87deg) scale(0.85);
-      }
-
-      100% {
-         transform: rotate(125deg) scale(0.65);
-      }
-   }
-
-   @keyframes wink-star-fade {
-      0% {
-         opacity: 0;
-      }
-
-      10% {
-         opacity: 1;
-      }
-
-      55% {
-         opacity: 0.9;
-      }
-
-      75% {
-         opacity: 0.55;
-      }
-
-      90% {
-         opacity: 0.2;
-      }
-
-      100% {
-         opacity: 0;
-      }
-   }
-
    @media (prefers-reduced-motion: reduce) {
       .centered.winking {
          animation: none;
-      }
-
-      .wink-shooting-star {
-         display: none;
       }
 
       .profile::before {
