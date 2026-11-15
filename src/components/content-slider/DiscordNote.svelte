@@ -96,6 +96,18 @@
       white-space: nowrap;
    }
 
+   @media (max-width: 480px) {
+      .discord-note svg {
+         flex-basis: 32px;
+         width: 32px;
+      }
+
+      .discord-label {
+         margin: 10px 0 0 4px;
+         font-size: 10px;
+      }
+   }
+
    .discord-note path {
       stroke-dasharray: 1;
       animation: discord-arrow-draw 620ms ease-in-out 150ms both;

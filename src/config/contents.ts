@@ -97,6 +97,10 @@ type SocialsSlide = {
    heading: string;
    links: readonly SocialLink[];
    findMe: readonly SocialExtraLink[];
+   contact: {
+      discordUrl: string;
+      email: string;
+   };
    note?: string;
 };
 
@@ -617,6 +621,10 @@ export const contentSlides = [
       heading: "Socials",
       links: socialLinks,
       findMe: findMeLinks,
+      contact: {
+         discordUrl: "https://discord.com/users/534375062099460097",
+         email: "screepy@screepai.moe",
+      },
       note: "(i dont post anything, just here for the fancy)",
    },
    {

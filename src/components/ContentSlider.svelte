@@ -18,7 +18,7 @@
    import { contentSlides } from "../config/contents";
    import { preloadInterests } from "#lib/interests/client.js";
 
-   const SLIDE_SETTLE_MS = 440;
+   const SLIDE_SETTLE_MS = 560;
 
    let activeIndex = $state(0);
    let direction = $state(1);
@@ -250,8 +250,6 @@
 </script>
 
 <div class="content-slider" bind:this={sliderRoot}>
-   <DiscordNote visible={activeSlide.kind === "socials"} />
-
    <div
       class="slide-scroll"
       data-changing-slide={changingSlide}
@@ -260,6 +258,8 @@
       onscroll={hideTooltip}
    >
       <div class="slide-viewport" bind:this={slideViewport}>
+         <DiscordNote visible={activeSlide.kind === "socials"} />
+
          {#key activeIndex}
             <div
                class="slide-panel"
