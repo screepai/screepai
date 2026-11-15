@@ -80,9 +80,14 @@
 
    @keyframes discord-arrow-draw {
       from {
+         opacity: 0;
          stroke-dashoffset: 1;
       }
+      10% {
+         opacity: 1;
+      }
       to {
+         opacity: 1;
          stroke-dashoffset: 0;
       }
    }

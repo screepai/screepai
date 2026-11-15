@@ -1,11 +1,14 @@
+// @ts-check
+
 import js from "@eslint/js";
 import ts from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
-import type { Linter } from "eslint";
 import svelte from "eslint-plugin-svelte";
 import globals from "globals";
 
-const tsRecommendedConfigs = ts.configs["flat/recommended"] as Linter.Config[];
+const tsRecommendedConfigs = /** @type {import("eslint").Linter.Config[]} */ (
+   ts.configs["flat/recommended"]
+);
 
 export default [
    {

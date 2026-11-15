@@ -51,7 +51,6 @@
             if (!visibleRows.length) return;
 
             const entrance = card.getAnimations()[0]?.effect?.getComputedTiming();
-            // Begin under the card's entrance once its initial fade is underway.
             const leadDelay = entrance
                ? Math.max(0, (entrance.delay ?? 0) + 125 - Number(entrance.localTime))
                : 0;

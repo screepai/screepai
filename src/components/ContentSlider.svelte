@@ -1,6 +1,6 @@
 <script lang="ts">
    import type { InterestsResponse } from "#lib/interests/types.js";
-   import { swipeIn, holdForExit, playOutAnimations } from "../utils/sliderAnimations";
+   import { swipeIn, playOutAnimations } from "../utils/sliderAnimations";
    import { nextFrame, getSlidePanel, measureVisibleTargetHeight } from "../utils/sliderLayout";
    import AboutSlide from "./content-slider/slides/AboutSlide.svelte";
    import SystemSlide from "./content-slider/slides/SystemSlide.svelte";
@@ -21,6 +21,7 @@
    const SLIDE_SETTLE_MS = 560;
 
    let activeIndex = $state(0);
+   let renderedIndices = $state([0]);
    let direction = $state(1);
    let enterDelay = $state(0);
    let slideViewport: HTMLDivElement | null = $state(null);
@@ -95,40 +96,15 @@
          interestsLoading = false;
          if (activeSlide.kind === "interests") {
             await tick();
-            syncActiveSlideLayout();
+            if (!changingSlide) settleSlideLayout();
          }
       }
-   }
-
-   function fitViewportToPanel(panel: HTMLElement | null | undefined) {
-      if (!slideViewport || !scrollRegion || !panel) return;
-      const viewport = slideViewport;
-      const activeScrollRegion = scrollRegion;
-      const content = panel.querySelector<HTMLElement>(".slide-content");
-      if (!content) return;
-      viewport.style.minHeight = "";
-      const previousViewportTransition = viewport.style.transition;
-      const previousScrollTransition = activeScrollRegion.style.transition;
-      viewport.style.transition = "none";
-      activeScrollRegion.style.transition = "none";
-      viewport.style.height = `${content.offsetHeight}px`;
-      activeScrollRegion.style.height = "";
-      void viewport.offsetHeight;
-      void activeScrollRegion.offsetHeight;
-      viewport.style.transition = previousViewportTransition;
-      activeScrollRegion.style.transition = previousScrollTransition;
-   }
-
-   function syncActiveSlideLayout() {
-      if (!slideViewport) return;
-      fitViewportToPanel(getSlidePanel(slideViewport, activeIndex));
    }
 
    function settleSlideLayout() {
       if (!slideViewport || !scrollRegion) return;
       scrollRegion.style.height = "";
-      const panels = slideViewport.querySelectorAll<HTMLElement>(".slide-panel");
-      fitViewportToPanel(panels[panels.length - 1]);
+      slideViewport.style.height = "";
    }
 
    function scheduleSettle() {
@@ -140,19 +116,32 @@
    }
 
    async function changeSlide(nextIndex: number) {
-      if (nextIndex === activeIndex || !slideViewport || changingSlide) {
+      if (nextIndex === activeIndex || !slideViewport || !scrollRegion || changingSlide) {
          return;
       }
       changingSlide = true;
       clearTimeout(settleTimeout);
+      const viewport = slideViewport;
+      const activeScrollRegion = scrollRegion;
       try {
          tooltip = null;
-         const viewport = slideViewport;
+         renderedIndices = [activeIndex, nextIndex];
+         await tick();
+         const incomingPanel = getSlidePanel(viewport, nextIndex);
+         const incomingMotion = incomingPanel?.querySelector<HTMLElement>(".slide-motion");
+         const incomingContent = incomingMotion?.querySelector<HTMLElement>(".slide-content");
+         if (!incomingPanel || !incomingMotion || !incomingContent) return;
+
+         const targetHeight = incomingContent.offsetHeight;
+         const targetVisibleHeight = measureVisibleTargetHeight(
+            incomingContent,
+            activeScrollRegion
+         );
          const currentHeight = viewport.getBoundingClientRect().height;
-         const currentScrollRegion = scrollRegion;
-         if (!currentScrollRegion) return;
-         const previousScrollTop = currentScrollRegion?.scrollTop ?? 0;
-         const currentVisibleHeight = currentScrollRegion.getBoundingClientRect().height;
+         const currentVisibleHeight = activeScrollRegion.getBoundingClientRect().height;
+         await nextFrame();
+
+         const previousScrollTop = activeScrollRegion.scrollTop;
          direction = nextIndex > activeIndex ? 1 : -1;
          const outgoingPanel = getSlidePanel(viewport, activeIndex);
          let exitFinished: Promise<void> | undefined;
@@ -165,23 +154,13 @@
                outgoingPanel.style.translate = `0 ${-previousScrollTop}px`;
             }
          }
+         swipeIn(incomingMotion, { direction, delay: enterDelay });
          viewport.style.height = `${currentHeight}px`;
-         currentScrollRegion.style.height = `${currentVisibleHeight}px`;
-         currentScrollRegion.scrollTop = 0;
-         await nextFrame();
+         activeScrollRegion.style.height = `${currentVisibleHeight}px`;
+         activeScrollRegion.scrollTop = 0;
          activeIndex = nextIndex;
-         await tick();
-         const activeScrollRegion = scrollRegion;
-         if (!activeScrollRegion) return;
-         const incomingPanel = getSlidePanel(viewport, nextIndex);
-         const incomingContent = incomingPanel?.querySelector<HTMLElement>(".slide-content");
-         if (!incomingPanel || !incomingContent) return;
-         const targetHeight = incomingContent.offsetHeight;
-         const targetVisibleHeight = measureVisibleTargetHeight(
-            incomingContent,
-            activeScrollRegion
-         );
          incomingPanel.dataset.entryHeight = String(targetVisibleHeight);
+         await tick();
          await nextFrame();
          viewport.style.height = `${Math.max(currentHeight, targetHeight)}px`;
          activeScrollRegion.style.height = `${Math.max(currentVisibleHeight, targetVisibleHeight)}px`;
@@ -190,6 +169,7 @@
          activeScrollRegion.style.height = `${targetVisibleHeight}px`;
          scheduleSettle();
       } finally {
+         renderedIndices = [activeIndex];
          changingSlide = false;
       }
    }
@@ -199,46 +179,18 @@
       if (changingSlide) {
          return;
       }
-      syncActiveSlideLayout();
+      settleSlideLayout();
    }
 
    onMount(() => {
-      let mounted = true;
-      async function init() {
-         await tick();
-         if (!mounted || !slideViewport) return;
-         const viewport = slideViewport;
-         const panel = viewport.querySelector<HTMLElement>(".slide-panel");
-         if (!panel) return;
-         const content = panel.querySelector<HTMLElement>(".slide-content");
-         if (!content) return;
-         viewport.style.transition = "none";
-         viewport.style.height = `${content.offsetHeight}px`;
-         requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-               if (!mounted) return;
-               viewport.style.transition = "";
-            });
-         });
-      }
       const handleVisibilityChange = () => {
          tooltip = null;
-         if (document.hidden || !mounted) {
-            return;
-         }
-         requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-               if (!mounted) return;
-               syncActiveSlideLayout();
-            });
-         });
+         if (!document.hidden && !changingSlide) settleSlideLayout();
       };
-      void init();
       void loadInterests();
       window.addEventListener("resize", syncCurrentHeight);
       document.addEventListener("visibilitychange", handleVisibilityChange);
       return () => {
-         mounted = false;
          clearTimeout(settleTimeout);
          window.removeEventListener("resize", syncCurrentHeight);
          document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -255,24 +207,30 @@
       onscroll={hideTooltip}
    >
       <div class="slide-viewport" bind:this={slideViewport}>
-         {#key activeIndex}
-            <div class="slide-panel" data-slide-index={activeIndex} out:holdForExit>
-               <div in:swipeIn={{ direction, delay: enterDelay }}>
+         {#each renderedIndices as index (index)}
+            {@const slide = contentSlides[index]}
+            <div
+               class="slide-panel"
+               class:current={index === activeIndex}
+               class:preparing={index !== activeIndex && index === renderedIndices.at(-1)}
+               data-slide-index={index}
+            >
+               <div class="slide-motion">
                   <SlideContent
-                     heading={activeSlide.heading}
-                     socials={activeSlide.kind === "socials"}
+                     heading={slide.heading}
+                     socials={slide.kind === "socials"}
                      {direction}
                      {enterDelay}
                   >
-                     {#if activeSlide.kind === "about"}
-                        <AboutSlide slide={activeSlide} />
-                     {:else if activeSlide.kind === "system"}
-                        <SystemSlide slide={activeSlide} />
-                     {:else if activeSlide.kind === "socials"}
-                        <SocialsSlide slide={activeSlide} {showTooltip} {hideTooltip} />
-                     {:else if activeSlide.kind === "interests"}
+                     {#if slide.kind === "about"}
+                        <AboutSlide {slide} />
+                     {:else if slide.kind === "system"}
+                        <SystemSlide {slide} />
+                     {:else if slide.kind === "socials"}
+                        <SocialsSlide {slide} {showTooltip} {hideTooltip} />
+                     {:else if slide.kind === "interests"}
                         <InterestsSlide
-                           slide={activeSlide}
+                           {slide}
                            {interestsData}
                            {interestsLoading}
                            {interestsError}
@@ -280,15 +238,15 @@
                            {hideTooltip}
                         />
                      {:else}
-                        <CreditsSlide slide={activeSlide} />
+                        <CreditsSlide {slide} />
                      {/if}
                   </SlideContent>
                </div>
-               {#if activeSlide.kind === "socials"}
+               {#if slide.kind === "socials"}
                   <DiscordNote />
                {/if}
             </div>
-         {/key}
+         {/each}
       </div>
    </div>
 
@@ -310,6 +268,7 @@
       position: relative;
       width: 100%;
       overflow: hidden;
+      contain: layout;
    }
 
    .slide-scroll {
@@ -351,7 +310,18 @@
       pointer-events: none;
    }
 
-   .slide-panel:last-child {
+   .slide-panel.current {
+      position: relative;
       pointer-events: auto;
+   }
+
+   .slide-panel.preparing {
+      top: auto;
+      bottom: 100%;
+      visibility: hidden;
+   }
+
+   .slide-panel.preparing :global(*) {
+      animation-name: none !important;
    }
 </style>

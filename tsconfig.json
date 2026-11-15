@@ -10,7 +10,7 @@
       "src/**/*.ts",
       "src/**/*.svelte",
       "src/types/**/*.d.ts",
-      "eslint.config.ts",
+      "eslint.config.js",
       "svelte.config.js",
       "vite.config.ts"
    ],

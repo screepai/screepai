@@ -1,4 +1,3 @@
-import type { TransitionConfig } from "svelte/transition";
 type SwipeParams = {
    direction: number;
    delay?: number;
@@ -10,53 +9,44 @@ type ExitSnapshot = {
    transform: string;
 };
 
-const exitDurations = new WeakMap<Element, number>();
 const DISCORD_NOTE_ERASE_MS = 420;
 
 function prefersReducedMotion() {
    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function softBackOut(t: number) {
-   const strength = 0.75;
-   const value = t - 1;
-   return 1 + value * value * ((strength + 1) * value + strength);
-}
-
-export function swipeIn(_node: Element, { direction, delay = 0 }: SwipeParams): TransitionConfig {
-   void _node;
+export function swipeIn(node: HTMLElement, { direction, delay = 0 }: SwipeParams) {
    if (prefersReducedMotion()) {
-      return { duration: 160, css: (t) => `opacity: ${t};` };
+      node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 });
+      return;
    }
-   return {
-      delay,
-      duration: 480,
-      easing: softBackOut,
-      css: (t) => `
-         transform: translate3d(${direction * (1 - t) * 100}%, 0, 0);
-         opacity: ${t};
-       `,
-   };
-}
-
-export function holdForExit(node: Element): TransitionConfig {
-   // Keep the panel mounted without hiding its staggered child animations.
-   return { duration: exitDurations.get(node) ?? 0 };
+   node.animate(
+      [
+         { transform: `translate3d(${direction * 100}%, 0, 0)`, opacity: 0 },
+         { transform: "translate3d(0, 0, 0)", opacity: 1 },
+      ],
+      {
+         delay,
+         duration: 480,
+         easing: "cubic-bezier(0.333333, 1.25, 0.666667, 1)",
+         fill: "backwards",
+      }
+   );
 }
 
 function eraseDiscordNote(note: HTMLElement) {
-   const paths = Array.from(note.querySelectorAll("path"), (path) => ({
-      path,
-      offset: getComputedStyle(path).strokeDashoffset,
-   }));
+   const paths = Array.from(note.querySelectorAll("path"), (path) => {
+      const { strokeDashoffset, opacity } = getComputedStyle(path);
+      return { path, strokeDashoffset, opacity };
+   });
    const label = note.querySelector<HTMLElement>(".discord-label");
    const opacity = label ? getComputedStyle(label).opacity : "0";
    const timing = { duration: DISCORD_NOTE_ERASE_MS, fill: "both" as const };
-   const animations = paths.map(({ path, offset }) =>
+   const animations = paths.map(({ path, strokeDashoffset, opacity }) =>
       path.animate(
          [
-            { strokeDashoffset: offset, opacity: 1 },
-            { offset: 0.9, opacity: 1 },
+            { strokeDashoffset, opacity },
+            { offset: 0.9, opacity },
             { strokeDashoffset: "1px", opacity: 0 },
          ],
          timing
@@ -142,13 +132,9 @@ export function playOutAnimations(panel: HTMLElement, outgoingDirection: number)
    if (note) exit(note, 0, 70, 30 + items.length * 65);
 
    const enterDelay = reducedMotion ? 0 : Math.max(0, duration - 240);
-   if (handwriting.length) {
-      duration = Math.max(duration, DISCORD_NOTE_ERASE_MS);
-      animations.push(...handwriting);
-   }
+   animations.push(...handwriting);
    if (discordNote && reducedMotion) exit(discordNote, 0, 0);
 
-   exitDurations.set(panel, duration);
    return {
       enterDelay,
       finished: Promise.allSettled(animations.map((animation) => animation.finished)).then(
