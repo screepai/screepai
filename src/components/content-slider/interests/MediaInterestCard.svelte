@@ -157,15 +157,22 @@
       background: color-mix(in srgb, var(--fill) 8%, white);
    }
 
-   .interest-tag:hover {
-      color: var(--fill);
-      background: color-mix(in srgb, var(--fill) 8%, white);
-      transform: rotate(0deg) translateY(-1px);
+   @media (hover: hover) and (pointer: fine) {
+      .interest-tag:hover {
+         color: var(--fill);
+         background: color-mix(in srgb, var(--fill) 8%, white);
+         transform: rotate(0deg) translateY(-1px);
+      }
    }
 
    .interest-tag:focus-visible {
-      outline: 2px solid color-mix(in srgb, var(--fill) 45%, transparent);
+      outline: 2px solid var(--focus-ring);
       outline-offset: 2px;
+   }
+
+   .interest-tag:active {
+      scale: 0.97;
+      background: color-mix(in srgb, var(--fill) 12%, white);
    }
 
    .interest-tags-vn {

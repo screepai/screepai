@@ -7,10 +7,9 @@
    interface Props {
       backgroundUrls: Record<ThemeName, string>;
       darkMode: boolean;
-      transitionEnd: boolean;
    }
 
-   let { backgroundUrls, darkMode, transitionEnd }: Props = $props();
+   let { backgroundUrls, darkMode }: Props = $props();
 
    const darkBackground = getThemeDefinition("dark");
    const lightBackground = getThemeDefinition("light");
@@ -27,8 +26,6 @@
    <div
       data-depth="0.02"
       class="bg-layer"
-      style:opacity={darkMode ? 1 : 0}
-      style:z-index={!darkMode && transitionEnd ? 0 : 1}
       style:background-image={`url(${backgroundUrls.dark})`}
       style:background-position={darkBackground.backgroundPosition}
       style:background-size={darkBackground.backgroundSize}
@@ -37,7 +34,6 @@
       data-depth="0.02"
       class="bg-layer"
       style:opacity={darkMode ? 0 : 1}
-      style:z-index={darkMode && transitionEnd ? 0 : 2}
       style:background-image={`url(${backgroundUrls.light})`}
       style:background-position={lightBackground.backgroundPosition}
       style:background-size={lightBackground.backgroundSize}
@@ -71,9 +67,13 @@
 
       pointer-events: none;
 
-      transition: opacity 0.5s ease;
-      opacity: 0;
+      opacity: 1;
+      transition: none;
 
       border-radius: 10px;
+   }
+
+   .bg-layer + .bg-layer {
+      transition: opacity 0.5s ease;
    }
 </style>

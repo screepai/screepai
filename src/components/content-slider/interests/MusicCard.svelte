@@ -70,13 +70,14 @@
       border-top: 1px solid color-mix(in srgb, var(--fill) 9%, transparent);
    }
 
-   .music-entry:hover {
-      background: color-mix(in srgb, white 48%, transparent);
+   @media (hover: hover) and (pointer: fine) {
+      .music-entry:hover {
+         background: color-mix(in srgb, white 48%, transparent);
+      }
    }
 
    .music-rank {
-      color: var(--fill);
-      opacity: 0.42;
+      color: var(--text-muted);
       font-size: 0.6em;
       font-weight: 750;
    }
@@ -101,7 +102,7 @@
    .music-artist {
       overflow: hidden;
       margin-top: 0.08em;
-      color: #999999;
+      color: var(--text-muted);
       font-size: 0.62em;
       line-height: 1.2;
       text-overflow: ellipsis;
@@ -109,7 +110,7 @@
    }
 
    .music-plays {
-      opacity: 0.45;
+      color: var(--text-muted);
       font-size: 0.58em;
       font-weight: 650;
    }

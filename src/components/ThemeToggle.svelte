@@ -62,6 +62,7 @@
       transform: translateX(-50%);
       z-index: 10;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
    }
 
    .toggle-checkbox {
@@ -78,11 +79,17 @@
       border: 2px solid #e4e7ec;
       border-radius: 2em;
       background-color: white;
-      transition: background-color 250ms;
+      transition:
+         background-color 250ms,
+         scale 140ms cubic-bezier(0.23, 1, 0.32, 1);
+   }
+
+   .theme-toggle:active .toggle-slot {
+      scale: 0.97;
    }
 
    .toggle-checkbox:focus-visible ~ .toggle-slot {
-      outline: 2px solid var(--fill);
+      outline: 2px solid var(--focus-ring);
       outline-offset: 3px;
    }
 

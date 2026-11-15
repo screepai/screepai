@@ -31,8 +31,6 @@
    import "../styles/global.css";
 
    let darkMode = $state(false);
-   let transitionEnd = $state(true);
-   let themeTransitionTimeout: ReturnType<typeof setTimeout> | undefined;
    let introPhase = $state<IntroPhase>("hidden");
    let introRunId = 0;
    let backgroundUrls = $state(getBackgroundUrlsFor("jpg"));
@@ -58,15 +56,9 @@
    }
 
    function handleThemeToggle() {
-      transitionEnd = false;
-      clearTimeout(themeTransitionTimeout);
       const nextTheme = toggleTheme(themeFromDarkMode(darkMode));
       setTheme(nextTheme);
       saveTheme(nextTheme);
-
-      themeTransitionTimeout = setTimeout(() => {
-         transitionEnd = true;
-      }, ANIMATION.TRANSITION.THEME_DURATION);
    }
 
    function preloadOtherThemeAssets(currentTheme: ThemeName, urls: Record<ThemeName, string>) {
@@ -160,7 +152,6 @@
       return () => {
          introRunId += 1;
          clearIntroTimeouts();
-         clearTimeout(themeTransitionTimeout);
          stopWatchingSystemTheme();
       };
    });
@@ -236,7 +227,7 @@
    </div>
 {/if}
 {#if ready}
-   <ParallaxBackground {backgroundUrls} {darkMode} {transitionEnd} />
+   <ParallaxBackground {backgroundUrls} {darkMode} />
    <div
       use:parallax
       transition:fade={{
@@ -246,6 +237,7 @@
       class="scene-parallax"
    >
       <div data-depth="0.15" class="profile">
+         <div class="profile-doodle" aria-hidden="true"><span>☆~</span></div>
          <ThemeToggle {darkMode} onToggle={handleThemeToggle} />
          <StarAnimation {darkMode} />
          <div class="magic">
@@ -270,7 +262,8 @@
    .profile {
       --theme-space: 5em;
       position: relative !important;
-      left: var(--profile-left) !important;
+      left: 0 !important;
+      translate: var(--profile-left) 0;
       top: 50% !important;
       width: clamp(15rem, 72vw, 25.625rem);
       max-width: 25.625rem;
@@ -279,25 +272,29 @@
       box-shadow: 20px 20px 20px rgba(56, 56, 56, 0.306);
       border-radius: 10px;
       pointer-events: auto !important;
-      transition: left 0.5s cubic-bezier(0.26, 1.5, 0.46, 1);
+      transition: translate 0.5s cubic-bezier(0.26, 1.5, 0.46, 1);
    }
 
-   .profile::before {
-      content: "☆~";
+   .profile-doodle {
       position: absolute;
       top: -65px;
-      left: var(--profile-before-left);
+      left: 0;
+      width: 100%;
+      translate: var(--profile-before-left) 0;
+      pointer-events: none;
+      transition: translate 0.5s cubic-bezier(0.25, 1.25, 0.75, 1);
+   }
+
+   .profile-doodle span {
+      display: inline-block;
       font-size: 49px;
       rotate: var(--profile-before-deg);
       color: var(--fill);
       filter: drop-shadow(0 0 0.625rem var(--fill));
       animation: bob 4s ease-in-out infinite;
-      transition:
-         left 0.5s cubic-bezier(0.25, 1.25, 0.75, 1),
-         rotate 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: rotate 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
       transform-origin: center center;
       max-width: 100vw;
-      will-change: transform;
       font-weight: 700;
    }
 
@@ -430,7 +427,7 @@
          animation: none;
       }
 
-      .profile::before {
+      .profile-doodle span {
          animation: none;
       }
    }

@@ -64,10 +64,16 @@
          text-decoration-color 180ms ease;
    }
 
-   .aster-dedication a:hover,
    .aster-dedication a:focus-visible {
       background-color: color-mix(in srgb, var(--fill) 8%, transparent);
       text-decoration-color: var(--fill);
+   }
+
+   @media (hover: hover) and (pointer: fine) {
+      .aster-dedication a:hover {
+         background-color: color-mix(in srgb, var(--fill) 8%, transparent);
+         text-decoration-color: var(--fill);
+      }
    }
 
    .aster-star {

@@ -344,8 +344,10 @@
       border-radius: 999px;
    }
 
-   .slide-scroll::-webkit-scrollbar-thumb:hover {
-      background: color-mix(in srgb, var(--fill) 70%, transparent);
+   @media (hover: hover) and (pointer: fine) {
+      .slide-scroll::-webkit-scrollbar-thumb:hover {
+         background: color-mix(in srgb, var(--fill) 70%, transparent);
+      }
    }
 
    .slide-panel {

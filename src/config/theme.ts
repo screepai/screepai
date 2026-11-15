@@ -118,6 +118,9 @@ export function getThemeDefinition(theme: ThemeName) {
 export function applyTheme(theme: ThemeName) {
    const definition = getThemeDefinition(theme);
    document.documentElement.style.setProperty("--bg", definition.bodyBackground);
+   document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", definition.bodyBackground);
 
    for (const [property, value] of Object.entries(definition.cssVars)) {
       document.documentElement.style.setProperty(property, value);

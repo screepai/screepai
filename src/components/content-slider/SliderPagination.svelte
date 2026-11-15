@@ -26,6 +26,7 @@
          onclick={() => changeSlide(index)}
       >
          {slide.label}
+         <span class="pagination-hit-area" aria-hidden="true"></span>
       </button>
    {/each}
 </div>
@@ -90,6 +91,18 @@
 
    .pagination-button:active {
       scale: 0.97;
+   }
+
+   .pagination-hit-area {
+      display: none;
+   }
+
+   @media (pointer: coarse) {
+      .pagination-hit-area {
+         display: block;
+         position: absolute;
+         inset: -6px -2px;
+      }
    }
 
    .pagination-button::before,

@@ -196,7 +196,7 @@
    }
 
    .contact-link:focus-visible {
-      outline: 2px solid var(--fill);
+      outline: 2px solid var(--focus-ring);
       outline-offset: 2px;
    }
 
@@ -256,17 +256,32 @@
       transition: fill 0.375s ease;
    }
 
-   .social-icons a:hover {
-      border-color: var(--fill);
-      color: var(--fill);
+   .social-icons li a:active {
+      scale: 0.97;
    }
 
-   .social-icons a:hover svg {
-      fill: var(--fill);
+   .social-find-item:active {
+      scale: 0.98;
+      background: color-mix(in srgb, var(--fill) 7%, transparent);
    }
 
-   .social-icons li a:hover {
-      transform: scale(1.1125);
+   @media (hover: hover) and (pointer: fine) {
+      .social-icons a:hover {
+         border-color: var(--fill);
+         color: var(--fill);
+      }
+   }
+
+   @media (hover: hover) and (pointer: fine) {
+      .social-icons a:hover svg {
+         fill: var(--fill);
+      }
+   }
+
+   @media (hover: hover) and (pointer: fine) {
+      .social-icons li a:hover {
+         transform: scale(1.1125);
+      }
    }
 
    .label {
@@ -325,10 +340,12 @@
       background: color-mix(in srgb, var(--fill) 4%, transparent);
    }
 
-   .social-find-card:hover {
-      border-color: color-mix(in srgb, var(--fill) 40%, transparent);
-      background: color-mix(in srgb, var(--fill) 7%, transparent);
-      box-shadow: 0 5px 16px rgb(0 0 0 / 0.055);
+   @media (hover: hover) and (pointer: fine) {
+      .social-find-card:hover {
+         border-color: color-mix(in srgb, var(--fill) 40%, transparent);
+         background: color-mix(in srgb, var(--fill) 7%, transparent);
+         box-shadow: 0 5px 16px rgb(0 0 0 / 0.055);
+      }
    }
 
    .social-find-card h5,
@@ -359,13 +376,15 @@
          transform 180ms ease;
    }
 
-   .social-find-item:hover {
-      background: color-mix(in srgb, var(--fill) 7%, transparent);
-      transform: translateX(2px);
+   @media (hover: hover) and (pointer: fine) {
+      .social-find-item:hover {
+         background: color-mix(in srgb, var(--fill) 7%, transparent);
+         transform: translateX(2px);
+      }
    }
 
    .social-find-label {
-      opacity: 0.62;
+      color: var(--text-muted);
       font-size: 0.9em;
       font-weight: 600;
    }
@@ -378,7 +397,9 @@
       transition: color 180ms ease;
    }
 
-   .social-find-item:hover .social-find-value {
-      color: var(--fill);
+   @media (hover: hover) and (pointer: fine) {
+      .social-find-item:hover .social-find-value {
+         color: var(--fill);
+      }
    }
 </style>

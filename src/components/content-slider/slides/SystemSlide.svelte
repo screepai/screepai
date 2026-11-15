@@ -106,10 +106,12 @@
          box-shadow 250ms ease;
    }
 
-   .system-group:hover {
-      border-color: color-mix(in srgb, var(--fill) 40%, transparent);
-      background: color-mix(in srgb, var(--fill) 7%, transparent);
-      box-shadow: 0 5px 16px rgb(0 0 0 / 0.055);
+   @media (hover: hover) and (pointer: fine) {
+      .system-group:hover {
+         border-color: color-mix(in srgb, var(--fill) 40%, transparent);
+         background: color-mix(in srgb, var(--fill) 7%, transparent);
+         box-shadow: 0 5px 16px rgb(0 0 0 / 0.055);
+      }
    }
 
    .system-group h5 {
@@ -133,7 +135,7 @@
    }
 
    .system-label {
-      opacity: 0.62;
+      color: var(--text-muted);
       font-size: 0.9em;
       font-weight: 600;
    }
@@ -156,7 +158,7 @@
    }
 
    .stack-label {
-      opacity: 0.58;
+      color: var(--text-muted);
       font-size: 0.82em;
       font-weight: 600;
       letter-spacing: 0.025em;
@@ -184,10 +186,12 @@
          transform 180ms ease;
    }
 
-   .system-pill:hover {
-      border-color: color-mix(in srgb, var(--fill) 38%, transparent);
-      background: color-mix(in srgb, var(--fill) 9%, transparent);
-      transform: translateY(-1px);
+   @media (hover: hover) and (pointer: fine) {
+      .system-pill:hover {
+         border-color: color-mix(in srgb, var(--fill) 38%, transparent);
+         background: color-mix(in srgb, var(--fill) 9%, transparent);
+         transform: translateY(-1px);
+      }
    }
 
    .system-group[data-kind="creative"] {
@@ -251,9 +255,11 @@
       grid-column: 1 / -1;
    }
 
-   .creative-tool:hover {
-      background: color-mix(in srgb, var(--tool-color) 10%, transparent);
-      transform: translateY(-2px);
+   @media (hover: hover) and (pointer: fine) {
+      .creative-tool:hover {
+         background: color-mix(in srgb, var(--tool-color) 10%, transparent);
+         transform: translateY(-2px);
+      }
    }
 
    .creative-mark {
@@ -283,7 +289,7 @@
 
    .creative-focus {
       font-size: 0.68em;
-      opacity: 0.6;
+      color: var(--text-muted);
    }
 
    .system-link {
@@ -294,9 +300,11 @@
          opacity 180ms ease;
    }
 
-   .system-link:hover {
-      color: var(--fill);
-      text-decoration: underline;
-      text-underline-offset: 0.18em;
+   @media (hover: hover) and (pointer: fine) {
+      .system-link:hover {
+         color: var(--fill);
+         text-decoration: underline;
+         text-underline-offset: 0.18em;
+      }
    }
 </style>

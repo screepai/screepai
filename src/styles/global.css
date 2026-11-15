@@ -4,10 +4,33 @@
 html {
    -webkit-text-size-adjust: 100%;
    text-size-adjust: 100%;
+   overscroll-behavior: none;
 }
 
 :root {
    --bg: #f7f8f3;
+   --focus-ring: color-mix(in srgb, var(--fill, #868ac9) 32%, #34343c);
+   --text-muted: #73737e;
+}
+
+:where(button, a, input[type="checkbox"]) {
+   touch-action: manipulation;
+}
+
+:where(button, input[type="checkbox"], .theme-toggle) {
+   -webkit-user-select: none;
+   user-select: none;
+   -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button):focus-visible {
+   outline: 2px solid var(--focus-ring);
+   outline-offset: 3px;
+   border-radius: 3px;
+}
+
+:where(a):active {
+   opacity: 0.8;
 }
 
 a {
@@ -15,6 +38,7 @@ a {
 }
 
 body {
+   overscroll-behavior: none;
    background: var(--bg) !important;
    background-size: cover;
    overflow-x: hidden !important;
@@ -40,6 +64,12 @@ li {
 }
 
 @media (prefers-reduced-motion: reduce) {
+   button:active,
+   a:active,
+   .theme-toggle:active .toggle-slot {
+      scale: 1 !important;
+   }
+
    *,
    *::before,
    *::after {

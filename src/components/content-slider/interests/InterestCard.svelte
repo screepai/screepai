@@ -80,10 +80,12 @@
          border-color 220ms ease;
    }
 
-   .interest-piece:hover {
-      transform: rotate(0deg) translateY(-1px);
-      border-color: color-mix(in srgb, var(--fill) 32%, transparent);
-      box-shadow: 0 7px 18px rgb(0 0 0 / 0.065);
+   @media (hover: hover) and (pointer: fine) {
+      .interest-piece:hover {
+         transform: rotate(0deg) translateY(-1px);
+         border-color: color-mix(in srgb, var(--fill) 32%, transparent);
+         box-shadow: 0 7px 18px rgb(0 0 0 / 0.065);
+      }
    }
 
    .interest-piece[data-kind="anime"] {
@@ -139,7 +141,7 @@
 
    .interest-kicker {
       display: block;
-      opacity: 0.48;
+      color: var(--text-muted);
       font-size: 0.68em;
       font-weight: 600;
       letter-spacing: 0.025em;
@@ -147,7 +149,7 @@
 
    .interest-count {
       flex: 0 0 auto;
-      opacity: 0.42;
+      color: var(--text-muted);
       font-size: 0.72em;
       font-weight: 700;
    }
@@ -157,15 +159,17 @@
       width: fit-content;
       margin-top: 0.8em;
       margin-left: auto;
-      color: #999999;
+      color: var(--text-muted);
       font-size: 0.68em;
       font-weight: 550;
       text-decoration: none;
       transition: color 180ms ease;
    }
 
-   .interest-source:hover {
-      color: var(--fill);
+   @media (hover: hover) and (pointer: fine) {
+      .interest-source:hover {
+         color: var(--fill);
+      }
    }
 
    .interest-doodle {
@@ -208,13 +212,5 @@
       position: static;
       margin-top: auto;
       padding-top: 0.85em;
-      opacity: 0.58;
-      transition:
-         opacity 180ms ease,
-         color 180ms ease;
-   }
-
-   .interest-piece[data-kind="music"] .interest-source:hover {
-      opacity: 1;
    }
 </style>

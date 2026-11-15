@@ -110,6 +110,7 @@
 
    .game-account {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.35em;
       min-width: 0;
@@ -129,12 +130,13 @@
       align-items: center;
       gap: 0.25em;
       min-width: 0;
-      padding: 0;
+      min-height: 24px;
+      padding: 2px 0;
       border: 0;
       background: transparent;
-      color: #949494;
+      color: var(--text-muted);
       font: inherit;
-      font-size: 0.65em;
+      font-size: max(9px, 0.65em);
       cursor: pointer;
       transition:
          color 180ms ease,
@@ -142,9 +144,11 @@
          text-shadow 180ms ease;
    }
 
-   .game-uid:hover {
-      color: var(--fill);
-      transform: translateY(-1px);
+   @media (hover: hover) and (pointer: fine) {
+      .game-uid:hover {
+         color: var(--fill);
+         transform: translateY(-1px);
+      }
    }
 
    .game-uid.copied {
@@ -201,16 +205,26 @@
          border-color 250ms ease;
    }
 
-   .game-uid:hover .game-copy-feedback,
    .game-uid:focus-visible .game-copy-feedback {
       opacity: 1;
       transform: translateY(0) scale(1) rotate(-3deg);
    }
 
+   @media (hover: hover) and (pointer: fine) {
+      .game-uid:hover .game-copy-feedback {
+         opacity: 1;
+         transform: translateY(0) scale(1) rotate(-3deg);
+      }
+   }
+
    .game-uid:focus-visible {
-      outline: 1px solid var(--fill);
+      outline: 2px solid var(--focus-ring);
       outline-offset: 3px;
       border-radius: 0.2em;
+   }
+
+   .game-uid:active {
+      scale: 0.97;
    }
 
    .game-uid.copied .game-copy-feedback {
