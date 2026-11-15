@@ -153,10 +153,7 @@
          if (!currentScrollRegion) return;
          const previousScrollTop = currentScrollRegion?.scrollTop ?? 0;
          const currentVisibleHeight = currentScrollRegion.getBoundingClientRect().height;
-         viewport.style.height = `${currentHeight}px`;
-         currentScrollRegion.style.height = `${currentVisibleHeight}px`;
          direction = nextIndex > activeIndex ? 1 : -1;
-         const wasScrolled = previousScrollTop > 0;
          const outgoingPanel = getSlidePanel(viewport, activeIndex);
          let exitFinished: Promise<void> | undefined;
          enterDelay = 0;
@@ -164,12 +161,12 @@
             const exit = playOutAnimations(outgoingPanel, direction);
             exitFinished = exit.finished;
             enterDelay = exit.enterDelay;
-            if (wasScrolled) {
-               outgoingPanel.style.position = "absolute";
-               outgoingPanel.style.inset = "0 0 auto";
+            if (previousScrollTop > 0) {
                outgoingPanel.style.translate = `0 ${-previousScrollTop}px`;
             }
          }
+         viewport.style.height = `${currentHeight}px`;
+         currentScrollRegion.style.height = `${currentVisibleHeight}px`;
          currentScrollRegion.scrollTop = 0;
          await nextFrame();
          activeIndex = nextIndex;
@@ -258,40 +255,38 @@
       onscroll={hideTooltip}
    >
       <div class="slide-viewport" bind:this={slideViewport}>
-         <DiscordNote visible={activeSlide.kind === "socials"} />
-
          {#key activeIndex}
-            <div
-               class="slide-panel"
-               data-slide-index={activeIndex}
-               in:swipeIn={{ direction, delay: enterDelay }}
-               out:holdForExit
-            >
-               <SlideContent
-                  heading={activeSlide.heading}
-                  socials={activeSlide.kind === "socials"}
-                  {direction}
-                  {enterDelay}
-               >
-                  {#if activeSlide.kind === "about"}
-                     <AboutSlide slide={activeSlide} />
-                  {:else if activeSlide.kind === "system"}
-                     <SystemSlide slide={activeSlide} />
-                  {:else if activeSlide.kind === "socials"}
-                     <SocialsSlide slide={activeSlide} {showTooltip} {hideTooltip} />
-                  {:else if activeSlide.kind === "interests"}
-                     <InterestsSlide
-                        slide={activeSlide}
-                        {interestsData}
-                        {interestsLoading}
-                        {interestsError}
-                        {showTooltip}
-                        {hideTooltip}
-                     />
-                  {:else}
-                     <CreditsSlide slide={activeSlide} />
-                  {/if}
-               </SlideContent>
+            <div class="slide-panel" data-slide-index={activeIndex} out:holdForExit>
+               <div in:swipeIn={{ direction, delay: enterDelay }}>
+                  <SlideContent
+                     heading={activeSlide.heading}
+                     socials={activeSlide.kind === "socials"}
+                     {direction}
+                     {enterDelay}
+                  >
+                     {#if activeSlide.kind === "about"}
+                        <AboutSlide slide={activeSlide} />
+                     {:else if activeSlide.kind === "system"}
+                        <SystemSlide slide={activeSlide} />
+                     {:else if activeSlide.kind === "socials"}
+                        <SocialsSlide slide={activeSlide} {showTooltip} {hideTooltip} />
+                     {:else if activeSlide.kind === "interests"}
+                        <InterestsSlide
+                           slide={activeSlide}
+                           {interestsData}
+                           {interestsLoading}
+                           {interestsError}
+                           {showTooltip}
+                           {hideTooltip}
+                        />
+                     {:else}
+                        <CreditsSlide slide={activeSlide} />
+                     {/if}
+                  </SlideContent>
+               </div>
+               {#if activeSlide.kind === "socials"}
+                  <DiscordNote />
+               {/if}
             </div>
          {/key}
       </div>
@@ -312,7 +307,6 @@
    }
 
    .slide-viewport {
-      display: grid;
       position: relative;
       width: 100%;
       overflow: hidden;
@@ -326,6 +320,7 @@
       overscroll-behavior: contain;
       overflow-anchor: none;
       -webkit-overflow-scrolling: touch;
+      scrollbar-gutter: stable;
       scrollbar-width: thin;
       scrollbar-color: color-mix(in srgb, var(--fill) 45%, transparent) transparent;
       transition: height 520ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -351,11 +346,8 @@
    }
 
    .slide-panel {
-      grid-column: 1;
-      grid-row: 1;
-      align-self: start;
-      width: 100%;
-      min-width: 0;
+      position: absolute;
+      inset: 0 0 auto;
       pointer-events: none;
    }
 

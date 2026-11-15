@@ -90,6 +90,7 @@
 <style>
    .system-groups {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.75em;
       text-align: left;
    }
@@ -124,12 +125,13 @@
 
    .system-items {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.4em;
    }
 
    .system-item {
       display: grid;
-      grid-template-columns: minmax(4.5em, 0.6fr) 1fr;
+      grid-template-columns: minmax(4.5em, 0.6fr) minmax(0, 1fr);
       gap: 0.8em;
       align-items: baseline;
    }
@@ -149,11 +151,13 @@
 
    .stack-levels {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.8em;
    }
 
    .stack-section {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.45em;
    }
 

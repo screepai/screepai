@@ -50,6 +50,10 @@ body {
       fill 0.5s ease;
 }
 
+body:has(.background-parallax) {
+   transition-property: color, fill;
+}
+
 ul {
    list-style: none;
 }

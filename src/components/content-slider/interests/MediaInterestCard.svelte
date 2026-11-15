@@ -37,6 +37,52 @@
          ? interest.titleCount + " titles · e.g. " + examples
          : interest.titleCount + " titles";
    }
+
+   function revealRows(list: HTMLUListElement) {
+      const root = list.closest(".slide-scroll");
+      const card = list.closest(".interest-piece-wrap");
+      if (!root || !card) return;
+
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const rowStagger = [0, 48, 84, 110];
+      const observer = new IntersectionObserver(
+         (entries) => {
+            const visibleRows = entries.filter((entry) => entry.isIntersecting);
+            if (!visibleRows.length) return;
+
+            const entrance = card.getAnimations()[0]?.effect?.getComputedTiming();
+            // Begin under the card's entrance once its initial fade is underway.
+            const leadDelay = entrance
+               ? Math.max(0, (entrance.delay ?? 0) + 125 - Number(entrance.localTime))
+               : 0;
+
+            visibleRows.forEach(({ target }, index) => {
+               observer.unobserve(target);
+               target.removeAttribute("data-row-pending");
+               if (reducedMotion.matches || target.matches(":focus-within")) return;
+               target.animate(
+                  [
+                     { opacity: 0.35, transform: "translateY(12px)" },
+                     { opacity: 1, transform: "translateY(0)" },
+                  ],
+                  {
+                     duration: 360,
+                     delay: leadDelay + rowStagger[Math.min(index, rowStagger.length - 1)],
+                     easing: "cubic-bezier(0.22, 0.65, 0.36, 1)",
+                     fill: "backwards",
+                  }
+               );
+            });
+         },
+         { root, rootMargin: "-16px 0px" }
+      );
+      for (const row of list.children) {
+         row.setAttribute("data-row-pending", "");
+         observer.observe(row);
+      }
+
+      return { destroy: () => observer.disconnect() };
+   }
 </script>
 
 <InterestCard
@@ -72,7 +118,7 @@
          <span class="hover-hint">hover marked titles or&nbsp;</span>tap the image icon to preview a
          cover
       </p>
-      <ul class="memory-wipe-list">
+      <ul class="memory-wipe-list" use:revealRows>
          {#each picks as pick (pick.title)}
             <li class="memory-wipe-entry" class:has-note={pick.note}>
                <div class="memory-wipe-heading">
@@ -207,6 +253,13 @@
       display: grid;
       grid-template-columns: 0.65em minmax(0, 1fr);
       gap: 0.18em 0.35em;
+   }
+
+   @media (prefers-reduced-motion: no-preference) {
+      .memory-wipe-entry:global([data-row-pending]):not(:focus-within) {
+         opacity: 0.35;
+         transform: translateY(12px);
+      }
    }
 
    .memory-wipe-entry::before {

@@ -86,6 +86,13 @@
       animation-fill-mode: both;
    }
 
+   :where(:global(.slide-content))
+      :global(.item-card:is([data-scroll-hidden="true"], [data-scroll-revealing="true"])) {
+      animation-name: none;
+      opacity: 0;
+      transform: translate3d(var(--item-start-x), 0, 0) scale(0.95);
+   }
+
    @keyframes heading-enter {
       0% {
          opacity: 0;

@@ -79,9 +79,18 @@
       border: 2px solid #e4e7ec;
       border-radius: 2em;
       background-color: white;
-      transition:
-         background-color 250ms,
-         scale 140ms cubic-bezier(0.23, 1, 0.32, 1);
+      transition: scale 140ms cubic-bezier(0.23, 1, 0.32, 1);
+   }
+
+   .toggle-slot::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background-color: #232a44;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms;
    }
 
    .theme-toggle:active .toggle-slot {
@@ -93,8 +102,8 @@
       outline-offset: 3px;
    }
 
-   .toggle-checkbox:checked ~ .toggle-slot {
-      background-color: #232a44;
+   .toggle-checkbox:checked ~ .toggle-slot::before {
+      opacity: 1;
    }
 
    .toggle-button {

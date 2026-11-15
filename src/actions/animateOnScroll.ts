@@ -28,10 +28,6 @@ export function animateOnScroll(node: HTMLElement) {
    let initialCheck = true;
    let revealed = false;
    let revealAnimation: Animation | null = null;
-   node.style.animation = "none";
-   node.style.opacity = "0";
-   const startX = getComputedStyle(node).getPropertyValue("--item-start-x");
-   node.style.transform = `translate3d(${startX}, 0, 0) scale(0.95)`;
    node.dataset.scrollHidden = "true";
 
    function finishEntryAnimation(event: AnimationEvent) {
@@ -43,9 +39,6 @@ export function animateOnScroll(node: HTMLElement) {
    node.addEventListener("animationend", finishEntryAnimation);
 
    function startEntryAnimation() {
-      node.style.removeProperty("animation");
-      node.style.removeProperty("opacity");
-      node.style.removeProperty("transform");
       delete node.dataset.scrollHidden;
       observer.disconnect();
       layoutObserver.disconnect();
@@ -64,6 +57,11 @@ export function animateOnScroll(node: HTMLElement) {
             return;
          }
          if (!entry.isIntersecting || revealed) {
+            return;
+         }
+         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            node.style.animation = "none";
+            startEntryAnimation();
             return;
          }
          revealed = true;
@@ -119,6 +117,7 @@ export function animateOnScroll(node: HTMLElement) {
             }
          );
          revealAnimation.onfinish = () => {
+            node.style.animation = "none";
             delete node.dataset.scrollRevealing;
             node.style.opacity = "1";
             node.style.transform = "none";

@@ -1,6 +1,7 @@
 <script lang="ts">
    import type { ContentSlide } from "../../../config/contents";
    import type { InterestsResponse } from "#lib/interests/types.js";
+   import { animateOnScroll } from "../../../actions/animateOnScroll";
    import GamesCard from "../interests/GamesCard.svelte";
    import MusicCard from "../interests/MusicCard.svelte";
    import MediaInterestCard from "../interests/MediaInterestCard.svelte";
@@ -66,7 +67,9 @@
          {hideTooltip}
       />
       {#if interestsData.warnings.length > 0}
-         <p class="interest-warning">some sources are currently unavailable</p>
+         <p class="interest-warning item-card" use:animateOnScroll style="--in-delay:605ms;">
+            some sources are currently unavailable
+         </p>
       {/if}
    {/if}
 </div>
@@ -95,7 +98,7 @@
 
    .interest-warning {
       margin: 0;
-      opacity: 0.5;
+      color: var(--text-muted);
       font-size: 0.7em;
       text-align: center;
    }

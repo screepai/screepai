@@ -66,6 +66,7 @@
       --tilt: 0deg;
       --tape-tilt: 0deg;
       position: relative;
+      box-sizing: border-box;
       min-height: 100%;
       padding: 1em 0.9em 0.85em;
       border: 1px solid color-mix(in srgb, var(--fill) 18%, transparent);

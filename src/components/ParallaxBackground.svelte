@@ -26,6 +26,7 @@
    <div
       data-depth="0.02"
       class="bg-layer"
+      style:background-color={darkBackground.bodyBackground}
       style:background-image={`url(${backgroundUrls.dark})`}
       style:background-position={darkBackground.backgroundPosition}
       style:background-size={darkBackground.backgroundSize}
@@ -34,6 +35,7 @@
       data-depth="0.02"
       class="bg-layer"
       style:opacity={darkMode ? 0 : 1}
+      style:background-color={lightBackground.bodyBackground}
       style:background-image={`url(${backgroundUrls.light})`}
       style:background-position={lightBackground.backgroundPosition}
       style:background-size={lightBackground.backgroundSize}

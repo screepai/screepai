@@ -1,65 +1,25 @@
-<script lang="ts">
-   interface Props {
-      visible: boolean;
-   }
-
-   let { visible }: Props = $props();
-
-   function eraseDiscordNote(node: HTMLElement) {
-      const paths = Array.from(node.querySelectorAll<SVGPathElement>("path"));
-      const offsets = paths.map((path) => parseFloat(getComputedStyle(path).strokeDashoffset));
-      const label = node.querySelector<HTMLElement>(".discord-label");
-      const labelOpacity = label ? getComputedStyle(label).opacity : "1";
-
-      paths.forEach((path, index) => {
-         path.style.animation = "none";
-         path.style.strokeDashoffset = String(offsets[index]);
-      });
-      if (label) {
-         label.style.animation = "none";
-         label.style.opacity = labelOpacity;
-      }
-
-      return {
-         duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420,
-         tick: (t: number) => {
-            paths.forEach((path, index) => {
-               path.style.strokeDashoffset = String(
-                  offsets[index] + (1 - offsets[index]) * (1 - t)
-               );
-            });
-            if (label) {
-               label.style.clipPath = `inset(0 ${(1 - t) * 100}% 0 0)`;
-            }
-         },
-      };
-   }
-</script>
-
-{#if visible}
-   <div class="discord-note" aria-hidden="true" out:eraseDiscordNote>
-      <svg viewBox="0 0 42 38" fill="none">
-         <path
-            class="arrow-body"
-            d="M 4 31 C 20 34, 39 29, 39 18 C 40 11, 36 6, 32 3"
-            pathLength="1"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-         />
-         <path
-            class="arrow-tip"
-            d="M 36 11 L 32 3 L 41 5"
-            pathLength="1"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-         />
-      </svg>
-      <span class="discord-label">my discord <span class="kaomoji">ꉂ(˵˃ ᗜ ˂˵)</span></span>
-   </div>
-{/if}
+<div class="discord-note" aria-hidden="true">
+   <svg viewBox="0 0 42 38" fill="none">
+      <path
+         class="arrow-body"
+         d="M 4 31 C 20 34, 39 29, 39 18 C 40 11, 36 6, 32 3"
+         pathLength="1"
+         stroke="currentColor"
+         stroke-width="1.5"
+         stroke-linecap="round"
+      />
+      <path
+         class="arrow-tip"
+         d="M 36 11 L 32 3 L 41 5"
+         pathLength="1"
+         stroke="currentColor"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+      />
+   </svg>
+   <span class="discord-label">my discord <span class="kaomoji">ꉂ(˵˃ ᗜ ˂˵)</span></span>
+</div>
 
 <style>
    .discord-note {

@@ -210,18 +210,18 @@
       -webkit-mask-image: linear-gradient(
          to bottom,
          black 0%,
-         black 88%,
-         rgba(0, 0, 0, 0.8) 92%,
-         rgba(0, 0, 0, 0.4) 96%,
+         black 82%,
+         rgba(0, 0, 0, 0.8) 89%,
+         rgba(0, 0, 0, 0.4) 95%,
          transparent 100%
       );
       aspect-ratio: var(--card-ratio);
       mask-image: linear-gradient(
          to bottom,
          black 0%,
-         black 88%,
-         rgba(0, 0, 0, 0.8) 92%,
-         rgba(0, 0, 0, 0.4) 96%,
+         black 82%,
+         rgba(0, 0, 0, 0.8) 89%,
+         rgba(0, 0, 0, 0.4) 95%,
          transparent 100%
       );
    }

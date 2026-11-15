@@ -170,6 +170,7 @@
 
    .contact-copy {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.15em;
       min-width: 0;
       line-height: 1.3;
@@ -359,12 +360,13 @@
 
    .social-find-items {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.18em;
    }
 
    .social-find-item {
       display: grid;
-      grid-template-columns: minmax(5.5em, 0.65fr) 1fr;
+      grid-template-columns: minmax(5.5em, 0.65fr) minmax(0, 1fr);
       gap: 0.8em;
       align-items: baseline;
       padding: 0.3em 0.35em;

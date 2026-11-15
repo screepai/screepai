@@ -3,7 +3,15 @@ type SwipeParams = {
    direction: number;
    delay?: number;
 };
+
+type ExitSnapshot = {
+   node: HTMLElement;
+   opacity: number;
+   transform: string;
+};
+
 const exitDurations = new WeakMap<Element, number>();
+const DISCORD_NOTE_ERASE_MS = 420;
 
 function prefersReducedMotion() {
    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -36,26 +44,59 @@ export function holdForExit(node: Element): TransitionConfig {
    return { duration: exitDurations.get(node) ?? 0 };
 }
 
+function eraseDiscordNote(note: HTMLElement) {
+   const paths = Array.from(note.querySelectorAll("path"), (path) => ({
+      path,
+      offset: getComputedStyle(path).strokeDashoffset,
+   }));
+   const label = note.querySelector<HTMLElement>(".discord-label");
+   const opacity = label ? getComputedStyle(label).opacity : "0";
+   const timing = { duration: DISCORD_NOTE_ERASE_MS, fill: "both" as const };
+   const animations = paths.map(({ path, offset }) =>
+      path.animate(
+         [
+            { strokeDashoffset: offset, opacity: 1 },
+            { offset: 0.9, opacity: 1 },
+            { strokeDashoffset: "1px", opacity: 0 },
+         ],
+         timing
+      )
+   );
+   if (label) {
+      animations.push(
+         label.animate(
+            [
+               { opacity, clipPath: "inset(0 0% 0 0)" },
+               { opacity, clipPath: "inset(0 100% 0 0)" },
+            ],
+            timing
+         )
+      );
+   }
+   return animations;
+}
+
 export function playOutAnimations(panel: HTMLElement, outgoingDirection: number) {
    const bounds = panel.closest<HTMLElement>(".slide-scroll")?.getBoundingClientRect();
    const animations: Animation[] = [];
    const reducedMotion = prefersReducedMotion();
    let duration = 0;
 
-   function isVisible(node: HTMLElement | null): node is HTMLElement {
-      if (!node || node.dataset.scrollHidden === "true") return false;
+   function measure(node: HTMLElement | null): ExitSnapshot | null {
+      if (!node || node.dataset.scrollHidden === "true") return null;
       const rect = node.getBoundingClientRect();
-      return (
-         rect.height > 0 &&
-         Number(getComputedStyle(node).opacity) > 0 &&
-         (!bounds || (rect.bottom > bounds.top && rect.top < bounds.bottom))
-      );
-   }
-
-   function exit(node: HTMLElement, x: number, y: number, delay = 0) {
+      if (
+         rect.height === 0 ||
+         (bounds && (rect.bottom <= bounds.top || rect.top >= bounds.bottom))
+      ) {
+         return null;
+      }
       const styles = getComputedStyle(node);
       const opacity = Number(styles.opacity);
-      const transform = styles.transform;
+      return opacity > 0 ? { node, opacity, transform: styles.transform } : null;
+   }
+
+   function exit({ node, opacity, transform }: ExitSnapshot, x: number, y: number, delay = 0) {
       node.getAnimations().forEach((animation) => animation.cancel());
       node.style.animation = "none";
       const timing = {
@@ -85,21 +126,31 @@ export function playOutAnimations(panel: HTMLElement, outgoingDirection: number)
       animations.push(animation);
    }
 
-   const heading = panel.querySelector<HTMLElement>(".heading-card");
-   if (isVisible(heading)) exit(heading, 0, -70);
-
-   const items = Array.from(panel.querySelectorAll<HTMLElement>(".item-card")).filter(isVisible);
+   const heading = measure(panel.querySelector<HTMLElement>(".heading-card"));
+   const items = Array.from(panel.querySelectorAll<HTMLElement>(".item-card"), measure).filter(
+      (item) => item !== null
+   );
+   const note = measure(panel.querySelector<HTMLElement>(".note-card"));
+   const discordNote = measure(panel.querySelector<HTMLElement>(".discord-note"));
+   const handwriting = discordNote && !reducedMotion ? eraseDiscordNote(discordNote.node) : [];
+   if (heading) exit(heading, 0, -70);
    const itemX = outgoingDirection > 0 ? -110 : 110;
    items.forEach((item, index) => {
       exit(item, itemX, 0, 30 + index * 65);
    });
 
-   const note = panel.querySelector<HTMLElement>(".note-card");
-   if (isVisible(note)) exit(note, 0, 70, 30 + items.length * 65);
+   if (note) exit(note, 0, 70, 30 + items.length * 65);
+
+   const enterDelay = reducedMotion ? 0 : Math.max(0, duration - 240);
+   if (handwriting.length) {
+      duration = Math.max(duration, DISCORD_NOTE_ERASE_MS);
+      animations.push(...handwriting);
+   }
+   if (discordNote && reducedMotion) exit(discordNote, 0, 0);
 
    exitDurations.set(panel, duration);
    return {
-      enterDelay: reducedMotion ? 0 : Math.max(0, duration - 240),
+      enterDelay,
       finished: Promise.allSettled(animations.map((animation) => animation.finished)).then(
          () => undefined
       ),
