@@ -24,7 +24,7 @@
          </p>
       </li>
    {/each}
-   <li
+   <!-- <li
       class="aster-dedication item-card"
       use:animateOnScroll
       style={`--in-delay:${180 + slide.credits.length * 85}ms;`}
@@ -39,7 +39,7 @@
          <span class="aster-star star-trailing" aria-hidden="true">✧</span>
          <span class="aster-star star-small" aria-hidden="true">⋆</span>
       </a>
-   </li>
+   </li> -->
 </ul>
 
 <style>
