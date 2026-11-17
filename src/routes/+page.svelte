@@ -297,7 +297,10 @@
          {#if introPhase === "loading" || isWinking}
             <p class="intro-status" role="status" aria-atomic="true" in:fade={{ duration: 160 }}>
                {#if isWinking}
-                  data loaded!
+                  <span class="loaded-wipe">
+                     <span class="wipe-old" aria-hidden="true">{LOADING_TEXT}</span>
+                     <span class="loaded-text">data loaded!</span>
+                  </span>
                {:else}
                   <span class="loading-accessible">{LOADING_TEXT}</span>
                   <span class="loading-letters" aria-hidden="true" use:animateLoadingLetters>
@@ -491,6 +494,73 @@
    .loading-letter {
       display: inline-block;
       transform-origin: center bottom;
+   }
+
+   .loaded-wipe {
+      position: relative;
+      display: inline-grid;
+      justify-items: center;
+   }
+
+   .wipe-old,
+   .loaded-text {
+      grid-area: 1 / 1;
+   }
+
+   .wipe-old {
+      animation: loaded-wipe-text 560ms step-end forwards reverse;
+   }
+
+   .loaded-wipe::after {
+      content: "";
+      position: absolute;
+      inset: 0 -0.15em;
+      background: currentColor;
+      clip-path: inset(100% 0 0 0);
+      animation: loaded-wipe-block 560ms cubic-bezier(0.77, 0, 0.175, 1) forwards;
+   }
+
+   .loaded-text {
+      opacity: 0;
+      animation: loaded-wipe-text 560ms step-end forwards;
+   }
+
+   @keyframes loaded-wipe-block {
+      0% {
+         clip-path: inset(100% 0 0 0);
+      }
+      50% {
+         clip-path: inset(0 0 0 0);
+      }
+      100% {
+         clip-path: inset(0 0 100% 0);
+      }
+   }
+
+   @keyframes loaded-wipe-text {
+      0% {
+         opacity: 0;
+      }
+      50%,
+      100% {
+         opacity: 1;
+      }
+   }
+
+   @media (prefers-reduced-motion: reduce) {
+      .loaded-wipe::after {
+         animation: none;
+      }
+
+      .loaded-text {
+         opacity: 1;
+         animation: none;
+      }
+
+      .wipe-old {
+         visibility: hidden;
+         animation: none;
+      }
    }
 
    .centered-char {
